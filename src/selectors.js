@@ -47,7 +47,7 @@ module.exports = {
 		postIdPrefix: 'p',
 		posts: '.content > div, td.reply',
 		filename: {
-			':scope > span:nth-of-type(2)': 'textContent'
+			':scope > br + span': 'textContent'
 		},
 		filenameParser: v => v.split(', ').slice(2).join(', '),
 		thumb: '.thumb',
