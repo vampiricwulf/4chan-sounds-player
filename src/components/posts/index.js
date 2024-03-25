@@ -1,7 +1,7 @@
 const selectors = require('../../selectors');
 
 const protocolRE = /^(https?:)?\/\//;
-const filenameRE = /(.*?)[[({](?:audio|sound)[ =:|$](.*?)[\])}]/gi;
+const filenameRE = /(.*?)[[({](audio|sound|catbox)[ =:|$](.*?)[\])}]/gi;
 
 let localCounter = 0;
 
@@ -99,19 +99,26 @@ module.exports = {
 		matches.length && !post && localCounter++;
 
 		return matches.reduce(({ sounds, filtered }, match, i) => {
-			let src = match[2];
+			let host = match[2];
+			let src = match[3];
 			const id = (post || 'local' + localCounter) + ':' + i;
 			const name = match[1].trim();
 			const title = name || defaultName + (matches.length > 1 ? ` (${i + 1})` : '');
 			const standaloneVideo = src === image;
 
 			try {
-				if (src.includes('%')) {
-					src = decodeURIComponent(src);
-				}
+				switch (host) {
+					case 'catbox':
+						src = (location.protocol + '//files.catbox.moe/' + src);
+						break;
+					default:
+						if (src.includes('%')) {
+							src = decodeURIComponent(src);
+						}
 
-				if (!src.startsWith('blob:') && src.match(protocolRE) === null) {
-					src = (location.protocol + '//' + src);
+						if (!src.startsWith('blob:') && src.match(protocolRE) === null) {
+							src = (location.protocol + '//' + src);
+						}
 				}
 			} catch (error) {
 				return { sounds, filtered };
