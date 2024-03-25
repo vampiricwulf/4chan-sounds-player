@@ -58,7 +58,7 @@ module.exports = {
 			const thumbImg = fileThumb && fileThumb.querySelector('img');
 			const thumbSrc = thumbImg && thumbImg.src;
 			const imageMD5 = Site === 'Fuuka'
-				? post.querySelector(':scope > a:nth-of-type(3)').href.split('/').pop()
+				? post.querySelector(':scope > a:not(.js)').href.split('/').pop()
 				: thumbImg && thumbImg.getAttribute('data-md5');
 
 			if (imageMD5 === 'HO0kbeZNQqBye1CF7Tq7hg==' && post.innerHTML.includes('[futari no christmas]')) {

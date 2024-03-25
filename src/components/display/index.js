@@ -54,7 +54,7 @@ module.exports = {
 			const li = _.element('<li><a href="javascript:;">Sounds</a></li>', nav);
 			li.children[0].addEventListener('click', Player.display.toggle);
 		} else if (Site === 'Fuuka') {
-			const br = document.querySelector('body > div > br');
+			const br = document.querySelector('div:has(#simple-search-form)');
 			br.parentNode.insertBefore(document.createTextNode('['), br);
 			_.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', br, 'beforebegin');
 			br.parentNode.insertBefore(document.createTextNode(']'), br);

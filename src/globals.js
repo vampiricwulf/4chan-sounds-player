@@ -12,7 +12,7 @@ window.Thread = (location.href.match(/\/thread\/(\d+)/) || [])[1];
 // Determine what type of site this is. Default to FoolFuuka as the most common archiver.
 window.Site = is4chan ? '4chan'
 	: ((document.head.querySelector('meta[name="generator"]') || {}).content || '').includes('FoolFuuka') ? 'FoolFuuka'
-	: ((document.head.querySelector('meta[name="description"]') || {}).content || '').includes('Fuuka') ? 'Fuuka'
+	: location.hostname.includes('warosu.org') ? 'Fuuka'
 	: 'FoolFuuka';
 
 class PlayerError extends Error {
