@@ -27,6 +27,18 @@ async function doInit() {
 		childList: true,
 		subtree: true
 	});
+	
+	if (isOneechan) {
+		waitingForOneechan();
+	}
+}
+
+function waitingForOneechan () {
+	if(!document.querySelector('#OneeChanLink')) {
+		window.setTimeout(waitingForOneechan,50);
+	} else {
+		Player.theme.applyBoardTheme();
+	}
 }
 
 document.addEventListener('4chanXInitFinished', doInit);
