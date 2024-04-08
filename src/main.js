@@ -28,14 +28,14 @@ async function doInit() {
 		subtree: true
 	});
 	
-	if (isOneechan) {
-		waitingForOneechan();
-	}
+	if (is4chan)
+		if (isOneeChan)
+			waitingForOneeChan();
 }
 
-function waitingForOneechan () {
+function waitingForOneeChan () {
 	if(!document.querySelector('#OneeChanLink')) {
-		window.setTimeout(waitingForOneechan,50);
+		window.setTimeout(waitingForOneeChan,50);
 	} else {
 		Player.theme.applyBoardTheme();
 	}

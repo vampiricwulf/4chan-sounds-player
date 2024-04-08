@@ -140,6 +140,7 @@ module.exports = {
 	 */
 	toggle() {
 		if (Player.container.style.display === 'none') {
+			Player.theme.applyBoardTheme();
 			Player.show();
 		} else {
 			Player.hide();
