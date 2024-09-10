@@ -6,6 +6,7 @@ window.ns = 'fcsp';
 
 window.is4chan = location.hostname.includes('4chan.org') || location.hostname.includes('4channel.org');
 window.isChanX = document.documentElement && document.documentElement.classList.contains('fourchan-x');
+window.isChanXT = document.documentElement && document.documentElement.classList.contains('fourchan-xt');
 window.isOneeChan = document.documentElement && document.documentElement.classList.contains('oneechan');
 window.Board = location.pathname.split('/')[1];
 window.Thread = (location.href.match(/\/thread\/(\d+)/) || [])[1];
