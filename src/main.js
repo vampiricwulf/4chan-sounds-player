@@ -55,5 +55,5 @@ setTimeout(function () {
 			document.addEventListener('DOMContentLoaded', doInit);
 		}
 	}
-}, 0);
+}, 1000);
 
