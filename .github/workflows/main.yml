@@ -22,6 +22,10 @@ jobs:
         run: npm install
       - name: Pack extension
         run: npm run build
+      - name: Pack extension (beta)
+        run: npm run build-beta
+      - name: Pack extension (dev)
+        run: npm run build-dev
       - name: Commit files  # transfer the new html files back into the repository
         run: |
           git config --local user.name  ${{ github.actor }}        
