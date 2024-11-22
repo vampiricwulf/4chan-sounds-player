@@ -85,15 +85,15 @@ module.exports = {
 		if (!filename) {
 			return { sounds: [], filtered: [] };
 		}
-		// Best quality image. For webms this has to be the thumbnail still. SAD!
-		const imageOrThumb = image.endsWith('webm') ? thumb : image;
+		// Best quality image. For webms or mp4s this has to be the thumbnail still. SAD!
+		const imageOrThumb = (image.endsWith('webm') || image.endsWith('mp4')) ? thumb : image;
 		const matches = [];
 		let match;
 		while ((match = filenameRE.exec(filename)) !== null) {
 			matches.push(match);
 		}
-		// Add webms without a sound filename as a standable video if enabled
-		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.endsWith('.webm')) {
+		// Add webms or mp4s without a sound filename as a standable video if enabled
+		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && (filename.endsWith('.webm') || filename.endsWith('mp4'))) {
 			matches.push([ null, filename.slice(0, -5), image ]);
 		}
 		const defaultName = matches[0] && matches[0][1] || post || 'Local Sound ' + localCounter;

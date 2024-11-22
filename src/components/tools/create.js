@@ -104,10 +104,10 @@ const createTool = module.exports = {
 		const targetInput = e.target.nodeName === 'INPUT' && e.target.getAttribute('type') === 'file' && e.target;
 		[ ...e.dataTransfer.files ].forEach(file => {
 			const isVideo = file.type.startsWith('video');
-			const isImage = file.type.startsWith('image') || file.type === 'video/webm';
+			const isImage = file.type.startsWith('image') || file.type === 'video/webm' || file.type === 'video/mp4';
 			const isSound = file.type.startsWith('audio');
 			if (isVideo || isImage || isSound) {
-				const input = file.type === 'video/webm' && targetInput
+				const input = (file.type === 'video/webm' || file.type === 'video/mp4') && targetInput
 					? targetInput
 					: isImage
 						? Player.tools.imgInput

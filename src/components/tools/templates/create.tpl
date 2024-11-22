@@ -43,7 +43,7 @@
 							class="${ns}-create-sound-img"
 							@change='tools.handleImageSelect;tools.handleFileSelect($event.target)'
 							type="file"
-							accept="image/*,.webm"
+							accept="image/*,.webm,.mp4"
 						/>
 					</div>
 				</div>

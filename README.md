@@ -1,6 +1,6 @@
 # 4chan Sounds Player
 
-A floating player for 4chan sounds threads. 
+A floating player for 4chan sounds threads.
 
 If you have [4chan External Sounds](https://greasyfork.org/en/scripts/31045-4chan-external-sounds) installed make you sure disable the inline player of this script under Settings > Playback.
 
@@ -99,8 +99,8 @@ __Sound Properties__
 - `id` - An identifier for the sound.
 - `title` - Same as sound-name but without being wrapped in any html
 - `post` - The post identifier for the sound.
-- `imageOrThumb` - Full size image URL for images, or thumbnail URL for webms.
-- `image` - Full image/webm URL.
+- `imageOrThumb` - Full size image URL for images, or thumbnail URL for webms/mp4s.
+- `image` - Full image/webm/mp4 URL.
 - `thumb` - Thumnail URL.
 - `filename` - The entire filename, including `[sound=...]`.
 - `imageMD5` - MD5 of the image.

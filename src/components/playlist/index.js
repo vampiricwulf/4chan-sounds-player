@@ -231,19 +231,19 @@ module.exports = {
 	addFromFiles(files) {
 		// Check each of the files for sounds.
 		[ ...files ].forEach(file => {
-			if (!file.type.startsWith('image') && file.type !== 'video/webm') {
+			if (!file.type.startsWith('image') && file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return;
 			}
 			const imageSrc = URL.createObjectURL(file);
 			const type = file.type;
 			let thumbSrc = imageSrc;
 
-			// If it's not a webm just use the full image as the thumbnail
-			if (file.type !== 'video/webm') {
+			// If it's not a webm or mp4 just use the full image as the thumbnail
+			if (file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return _continue();
 			}
 
-			// If it's a webm grab the first frame as the thumbnail
+			// If it's a webm or mp4 grab the first frame as the thumbnail
 			const canvas = document.createElement('canvas');
 			const video = document.createElement('video');
 			const context = canvas.getContext('2d');
@@ -624,7 +624,7 @@ module.exports = {
 			return;
 		}
 		sound.preloading = true;
-		const video = sound.image.endsWith('.webm') || sound.type === 'video/webm';
+		const video = sound.image.endsWith('.webm') || sound.type === 'video/webm' || sound.image.endsWith('.mp4') || sound.type === 'video/mp4';
 		await Promise.all([
 			!sound.standaloneVideo && new Promise(resolve => {
 				const audio = new Audio();
