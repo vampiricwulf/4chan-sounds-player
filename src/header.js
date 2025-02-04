@@ -13,6 +13,7 @@
 // @match        *://warosu.org/*
 // @match        *://archive.nyafuu.org/*
 // @match        *://archive.palanq.win/*
+// @match        *://arch.b4k.dev/*
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
