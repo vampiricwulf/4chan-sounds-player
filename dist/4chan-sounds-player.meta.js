@@ -12,6 +12,7 @@
 // @match        *://archived.moe/*
 // @match        *://warosu.org/*
 // @match        *://archive.nyafuu.org/*
+// @match        *://archive.palanq.win/*
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
