@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.5.6
+// @version      3.5.7
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @author       RCC
@@ -4143,8 +4143,8 @@ module.exports = {
 		});
 
 		// Show update notifications.
-		if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.5.6") {
-			Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.5.6"}</a>.`);
+		if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.5.7") {
+			Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.5.7"}</a>.`);
 		}
 
 		// Listen for the player closing to apply the pause on hide setting.
@@ -4292,7 +4292,7 @@ module.exports = {
 			// Show the playlist or image view on load, whichever was last shown.
 			settings.viewStyle = Player.playlist._lastView;
 			// Store the player version with the settings.
-			settings.VERSION = "3.5.6";
+			settings.VERSION = "3.5.7";
 			// Save the settings.
 			return GM.setValue('settings', JSON.stringify(settings));
 		} catch (err) {
@@ -4305,7 +4305,7 @@ module.exports = {
 	 */
 	async migrate(fromVersion) {
 		// Fall out if the player hasn't updated.
-		if (!fromVersion || fromVersion === "3.5.6") {
+		if (!fromVersion || fromVersion === "3.5.7") {
 			return {};
 		}
 		const changes = {};
@@ -5930,7 +5930,7 @@ module.exports = {
 			.replace(soundIndexRE, data.sound ? Player.sounds.indexOf(data.sound) + 1 : 0)
 			.replace(soundCountRE, Player.sounds.length)
 			.replace(soundFilterCountRE, Player.filteredSounds.length));
-		!data.ignoreVersion && (html = html.replace(/%v/g, "3.5.6"));
+		!data.ignoreVersion && (html = html.replace(/%v/g, "3.5.7"));
 
 		// Apply any specific replacements
 		if (data.replacements) {
@@ -7487,7 +7487,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.5.6"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.5.7"}">
 			${Icons.github}
 		</a>
 	</div>
