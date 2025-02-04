@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.5.7
+// @version      3.5.8
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @author       RCC
@@ -13,6 +13,7 @@
 // @match        *://warosu.org/*
 // @match        *://archive.nyafuu.org/*
 // @match        *://archive.palanq.win/*
+// @match        *://arch.b4k.dev/*
 // @grant        GM.getValue
 // @grant        GM.setValue
 // @grant        GM.xmlHttpRequest
