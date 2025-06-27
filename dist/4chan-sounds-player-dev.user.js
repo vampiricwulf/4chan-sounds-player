@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.5.8
+// @version      3.5.9
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @author       RCC
@@ -4144,8 +4144,8 @@ module.exports = {
 		});
 
 		// Show update notifications.
-		if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.5.8") {
-			Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.5.8"}</a>.`);
+		if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.5.9") {
+			Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.5.9"}</a>.`);
 		}
 
 		// Listen for the player closing to apply the pause on hide setting.
@@ -4293,7 +4293,7 @@ module.exports = {
 			// Show the playlist or image view on load, whichever was last shown.
 			settings.viewStyle = Player.playlist._lastView;
 			// Store the player version with the settings.
-			settings.VERSION = "3.5.8";
+			settings.VERSION = "3.5.9";
 			// Save the settings.
 			return GM.setValue('settings', JSON.stringify(settings));
 		} catch (err) {
@@ -4306,7 +4306,7 @@ module.exports = {
 	 */
 	async migrate(fromVersion) {
 		// Fall out if the player hasn't updated.
-		if (!fromVersion || fromVersion === "3.5.8") {
+		if (!fromVersion || fromVersion === "3.5.9") {
 			return {};
 		}
 		const changes = {};
@@ -5028,7 +5028,7 @@ const createTool = module.exports = {
 		let placeholder = image.name.replace(/\.[^/.]+$/, '');
 
 		if (await Player.tools.hasAudio(image)) {
-			Player.logError('Audio not allowed for the image webm.', null, 'warning');
+			Player.logError('Audio not allowed for the image video.', null, 'warning');
 		}
 
 		// Show the image name as the placeholder for the name input since it's the default
@@ -5147,14 +5147,14 @@ const createTool = module.exports = {
 
 		try {
 			if (!image) {
-				throw new PlayerError('Select an image or webm.', 'warning');
+				throw new PlayerError('Select an image or video.', 'warning');
 			}
 
 			// No audio allowed for the "image" webm.
 			if (image.type.startsWith('video') && await Player.tools.hasAudio(image)) {
-				createTool.status.innerHTML += '<br>Audio not allowed for the image webm.'
-					+ '<br>Remove the audio from the webm and try again.';
-				throw new PlayerError('Audio not allowed for the image webm.', 'warning');
+				createTool.status.innerHTML += '<br>Audio not allowed for the image video.'
+					+ '<br>Remove the audio from the video and try again.';
+				throw new PlayerError('Audio not allowed for the image video.', 'warning');
 			}
 
 			const soundlessLength = names.join('').length + (soundURLs || sounds).length * 8;
@@ -5931,7 +5931,7 @@ module.exports = {
 			.replace(soundIndexRE, data.sound ? Player.sounds.indexOf(data.sound) + 1 : 0)
 			.replace(soundCountRE, Player.sounds.length)
 			.replace(soundFilterCountRE, Player.filteredSounds.length));
-		!data.ignoreVersion && (html = html.replace(/%v/g, "3.5.8"));
+		!data.ignoreVersion && (html = html.replace(/%v/g, "3.5.9"));
 
 		// Apply any specific replacements
 		if (data.replacements) {
@@ -6292,8 +6292,8 @@ module.exports = [
 module.exports = [
 	{
 		property: 'addWebm',
-		title: 'Include WebM',
-		description: 'Whether to add all WebM files regardless of a sound filename.',
+		title: 'Include Video',
+		description: 'Whether to add all video files regardless of a sound filename.',
 		default: 'soundBoards',
 		displayGroup: 'Filter',
 		options: {
@@ -6315,7 +6315,7 @@ module.exports = [
 			'zz.ht',
 			'zz.fo'
 		],
-		actions: [ { title: 'Reset', handler: 'settings.reset("allow")', mods: '.prevent' } ],
+		actions: [{ title: 'Reset', handler: 'settings.reset("allow")', mods: '.prevent' }],
 		displayGroup: 'Filter',
 		displayMethod: 'textarea',
 		attrs: 'rows=10',
@@ -6324,10 +6324,10 @@ module.exports = [
 	},
 	{
 		property: 'filters',
-		default: [ '# Image MD5 or sound URL' ],
+		default: ['# Image MD5 or sound URL'],
 		title: 'Filters',
 		description: 'List of URLs or image MD5s to filter, one per line.\nLines starting with a # will be ignored.',
-		actions: [ { title: 'Reset', handler: 'settings.reset("filters")', mods: '.prevent' } ],
+		actions: [{ title: 'Reset', handler: 'settings.reset("filters")', mods: '.prevent' }],
 		displayGroup: 'Filter',
 		displayMethod: 'textarea',
 		attrs: 'rows=10',
@@ -7489,7 +7489,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.5.8"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.5.9"}">
 			${Icons.github}
 		</a>
 	</div>
