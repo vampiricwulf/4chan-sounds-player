@@ -4,8 +4,8 @@ const xhrReplacer = require('../../xhr-replace');
 const itemMenuTemplate = require('./templates/item_menu.tpl');
 
 module.exports = {
-	atRoot: [ 'add', 'remove' ],
-	public: [ 'search' ],
+	atRoot: ['add', 'remove'],
+	public: ['search'],
 
 	tagLoadTO: {},
 
@@ -37,7 +37,7 @@ module.exports = {
 			Player.playlist.showImage(sound);
 			// Update the previously and the new playing rows.
 			Player.$all(`.${ns}-list-item.playing, .${ns}-list-item[data-id="${Player.playing.id}"]`).forEach(el => {
-				const newItem = Player.playlist.listTemplate({ sounds: [ Player.sounds.find(s => s.id === el.dataset.id) ] });
+				const newItem = Player.playlist.listTemplate({ sounds: [Player.sounds.find(s => s.id === el.dataset.id)] });
 				_.element(newItem, el, 'beforebegin');
 				el.parentNode.removeChild(el);
 			});
@@ -84,13 +84,13 @@ module.exports = {
 		Player.on('config:imageHeight', height => Player.$(`.${ns}-image-link`).style.height = height + 'px');
 
 		// Preload the next audio.
-		Player.on([ 'playsound', 'order' ], () => {
+		Player.on(['playsound', 'order'], () => {
 			const next = Player.sounds[(Player.sounds.indexOf(Player.playing) + 1) % Player.sounds.length];
 			next && Player.playlist.preload(next);
 		});
 
 		// Maintain changes to the user templates it's dependent values
-		Player.userTemplate.maintain(Player.playlist, 'rowTemplate', [ 'shuffle' ]);
+		Player.userTemplate.maintain(Player.playlist, 'rowTemplate', ['shuffle']);
 
 		// Resize observer to handle transparent images
 		Player.playlist.imageResizeObserver = new ResizeObserver(Player.playlist.resizeTransBG);
@@ -154,7 +154,7 @@ module.exports = {
 		e && e.preventDefault();
 		let style = Player.config.viewStyle === 'playlist' ? 'image'
 			: Player.config.viewStyle === 'image' ? 'playlist'
-			: Player.playlist._lastView;
+				: Player.playlist._lastView;
 		Player.display.setViewStyle(style);
 	},
 
@@ -180,7 +180,7 @@ module.exports = {
 				if (!skipRender) {
 					// Add the sound to the playlist.
 					const list = Player.$(`.${ns}-list-container`);
-					let rowContainer = _.element(`<div>${Player.playlist.listTemplate({ sounds: [ sound ] })}</div>`);
+					let rowContainer = _.element(`<div>${Player.playlist.listTemplate({ sounds: [sound] })}</div>`);
 					if (index < Player.sounds.length - 1) {
 						const before = Player.$(`.${ns}-list-item[data-id="${Player.sounds[index + 1].id}"]`);
 						list.insertBefore(rowContainer.children[0], before);
@@ -216,7 +216,7 @@ module.exports = {
 		if (entry.isDirectory) {
 			return Player.playlist._readEntries(entry.createReader());
 		}
-		return entry.file(file => Player.playlist.addFromFiles([ file ]));
+		return entry.file(file => Player.playlist.addFromFiles([file]));
 	},
 
 	_readEntries(reader) {
@@ -230,8 +230,8 @@ module.exports = {
 
 	addFromFiles(files) {
 		// Check each of the files for sounds.
-		[ ...files ].forEach(file => {
-			if (!file.type.startsWith('image') && file.type !== 'video/webm') {
+		[...files].forEach(file => {
+			if (!file.type.startsWith('image') && file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return;
 			}
 			const imageSrc = URL.createObjectURL(file);
@@ -239,7 +239,7 @@ module.exports = {
 			let thumbSrc = imageSrc;
 
 			// If it's not a webm just use the full image as the thumbnail
-			if (file.type !== 'video/webm') {
+			if (file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return _continue();
 			}
 
@@ -247,7 +247,7 @@ module.exports = {
 			const canvas = document.createElement('canvas');
 			const video = document.createElement('video');
 			const context = canvas.getContext('2d');
-			video.addEventListener('seeked', function () {
+			video.addEventListener('seeked', function() {
 				canvas.width = video.videoWidth;
 				canvas.height = video.videoHeight;
 				context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
@@ -292,7 +292,7 @@ module.exports = {
 	},
 
 	toggleRepeat() {
-		const values = [ 'all', 'one', 'none' ];
+		const values = ['all', 'one', 'none'];
 		const current = values.indexOf(Player.config.repeat);
 		Player.set('repeat', values[(current + 4) % 3]);
 	},
@@ -309,7 +309,7 @@ module.exports = {
 			const sounds = Player.sounds;
 			for (let i = sounds.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
-				[ sounds[i], sounds[j] ] = [ sounds[j], sounds[i] ];
+				[sounds[i], sounds[j]] = [sounds[j], sounds[i]];
 			}
 		}
 		Player.trigger('order');
@@ -552,7 +552,7 @@ module.exports = {
 
 		function handleTags(data) {
 			// Store all the string tags that jsmediatags has set.
-			sound.tags = data && Object.entries(data.tags || {}).reduce((tags, [ name, value ]) => {
+			sound.tags = data && Object.entries(data.tags || {}).reduce((tags, [name, value]) => {
 				typeof value === 'string' && (tags[name] = value);
 				return tags;
 			}, {});
@@ -624,7 +624,7 @@ module.exports = {
 			return;
 		}
 		sound.preloading = true;
-		const video = sound.image.endsWith('.webm') || sound.type === 'video/webm';
+		const video = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
 		await Promise.all([
 			!sound.standaloneVideo && new Promise(resolve => {
 				const audio = new Audio();

@@ -54,7 +54,7 @@ const createTool = module.exports = {
 		const container = input.closest(`.${ns}-file-input`);
 		const fileText = container.querySelector('.text');
 		const fileList = container.querySelector(`.${ns}-file-list`);
-		files || (files = [ ...input.files ]);
+		files || (files = [...input.files]);
 		container.classList[files.length ? 'remove' : 'add']('placeholder');
 		fileText.innerHTML = files.length > 1
 			? files.length + ' files'
@@ -87,7 +87,7 @@ const createTool = module.exports = {
 	handleWebmSoundChange(e) {
 		const sound = Player.tools.sndInput;
 		const image = Player.tools.imgInput;
-		Player.tools.handleFileSelect(sound, e.currentTarget.checked && [ image.files[0] ]);
+		Player.tools.handleFileSelect(sound, e.currentTarget.checked && [image.files[0]]);
 	},
 
 	toggleSoundInput(type) {
@@ -102,19 +102,19 @@ const createTool = module.exports = {
 	 */
 	handleCreateSoundDrop(e) {
 		const targetInput = e.target.nodeName === 'INPUT' && e.target.getAttribute('type') === 'file' && e.target;
-		[ ...e.dataTransfer.files ].forEach(file => {
+		[...e.dataTransfer.files].forEach(file => {
 			const isVideo = file.type.startsWith('video');
-			const isImage = file.type.startsWith('image') || file.type === 'video/webm';
+			const isImage = file.type.startsWith('image') || file.type === 'video/webm' || file.type === 'video/mp4';
 			const isSound = file.type.startsWith('audio');
 			if (isVideo || isImage || isSound) {
-				const input = file.type === 'video/webm' && targetInput
+				const input = (file.type === 'video/webm' || file.type === 'video/mp4') && targetInput
 					? targetInput
 					: isImage
 						? Player.tools.imgInput
 						: Player.tools.sndInput;
 				const dataTransfer = new DataTransfer();
 				if (input.multiple) {
-					[ ...input.files ].forEach(file => dataTransfer.items.add(file));
+					[...input.files].forEach(file => dataTransfer.items.add(file));
 				}
 				dataTransfer.items.add(file);
 				input.files = dataTransfer.files;
@@ -149,13 +149,13 @@ const createTool = module.exports = {
 		let image = Player.tools.imgInput.files[0];
 		let soundURLs = useSoundURL && Player.$(`.${ns}-create-sound-snd-url`).value.split(',').map(v => v.trim()).filter(v => v);
 		let sounds = !(Player.$(`.${ns}-use-video`) || {}).checked || !image || !image.type.startsWith('video')
-			? [ ...Player.tools.sndInput.files ]
-			: image && [ image ];
+			? [...Player.tools.sndInput.files]
+			: image && [image];
 		const customName = Player.$(`.${ns}-create-sound-name`).value;
 		// Only split a given name if there's multiple sounds.
 		const names = customName
-			? ((soundURLs || sounds).length > 1 ? customName.split(',') : [ customName ]).map(v => v.trim())
-			: image && [ image.name.replace(/\.[^/.]+$/, '') ];
+			? ((soundURLs || sounds).length > 1 ? customName.split(',') : [customName]).map(v => v.trim())
+			: image && [image.name.replace(/\.[^/.]+$/, '')];
 
 		try {
 			if (!image) {
@@ -224,7 +224,7 @@ const createTool = module.exports = {
 			const ext = image.name.match(/\.([^/.]+)$/)[1];
 
 			// Keep track of the create image and a url to it.
-			Player.tools._createdImage = new File([ image ], filename + '.' + ext, { type: image.type });
+			Player.tools._createdImage = new File([image], filename + '.' + ext, { type: image.type });
 			Player.tools._createdImageURL = URL.createObjectURL(Player.tools._createdImage);
 
 			// Complete! with some action links
@@ -306,7 +306,7 @@ const createTool = module.exports = {
 	 * Add the created sound image to the player.
 	 */
 	addCreatedToPlayer() {
-		Player.playlist.addFromFiles([ Player.tools._createdImage ]);
+		Player.playlist.addFromFiles([Player.tools._createdImage]);
 	},
 
 	/**
@@ -329,7 +329,7 @@ const createTool = module.exports = {
 			event.dataTransfer = dataTransfer;
 			document.querySelector('#qr').dispatchEvent(event);
 
-		// Native, set the file input value. Check for a quick reply
+			// Native, set the file input value. Check for a quick reply
 		} else if (qrLink) {
 			qrLink.click();
 			document.querySelector('#qrFile').files = dataTransfer.files;

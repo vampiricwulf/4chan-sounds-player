@@ -19,5 +19,5 @@
 	<div class="${ns}-footer ${ns}-row ${ns}-align-center ${ns}-hover-trigger">
 		${Player.footer.template(data)}
 	</div>
-	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm" multiple>
+	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm,.mp4" multiple>
 </div>`

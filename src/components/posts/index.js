@@ -2,7 +2,7 @@ const selectors = require('../../selectors');
 const hosts = require('../../hosts');
 
 const protocolRE = /^(https?:)?\/\//;
-const filenameRE = new RegExp('(.*?)[[({]('+Object.keys(hosts).join("|")+')[ =:|$](.*?)[\\])}]','gi');
+const filenameRE = new RegExp('(.*?)[[({](' + Object.keys(hosts).join("|") + ')[ =:|$](.*?)[\\])}]', 'gi');
 
 let localCounter = 0;
 
@@ -10,7 +10,7 @@ module.exports = {
 	addPosts(target, postRender) {
 		let addedSounds = false;
 		let posts = target.classList.contains('post')
-			? [ target ]
+			? [target]
 			: target.querySelectorAll(selectors.posts);
 
 		posts.forEach(post => Player.posts.addPost(post, postRender) && (addedSounds = true));
@@ -43,7 +43,7 @@ module.exports = {
 			let filename = null;
 			let filenameLocations = selectors.filename;
 
-			Object.keys(filenameLocations).some(function (selector) {
+			Object.keys(filenameLocations).some(function(selector) {
 				const node = post.querySelector(selector);
 				return node && (filename = node[filenameLocations[selector]]);
 			});
@@ -86,15 +86,15 @@ module.exports = {
 			return { sounds: [], filtered: [] };
 		}
 		// Best quality image. For webms this has to be the thumbnail still. SAD!
-		const imageOrThumb = image.endsWith('webm') ? thumb : image;
+		const imageOrThumb = image.match(/(webm|mp4)$/i) ? thumb : image;
 		const matches = [];
 		let match;
 		while ((match = filenameRE.exec(filename)) !== null) {
 			matches.push(match);
 		}
 		// Add webms without a sound filename as a standable video if enabled
-		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.endsWith('.webm')) {
-			matches.push([ null, filename.slice(0, -5), image ]);
+		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.match(/\.(webm|mp4)$/i)) {
+			matches.push([null, filename.slice(0, -5), image]);
 		}
 		const defaultName = matches[0] && matches[0][1] || post || 'Local Sound ' + localCounter;
 		matches.length && !post && localCounter++;
@@ -155,7 +155,7 @@ module.exports = {
 			if (hasFilter) {
 				postEl.classList.add('filtered-sound');
 				// There is a filtered sound for the post so create/update the add link,
-				const filtered = [ allFilters.image && 'image', allFilters.sound.length && 'sound' ].filter(Boolean).join(' and ');
+				const filtered = [allFilters.image && 'image', allFilters.sound.length && 'sound'].filter(Boolean).join(' and ');
 				const hint = (allFilters.host.length > 1 ? `The hosts ${allFilters.host.join(', ')} are not allowed` : '')
 					+ (allFilters.host.length === 1 ? `The host ${allFilters.host[0]} is not allowed` : '')
 					+ (filtered ? `${allFilters.host.length ? ', and the' : 'The'} player filters disallow this ${filtered}` : '')
@@ -168,7 +168,7 @@ module.exports = {
 						+ (linkInfo.prependText || '')
 						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${hint}" @click='posts.allowPost("${postId}")'>${linkInfo.unfilterText || ''}</a>`
 						+ (linkInfo.appendText || '')
-					+ '</span>', relative, linkInfo.position);
+						+ '</span>', relative, linkInfo.position);
 				}
 			} else {
 				// There isn't a filtered so remove the add link.
@@ -187,7 +187,7 @@ module.exports = {
 					+ (linkInfo.prependText || '')
 					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='play("${addedSound.id}")'>${linkInfo.text || ''}</a>`
 					+ (linkInfo.appendText || '')
-				+ '</span>', relative, linkInfo.position);
+					+ '</span>', relative, linkInfo.position);
 			}
 		}
 	},

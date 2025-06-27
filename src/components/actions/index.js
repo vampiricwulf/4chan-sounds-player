@@ -1,6 +1,6 @@
 module.exports = {
-	atRoot: [ 'togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown' ],
-	public: [ 'togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown' ],
+	atRoot: ['togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown'],
+	public: ['togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown'],
 
 	initialize() {
 		// Keep this reference to switch Player.audio to standalone videos and back.
@@ -43,7 +43,7 @@ module.exports = {
 				// Remove audio events from the video, and add them back for standalone video.
 				const audioEvents = Player.controls.audioEvents;
 				for (let evt in audioEvents) {
-					let handlers = Array.isArray(audioEvents[evt]) ? audioEvents[evt] : [ audioEvents[evt] ];
+					let handlers = Array.isArray(audioEvents[evt]) ? audioEvents[evt] : [audioEvents[evt]];
 					handlers.forEach(handler => {
 						const handlerFunction = Player.getHandler(handler);
 						Player.video.removeEventListener(evt, handlerFunction);
@@ -53,7 +53,7 @@ module.exports = {
 				sound.playing = true;
 				Player.playing = sound;
 				Player.audio.src = sound.src;
-				Player.isVideo = sound.image.endsWith('.webm') || sound.type === 'video/webm';
+				Player.isVideo = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
 				Player.isStandalone = sound.standaloneVideo;
 				Player.video.loop = !Player.isStandalone;
 				Player.audio = sound.standaloneVideo ? Player.video : Player.controls._audio;
