@@ -912,8 +912,8 @@ async function get(url) {
 /***/ ((module) => {
 
 module.exports = {
-	atRoot: [ 'togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown' ],
-	public: [ 'togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown' ],
+	atRoot: ['togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown'],
+	public: ['togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown'],
 
 	initialize() {
 		// Keep this reference to switch Player.audio to standalone videos and back.
@@ -956,7 +956,7 @@ module.exports = {
 				// Remove audio events from the video, and add them back for standalone video.
 				const audioEvents = Player.controls.audioEvents;
 				for (let evt in audioEvents) {
-					let handlers = Array.isArray(audioEvents[evt]) ? audioEvents[evt] : [ audioEvents[evt] ];
+					let handlers = Array.isArray(audioEvents[evt]) ? audioEvents[evt] : [audioEvents[evt]];
 					handlers.forEach(handler => {
 						const handlerFunction = Player.getHandler(handler);
 						Player.video.removeEventListener(evt, handlerFunction);
@@ -966,7 +966,7 @@ module.exports = {
 				sound.playing = true;
 				Player.playing = sound;
 				Player.audio.src = sound.src;
-				Player.isVideo = sound.image.endsWith('.webm') || sound.type === 'video/webm';
+				Player.isVideo = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
 				Player.isStandalone = sound.standaloneVideo;
 				Player.video.loop = !Player.isStandalone;
 				Player.audio = sound.standaloneVideo ? Player.video : Player.controls._audio;
@@ -2658,8 +2658,8 @@ const xhrReplacer = __webpack_require__(/*! ../../xhr-replace */ "./src/xhr-repl
 const itemMenuTemplate = __webpack_require__(/*! ./templates/item_menu.tpl */ "./src/components/playlist/templates/item_menu.tpl");
 
 module.exports = {
-	atRoot: [ 'add', 'remove' ],
-	public: [ 'search' ],
+	atRoot: ['add', 'remove'],
+	public: ['search'],
 
 	tagLoadTO: {},
 
@@ -2691,7 +2691,7 @@ module.exports = {
 			Player.playlist.showImage(sound);
 			// Update the previously and the new playing rows.
 			Player.$all(`.${ns}-list-item.playing, .${ns}-list-item[data-id="${Player.playing.id}"]`).forEach(el => {
-				const newItem = Player.playlist.listTemplate({ sounds: [ Player.sounds.find(s => s.id === el.dataset.id) ] });
+				const newItem = Player.playlist.listTemplate({ sounds: [Player.sounds.find(s => s.id === el.dataset.id)] });
 				_.element(newItem, el, 'beforebegin');
 				el.parentNode.removeChild(el);
 			});
@@ -2738,13 +2738,13 @@ module.exports = {
 		Player.on('config:imageHeight', height => Player.$(`.${ns}-image-link`).style.height = height + 'px');
 
 		// Preload the next audio.
-		Player.on([ 'playsound', 'order' ], () => {
+		Player.on(['playsound', 'order'], () => {
 			const next = Player.sounds[(Player.sounds.indexOf(Player.playing) + 1) % Player.sounds.length];
 			next && Player.playlist.preload(next);
 		});
 
 		// Maintain changes to the user templates it's dependent values
-		Player.userTemplate.maintain(Player.playlist, 'rowTemplate', [ 'shuffle' ]);
+		Player.userTemplate.maintain(Player.playlist, 'rowTemplate', ['shuffle']);
 
 		// Resize observer to handle transparent images
 		Player.playlist.imageResizeObserver = new ResizeObserver(Player.playlist.resizeTransBG);
@@ -2808,7 +2808,7 @@ module.exports = {
 		e && e.preventDefault();
 		let style = Player.config.viewStyle === 'playlist' ? 'image'
 			: Player.config.viewStyle === 'image' ? 'playlist'
-			: Player.playlist._lastView;
+				: Player.playlist._lastView;
 		Player.display.setViewStyle(style);
 	},
 
@@ -2834,7 +2834,7 @@ module.exports = {
 				if (!skipRender) {
 					// Add the sound to the playlist.
 					const list = Player.$(`.${ns}-list-container`);
-					let rowContainer = _.element(`<div>${Player.playlist.listTemplate({ sounds: [ sound ] })}</div>`);
+					let rowContainer = _.element(`<div>${Player.playlist.listTemplate({ sounds: [sound] })}</div>`);
 					if (index < Player.sounds.length - 1) {
 						const before = Player.$(`.${ns}-list-item[data-id="${Player.sounds[index + 1].id}"]`);
 						list.insertBefore(rowContainer.children[0], before);
@@ -2870,7 +2870,7 @@ module.exports = {
 		if (entry.isDirectory) {
 			return Player.playlist._readEntries(entry.createReader());
 		}
-		return entry.file(file => Player.playlist.addFromFiles([ file ]));
+		return entry.file(file => Player.playlist.addFromFiles([file]));
 	},
 
 	_readEntries(reader) {
@@ -2884,8 +2884,8 @@ module.exports = {
 
 	addFromFiles(files) {
 		// Check each of the files for sounds.
-		[ ...files ].forEach(file => {
-			if (!file.type.startsWith('image') && file.type !== 'video/webm') {
+		[...files].forEach(file => {
+			if (!file.type.startsWith('image') && file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return;
 			}
 			const imageSrc = URL.createObjectURL(file);
@@ -2893,7 +2893,7 @@ module.exports = {
 			let thumbSrc = imageSrc;
 
 			// If it's not a webm just use the full image as the thumbnail
-			if (file.type !== 'video/webm') {
+			if (file.type !== 'video/webm' && file.type !== 'video/mp4') {
 				return _continue();
 			}
 
@@ -2901,7 +2901,7 @@ module.exports = {
 			const canvas = document.createElement('canvas');
 			const video = document.createElement('video');
 			const context = canvas.getContext('2d');
-			video.addEventListener('seeked', function () {
+			video.addEventListener('seeked', function() {
 				canvas.width = video.videoWidth;
 				canvas.height = video.videoHeight;
 				context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
@@ -2946,7 +2946,7 @@ module.exports = {
 	},
 
 	toggleRepeat() {
-		const values = [ 'all', 'one', 'none' ];
+		const values = ['all', 'one', 'none'];
 		const current = values.indexOf(Player.config.repeat);
 		Player.set('repeat', values[(current + 4) % 3]);
 	},
@@ -2963,7 +2963,7 @@ module.exports = {
 			const sounds = Player.sounds;
 			for (let i = sounds.length - 1; i > 0; i--) {
 				const j = Math.floor(Math.random() * (i + 1));
-				[ sounds[i], sounds[j] ] = [ sounds[j], sounds[i] ];
+				[sounds[i], sounds[j]] = [sounds[j], sounds[i]];
 			}
 		}
 		Player.trigger('order');
@@ -3206,7 +3206,7 @@ module.exports = {
 
 		function handleTags(data) {
 			// Store all the string tags that jsmediatags has set.
-			sound.tags = data && Object.entries(data.tags || {}).reduce((tags, [ name, value ]) => {
+			sound.tags = data && Object.entries(data.tags || {}).reduce((tags, [name, value]) => {
 				typeof value === 'string' && (tags[name] = value);
 				return tags;
 			}, {});
@@ -3278,7 +3278,7 @@ module.exports = {
 			return;
 		}
 		sound.preloading = true;
-		const video = sound.image.endsWith('.webm') || sound.type === 'video/webm';
+		const video = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
 		await Promise.all([
 			!sound.standaloneVideo && new Promise(resolve => {
 				const audio = new Audio();
@@ -3563,7 +3563,7 @@ const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js
 const hosts = __webpack_require__(/*! ../../hosts */ "./src/hosts.js");
 
 const protocolRE = /^(https?:)?\/\//;
-const filenameRE = new RegExp('(.*?)[[({]('+Object.keys(hosts).join("|")+')[ =:|$](.*?)[\\])}]','gi');
+const filenameRE = new RegExp('(.*?)[[({](' + Object.keys(hosts).join("|") + ')[ =:|$](.*?)[\\])}]', 'gi');
 
 let localCounter = 0;
 
@@ -3571,7 +3571,7 @@ module.exports = {
 	addPosts(target, postRender) {
 		let addedSounds = false;
 		let posts = target.classList.contains('post')
-			? [ target ]
+			? [target]
 			: target.querySelectorAll(selectors.posts);
 
 		posts.forEach(post => Player.posts.addPost(post, postRender) && (addedSounds = true));
@@ -3604,7 +3604,7 @@ module.exports = {
 			let filename = null;
 			let filenameLocations = selectors.filename;
 
-			Object.keys(filenameLocations).some(function (selector) {
+			Object.keys(filenameLocations).some(function(selector) {
 				const node = post.querySelector(selector);
 				return node && (filename = node[filenameLocations[selector]]);
 			});
@@ -3647,15 +3647,15 @@ module.exports = {
 			return { sounds: [], filtered: [] };
 		}
 		// Best quality image. For webms this has to be the thumbnail still. SAD!
-		const imageOrThumb = image.endsWith('webm') ? thumb : image;
+		const imageOrThumb = image.match(/(webm|mp4)$/i) ? thumb : image;
 		const matches = [];
 		let match;
 		while ((match = filenameRE.exec(filename)) !== null) {
 			matches.push(match);
 		}
 		// Add webms without a sound filename as a standable video if enabled
-		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.endsWith('.webm')) {
-			matches.push([ null, filename.slice(0, -5), image ]);
+		if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.match(/\.(webm|mp4)$/i)) {
+			matches.push([null, filename.slice(0, -5), image]);
 		}
 		const defaultName = matches[0] && matches[0][1] || post || 'Local Sound ' + localCounter;
 		matches.length && !post && localCounter++;
@@ -3716,7 +3716,7 @@ module.exports = {
 			if (hasFilter) {
 				postEl.classList.add('filtered-sound');
 				// There is a filtered sound for the post so create/update the add link,
-				const filtered = [ allFilters.image && 'image', allFilters.sound.length && 'sound' ].filter(Boolean).join(' and ');
+				const filtered = [allFilters.image && 'image', allFilters.sound.length && 'sound'].filter(Boolean).join(' and ');
 				const hint = (allFilters.host.length > 1 ? `The hosts ${allFilters.host.join(', ')} are not allowed` : '')
 					+ (allFilters.host.length === 1 ? `The host ${allFilters.host[0]} is not allowed` : '')
 					+ (filtered ? `${allFilters.host.length ? ', and the' : 'The'} player filters disallow this ${filtered}` : '')
@@ -3729,7 +3729,7 @@ module.exports = {
 						+ (linkInfo.prependText || '')
 						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${hint}" @click='posts.allowPost("${postId}")'>${linkInfo.unfilterText || ''}</a>`
 						+ (linkInfo.appendText || '')
-					+ '</span>', relative, linkInfo.position);
+						+ '</span>', relative, linkInfo.position);
 				}
 			} else {
 				// There isn't a filtered so remove the add link.
@@ -3748,7 +3748,7 @@ module.exports = {
 					+ (linkInfo.prependText || '')
 					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='play("${addedSound.id}")'>${linkInfo.text || ''}</a>`
 					+ (linkInfo.appendText || '')
-				+ '</span>', relative, linkInfo.position);
+					+ '</span>', relative, linkInfo.position);
 			}
 		}
 	},
@@ -5042,7 +5042,7 @@ const createTool = module.exports = {
 		const container = input.closest(`.${ns}-file-input`);
 		const fileText = container.querySelector('.text');
 		const fileList = container.querySelector(`.${ns}-file-list`);
-		files || (files = [ ...input.files ]);
+		files || (files = [...input.files]);
 		container.classList[files.length ? 'remove' : 'add']('placeholder');
 		fileText.innerHTML = files.length > 1
 			? files.length + ' files'
@@ -5075,7 +5075,7 @@ const createTool = module.exports = {
 	handleWebmSoundChange(e) {
 		const sound = Player.tools.sndInput;
 		const image = Player.tools.imgInput;
-		Player.tools.handleFileSelect(sound, e.currentTarget.checked && [ image.files[0] ]);
+		Player.tools.handleFileSelect(sound, e.currentTarget.checked && [image.files[0]]);
 	},
 
 	toggleSoundInput(type) {
@@ -5090,19 +5090,19 @@ const createTool = module.exports = {
 	 */
 	handleCreateSoundDrop(e) {
 		const targetInput = e.target.nodeName === 'INPUT' && e.target.getAttribute('type') === 'file' && e.target;
-		[ ...e.dataTransfer.files ].forEach(file => {
+		[...e.dataTransfer.files].forEach(file => {
 			const isVideo = file.type.startsWith('video');
-			const isImage = file.type.startsWith('image') || file.type === 'video/webm';
+			const isImage = file.type.startsWith('image') || file.type === 'video/webm' || file.type === 'video/mp4';
 			const isSound = file.type.startsWith('audio');
 			if (isVideo || isImage || isSound) {
-				const input = file.type === 'video/webm' && targetInput
+				const input = (file.type === 'video/webm' || file.type === 'video/mp4') && targetInput
 					? targetInput
 					: isImage
 						? Player.tools.imgInput
 						: Player.tools.sndInput;
 				const dataTransfer = new DataTransfer();
 				if (input.multiple) {
-					[ ...input.files ].forEach(file => dataTransfer.items.add(file));
+					[...input.files].forEach(file => dataTransfer.items.add(file));
 				}
 				dataTransfer.items.add(file);
 				input.files = dataTransfer.files;
@@ -5137,13 +5137,13 @@ const createTool = module.exports = {
 		let image = Player.tools.imgInput.files[0];
 		let soundURLs = useSoundURL && Player.$(`.${ns}-create-sound-snd-url`).value.split(',').map(v => v.trim()).filter(v => v);
 		let sounds = !(Player.$(`.${ns}-use-video`) || {}).checked || !image || !image.type.startsWith('video')
-			? [ ...Player.tools.sndInput.files ]
-			: image && [ image ];
+			? [...Player.tools.sndInput.files]
+			: image && [image];
 		const customName = Player.$(`.${ns}-create-sound-name`).value;
 		// Only split a given name if there's multiple sounds.
 		const names = customName
-			? ((soundURLs || sounds).length > 1 ? customName.split(',') : [ customName ]).map(v => v.trim())
-			: image && [ image.name.replace(/\.[^/.]+$/, '') ];
+			? ((soundURLs || sounds).length > 1 ? customName.split(',') : [customName]).map(v => v.trim())
+			: image && [image.name.replace(/\.[^/.]+$/, '')];
 
 		try {
 			if (!image) {
@@ -5212,7 +5212,7 @@ const createTool = module.exports = {
 			const ext = image.name.match(/\.([^/.]+)$/)[1];
 
 			// Keep track of the create image and a url to it.
-			Player.tools._createdImage = new File([ image ], filename + '.' + ext, { type: image.type });
+			Player.tools._createdImage = new File([image], filename + '.' + ext, { type: image.type });
 			Player.tools._createdImageURL = URL.createObjectURL(Player.tools._createdImage);
 
 			// Complete! with some action links
@@ -5294,7 +5294,7 @@ const createTool = module.exports = {
 	 * Add the created sound image to the player.
 	 */
 	addCreatedToPlayer() {
-		Player.playlist.addFromFiles([ Player.tools._createdImage ]);
+		Player.playlist.addFromFiles([Player.tools._createdImage]);
 	},
 
 	/**
@@ -5317,7 +5317,7 @@ const createTool = module.exports = {
 			event.dataTransfer = dataTransfer;
 			document.querySelector('#qr').dispatchEvent(event);
 
-		// Native, set the file input value. Check for a quick reply
+			// Native, set the file input value. Check for a quick reply
 		} else if (qrLink) {
 			qrLink.click();
 			document.querySelector('#qrFile').files = dataTransfer.files;
@@ -7048,8 +7048,9 @@ module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Pl
 	<div class="${ns}-footer ${ns}-row ${ns}-align-center ${ns}-hover-trigger">
 		${Player.footer.template(data)}
 	</div>
-	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm" multiple>
+	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm,.mp4" multiple>
 </div>`
+
 
 /***/ }),
 
@@ -7778,7 +7779,7 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined">
 							class="${ns}-create-sound-img"
 							@change='tools.handleImageSelect;tools.handleFileSelect($event.target)'
 							type="file"
-							accept="image/*,.webm"
+							accept="image/*,.webm,.mp4"
 						/>
 					</div>
 				</div>
@@ -7828,6 +7829,7 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined">
 		${Player.tools._createdImage ? Player.tools.createCompleteTemplate() : ''}
 	</div>
 </div>`
+
 
 /***/ }),
 
