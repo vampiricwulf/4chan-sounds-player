@@ -1,8 +1,8 @@
 module.exports = [
 	{
 		property: 'addWebm',
-		title: 'Include WebM',
-		description: 'Whether to add all WebM files regardless of a sound filename.',
+		title: 'Include Video',
+		description: 'Whether to add all video files regardless of a sound filename.',
 		default: 'soundBoards',
 		displayGroup: 'Filter',
 		options: {
@@ -24,7 +24,7 @@ module.exports = [
 			'zz.ht',
 			'zz.fo'
 		],
-		actions: [ { title: 'Reset', handler: 'settings.reset("allow")', mods: '.prevent' } ],
+		actions: [{ title: 'Reset', handler: 'settings.reset("allow")', mods: '.prevent' }],
 		displayGroup: 'Filter',
 		displayMethod: 'textarea',
 		attrs: 'rows=10',
@@ -33,10 +33,10 @@ module.exports = [
 	},
 	{
 		property: 'filters',
-		default: [ '# Image MD5 or sound URL' ],
+		default: ['# Image MD5 or sound URL'],
 		title: 'Filters',
 		description: 'List of URLs or image MD5s to filter, one per line.\nLines starting with a # will be ignored.',
-		actions: [ { title: 'Reset', handler: 'settings.reset("filters")', mods: '.prevent' } ],
+		actions: [{ title: 'Reset', handler: 'settings.reset("filters")', mods: '.prevent' }],
 		displayGroup: 'Filter',
 		displayMethod: 'textarea',
 		attrs: 'rows=10',

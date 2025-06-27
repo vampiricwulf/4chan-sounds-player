@@ -40,7 +40,7 @@ const createTool = module.exports = {
 		let placeholder = image.name.replace(/\.[^/.]+$/, '');
 
 		if (await Player.tools.hasAudio(image)) {
-			Player.logError('Audio not allowed for the image webm.', null, 'warning');
+			Player.logError('Audio not allowed for the image video.', null, 'warning');
 		}
 
 		// Show the image name as the placeholder for the name input since it's the default
@@ -159,14 +159,14 @@ const createTool = module.exports = {
 
 		try {
 			if (!image) {
-				throw new PlayerError('Select an image or webm.', 'warning');
+				throw new PlayerError('Select an image or video.', 'warning');
 			}
 
 			// No audio allowed for the "image" webm.
 			if (image.type.startsWith('video') && await Player.tools.hasAudio(image)) {
-				createTool.status.innerHTML += '<br>Audio not allowed for the image webm.'
-					+ '<br>Remove the audio from the webm and try again.';
-				throw new PlayerError('Audio not allowed for the image webm.', 'warning');
+				createTool.status.innerHTML += '<br>Audio not allowed for the image video.'
+					+ '<br>Remove the audio from the video and try again.';
+				throw new PlayerError('Audio not allowed for the image video.', 'warning');
 			}
 
 			const soundlessLength = names.join('').length + (soundURLs || sounds).length * 8;
