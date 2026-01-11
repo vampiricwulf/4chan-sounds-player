@@ -114,3 +114,6 @@
 .#{$ns}-space-between {
 	justify-content: space-between;
 }
+.#{$ns}-menu {
+	z-index: 15;
+}
