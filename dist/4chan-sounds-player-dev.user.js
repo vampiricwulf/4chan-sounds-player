@@ -8649,6 +8649,10 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
   justify-content: space-between;
 }
 
+.${ns}-menu {
+  z-index: 15;
+}
+
 .${ns}-player {
   display: flex;
   flex-direction: column;
