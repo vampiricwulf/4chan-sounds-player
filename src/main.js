@@ -48,34 +48,11 @@ document.addEventListener('4chanXInitFinished', doInit);
 
 // The timeout makes sure 4chan X will have added it's classes and be identified.
 setTimeout(function () {
-	// If already initialized via event, skip.
-	if (initialized) {
-		return;
-	}
-
-	// Safety check for globals require.
-	if (document.head) {
-		require('./globals');
-
-		// If it's already known 4chan X is installed this can be skipped.
-		// If 4chan X is installed but the event didn't fire (missed it or slow),
-		// we proceed on DOMContentLoaded to ensure elements are ready.
-		if (!isChanX) {
-			if (document.readyState !== 'loading') {
-				doInit();
-			} else {
-				document.addEventListener('DOMContentLoaded', doInit);
-			}
+	if (!initialized) {
+		if (document.readyState !== 'loading') {
+			doInit();
 		} else {
-			// ChanX detected but no init event. Fallback to DCL.
-			if (document.readyState !== 'loading') {
-				doInit();
-			} else {
-				document.addEventListener('DOMContentLoaded', doInit);
-			}
+			document.addEventListener('DOMContentLoaded', doInit);
 		}
-	} else {
-		// No head yet? Wait for DCL.
-		document.addEventListener('DOMContentLoaded', doInit);
 	}
 }, 1000);
