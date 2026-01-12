@@ -59,7 +59,7 @@ const Player = window.Player = module.exports = {
 			}
 
 			// Show a button to open the player.
-			Player.display.createPlayerButton();
+			await Player.display.createPlayerButton();
 
 			// Render the player, but not neccessarily show it.
 			await Player.display.render();

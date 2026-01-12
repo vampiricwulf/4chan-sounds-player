@@ -69,6 +69,27 @@ function _duration(from, to) {
 	];
 }
 
+module.exports.debounce = function debounce(func, wait) {
+	let timeout;
+	return function (...args) {
+		const context = this;
+		clearTimeout(timeout);
+		timeout = setTimeout(() => func.apply(context, args), wait);
+	};
+};
+
+module.exports.waitFor = async function waitFor(selector, timeout = 3000) {
+	const start = Date.now();
+	while (Date.now() - start < timeout) {
+		const el = document.querySelector(selector);
+		if (el) {
+			return el;
+		}
+		await new Promise(r => setTimeout(r, 100));
+	}
+	return null;
+};
+
 module.exports.element = function element(html, parent, position = 'beforeend') {
 	let el;
 	if (html instanceof Node) {

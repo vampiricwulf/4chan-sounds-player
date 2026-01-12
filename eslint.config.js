@@ -19,7 +19,6 @@ module.exports = [
                 is4chan: "readonly",
                 isChanX: "readonly",
                 isChanXT: "readonly",
-                isOneeChan: "readonly",
                 Board: "readonly",
                 Thread: "readonly",
                 Site: "readonly",

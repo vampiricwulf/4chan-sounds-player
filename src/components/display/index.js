@@ -47,7 +47,12 @@ module.exports = {
 	/**
 	 * Create the player show/hide button in to the 4chan X header.
 	 */
-	createPlayerButton() {
+	async createPlayerButton() {
+		// Wait for the body to exist just in case.
+		if (!document.body) {
+			await _.waitFor('body');
+		}
+
 		if (Site === 'FoolFuuka') {
 			// Add a sounds link in the nav for archives
 			const nav = document.querySelector('.navbar-inner .nav:nth-child(2)');
@@ -58,16 +63,25 @@ module.exports = {
 			br.parentNode.insertBefore(document.createTextNode('['), br);
 			_.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', br, 'beforebegin');
 			br.parentNode.insertBefore(document.createTextNode(']'), br);
-		} else if (isChanXT) {
-			// Add a button in the header for 4chan XT.
-			_.element(`<span id="shortcut-sounds" class="shortcut brackets-wrap" data-index="0">
-				<a href="#" @click.prevent="display.toggle" class="settings-link" title="Sounds"><span class="icon--alt-text">Sounds</span><svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1-512 0m188.3-108.9c-7.6 4.2-12.3 12.3-12.3 20.9v176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z" fill="currentColor"></path></svg></a>
-			</span>`, document.getElementById('shortcut-settings'), 'beforebegin');
-		} else if (isChanX) {
-			// Add a button in the header for 4chan X.
-			_.element(`<span id="shortcut-sounds" class="shortcut brackets-wrap" data-index="0">
-				<a href="#" @click.prevent="display.toggle" title="Sounds" class="fa fa-play-circle">Sounds</a>
-			</span>`, document.getElementById('shortcut-settings'), 'beforebegin');
+		} else if (isChanX || isChanXT || document.documentElement.classList.contains('fourchan-x') || document.documentElement.classList.contains('fourchan-xt') || document.getElementById('shortcuts')) {
+			// Wait for the settings icon to appear, which indicates the bar is populated.
+			let ref = await _.waitFor('#shortcut-settings', 2000);
+			let parent = ref && ref.parentNode;
+
+			// If we timed out waiting for settings, make sure we at least have the shortcuts bar.
+			if (!ref) {
+				parent = await _.waitFor('#shortcuts', 1000);
+			}
+
+			if (parent) {
+				const isXT = isChanXT || document.documentElement.classList.contains('fourchan-xt');
+				const html = `<span id="shortcut-sounds" class="shortcut brackets-wrap" data-index="0">
+					<a href="#" @click.prevent="display.toggle" class="${isXT ? 'settings-link' : 'fa fa-play-circle'}" title="Sounds">
+						${isXT ? '<span class="icon--alt-text">Sounds</span><svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1-512 0m188.3-108.9c-7.6 4.2-12.3 12.3-12.3 20.9v176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z" fill="currentColor"></path></svg>' : 'Sounds'}
+					</a>
+				</span>`;
+				_.element(html, ref || parent, ref ? 'beforebegin' : 'beforeend');
+			}
 		} else {
 			// Add a [Sounds] link in the top and bottom nav for native 4chan.
 			document.querySelectorAll('#settingsWindowLink, #settingsWindowLinkBot').forEach(function (link) {

@@ -201,7 +201,6 @@ module.exports = {
 			}
 		} catch (err) {
 			Player.logError('There was an error adding to the sound player. Please check the console for details.', err);
-			console.log('[4chan sounds player]', sound);
 		}
 	},
 

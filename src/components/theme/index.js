@@ -14,6 +14,27 @@ module.exports = {
 		Player.theme.render();
 		Player.userTemplate.maintain(Player.theme, 'customCSS');
 		Player.theme.validateOrder();
+
+		// Observe changes to stylesheets and classes to re-apply the board theme dynamically.
+		const observer = new MutationObserver(_.debounce(() => Player.theme.applyBoardTheme(), 500));
+
+		// Watch for stylesheet changes in head
+		observer.observe(document.head, {
+			childList: true,
+			subtree: true,
+			attributes: true,
+			attributeFilter: ['href', 'disabled', 'rel']
+		});
+
+		// Watch for class changes on html and body (often used for theme toggling)
+		observer.observe(document.documentElement, {
+			attributes: true,
+			attributeFilter: ['class', 'style']
+		});
+		observer.observe(document.body, {
+			attributes: true,
+			attributeFilter: ['class']
+		});
 	},
 
 	render() {
@@ -42,10 +63,8 @@ module.exports = {
 		const style = document.defaultView.getComputedStyle(div);
 
 		// Make sure the style is loaded.
-		// TODO: This sucks. Should observe the stylesheets for changes to make it work.
-		// That would also make theme changes apply without a reload.
 		if (style.backgroundColor === 'rgba(0, 0, 0, 0)') {
-			return setTimeout(Player.display.applyBoardTheme, 0);
+			return;
 		}
 		Object.assign(style, { page_background: window.getComputedStyle(document.body).backgroundColor });
 

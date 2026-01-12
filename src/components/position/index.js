@@ -74,7 +74,7 @@ module.exports = {
 	 * Handle the user grabbing the expander.
 	 */
 	initResize(e) {
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 		Player._startX = (e.touches && e.touches[0] || e).clientX;
 		Player._startY = (e.touches && e.touches[0] || e).clientY;
 		let { width, height } = Player.container.getBoundingClientRect();
@@ -94,7 +94,7 @@ module.exports = {
 	 * Handle the user dragging the expander.
 	 */
 	doResize(e) {
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 
 		const xDelta = ((e.touches && e.touches[0] || e).clientX - Player._startX) * Player._resizeX;
 		const yDelta = ((e.touches && e.touches[0] || e).clientY - Player._startY) * Player._resizeY;
@@ -112,7 +112,7 @@ module.exports = {
 	 * Handle the user releasing the expander.
 	 */
 	stopResize(e) {
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 
 		const { width, height } = Player.container.getBoundingClientRect();
 
@@ -149,7 +149,7 @@ module.exports = {
 		if (e.target.nodeName === 'A' || e.target.closest('a') || e.target.classList.contains(`${ns}-expander`)) {
 			return e.preventDrag = true;
 		}
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 		Player.$(`.${ns}-header`).style.cursor = 'grabbing';
 
 		// Try to reapply the current sizing to fix oversized winows.
@@ -166,7 +166,7 @@ module.exports = {
 	 * Handle the user dragging the header.
 	 */
 	doMove(e) {
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 		const clientX = (e.touches && e.touches[0] || e).clientX;
 		const clientY = (e.touches && e.touches[0] || e).clientY;
 		Player.position.move(clientX - Player._offsetX, clientY - Player._offsetY);
@@ -176,7 +176,7 @@ module.exports = {
 	 * Handle the user releasing the heaer.
 	 */
 	stopMove(e) {
-		try { e.preventDefault(); } catch (e) { }
+		try { e.preventDefault(); } catch (e) { /* ignore */ }
 		Player.$(`.${ns}-header`).style.cursor = null;
 		GM.setValue('position', parseInt(Player.container.style.left, 10) + ':' + parseInt(Player.container.style.top, 10));
 	},

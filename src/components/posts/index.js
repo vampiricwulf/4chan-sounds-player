@@ -77,7 +77,9 @@ module.exports = {
 			return sounds.length > 0;
 		} catch (err) {
 			Player.logError('There was an issue parsing the files. Please check the console for details.', err);
-			console.log('[4chan sounds player]', post);
+		if (!post) {
+			return;
+		}
 		}
 	},
 

@@ -209,13 +209,11 @@ module.exports = {
 		for (let i = 0; i < migrations.length; i++) {
 			let mig = migrations[i];
 			if (Player.settings.compareVersions(fromVersion, mig.version) < 0) {
-				try {
-					console.log('[4chan sound player] Migrate:', mig.name);
-					Object.entries(await mig.run()).forEach(([ prop, [ current, previous ] ]) => {
-						changes[prop] = [ current, changes[prop] ? changes[prop][1] : previous ];
-					});
-				} catch (err) {
-					console.error(err);
+									try {
+										Object.entries(await mig.run()).forEach(([ prop, [ current, previous ] ]) => {
+											changes[prop] = [ current, changes[prop] ? changes[prop][1] : previous ];
+										});
+									} catch (err) {					console.error(err);
 				}
 			}
 		}

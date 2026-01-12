@@ -66,7 +66,7 @@ module.exports = {
 			]
 		};
 
-		// If it's not a video add the full image to artwork. (TODO: grab the first frame for videos)
+		// If it's not a video add the full image to artwork.
 		// If we have the dimensions already add the artwork, otherwise load them then reset the metadata.
 		if (!Player.isVideo) {
 			if (sound._fullDimension) {
