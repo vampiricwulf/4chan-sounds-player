@@ -9,7 +9,7 @@ module.exports = {
 		waiting: 'controls.handleMediaEvent',
 		ratechange: 'controls.handleMediaEvent',
 		timeupdate: 'controls.updateDuration',
-		loadedmetadata: [ 'controls.updateDuration', 'controls' ],
+		loadedmetadata: [ 'controls.updateDuration', 'controls.preventWrapping' ],
 		durationchange: 'controls.updateDuration',
 		volumechange: 'controls.updateVolume',
 		loadstart: 'controls.pollForLoading',
