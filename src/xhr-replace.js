@@ -1,3 +1,4 @@
+/* eslint-disable no-global-assign */
 function toGM() {
 	XMLHttpRequest = xhrGM;
 };

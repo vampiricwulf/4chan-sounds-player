@@ -90,10 +90,11 @@ module.exports = {
 	},
 
 	add() {
-		let i,
+		let i = '',
 			name = 'New Host';
-		// eslint-disable-next-line curly
-		for (i = ''; Player.config.uploadHosts[`${name}${i}`]; i = ` ${++i}`);
+		while (Player.config.uploadHosts[`${name}${i}`]) {
+			i = ` ${++i}`;
+		}
 		const hosts = {
 			[`${name}${i}`]: { invalid: true, data: { file: '$file' } },
 			...Player.config.uploadHosts

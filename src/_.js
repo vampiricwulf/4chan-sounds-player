@@ -38,7 +38,6 @@ module.exports.isEqual = function isEqual(a, b, strict = true) {
 		allKeys.push(...Object.keys(b).filter(k => !allKeys.includes(k)));
 		return allKeys.every(key => _.isEqual(a[key], b[key]));
 	}
-	// eslint-disable-next-line eqeqeq
 	return strict ? a === b : a == b;
 };
 
@@ -52,13 +51,11 @@ module.exports.toDuration = function toDuration(number) {
 
 module.exports.timeAgo = function timeAgo(date) {
 	const [ seconds, minutes, hours, days, weeks ] = _duration(Math.floor(date), Math.floor(Date.now() / 1000));
-	/* _eslint-disable indent */
 	return weeks > 1 ? weeks + ' weeks ago'
 		: days > 0 ? days + (days === 1 ? ' day' : ' days') + ' ago'
 		: hours > 0 ? hours + (hours === 1 ? ' hour' : ' hours') + ' ago'
 		: minutes > 0 ? minutes + (minutes === 1 ? ' minute' : ' minutes') + ' ago'
 		: seconds + (seconds === 1 ? ' second' : ' seconds') + ' ago';
-	/* eslint-enable indent */
 };
 
 function _duration(from, to) {

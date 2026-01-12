@@ -1,4 +1,3 @@
-// eslint-disable-next-line security/detect-child-process
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -35,6 +34,7 @@ module.exports = (env, argv) => {
 		output: {
 			filename: (env.filename || filename) + '.user.js',
 			path: env.path || path.resolve(__dirname, 'dist'),
+			hashFunction: 'sha256'
 		},
 		optimization: {
 			minimizer: [

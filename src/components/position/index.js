@@ -1,6 +1,5 @@
 const selectors = require('../../selectors');
 
-/* eslint-disable max-statements-per-line, no-empty */
 module.exports = {
 	initialize() {
 		// Set the header offsets for use in templates.

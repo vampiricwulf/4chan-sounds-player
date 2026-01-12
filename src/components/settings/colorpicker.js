@@ -138,14 +138,23 @@ module.exports = {
 		const v = max / 255;
 		let h;
 
-		/* eslint-disable max-statements-per-line */
 		switch (max) {
-			case min: h = 0; break;
-			case r: h = (g - b) + d * (g < b ? 6 : 0); h /= 6 * d; break;
-			case g: h = (b - r) + d * 2; h /= 6 * d; break;
-			case b: h = (r - g) + d * 4; h /= 6 * d; break;
+			case min:
+				h = 0;
+				break;
+			case r:
+				h = (g - b) + d * (g < b ? 6 : 0);
+				h /= 6 * d;
+				break;
+			case g:
+				h = (b - r) + d * 2;
+				h /= 6 * d;
+				break;
+			case b:
+				h = (r - g) + d * 4;
+				h /= 6 * d;
+				break;
 		}
-		/* eslint-enable max-statements-per-line */
 
 		return [ h, s, v, a || 1 ];
 	},
