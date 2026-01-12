@@ -48,11 +48,11 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./node_modules/bootstrap-icons/icons/arrow-clockwise.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrow-clockwise.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrow-clockwise.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -61,13 +61,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-clockwise\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z\"/>\n  <path d=\"M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/arrow-down.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrow-down.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrow-down.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -76,13 +76,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-down\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/arrow-repeat.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrow-repeat.svg"
 /*!*************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrow-repeat.svg ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -91,13 +91,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-repeat\" viewBox=\"0 0 16 16\">\n  <path d=\"M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z\"/>\n  <path fill-rule=\"evenodd\" d=\"M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/arrow-up.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrow-up.svg"
 /*!*********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrow-up.svg ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -106,13 +106,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-up\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/arrows-collapse.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrows-collapse.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrows-collapse.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -121,13 +121,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrows-collapse\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zm7-8a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 1 1 .708-.708L7.5 4.293V.5A.5.5 0 0 1 8 0zm-.5 11.707l-1.146 1.147a.5.5 0 0 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 11.707V15.5a.5.5 0 0 1-1 0v-3.793z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/arrows-expand.svg":
+/***/ "./node_modules/bootstrap-icons/icons/arrows-expand.svg"
 /*!**************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/arrows-expand.svg ***!
   \**************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -136,13 +136,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrows-expand\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M1 8a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 8zM7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/bootstrap-reboot.svg":
+/***/ "./node_modules/bootstrap-icons/icons/bootstrap-reboot.svg"
 /*!*****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/bootstrap-reboot.svg ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -151,13 +151,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-bootstrap-reboot\" viewBox=\"0 0 16 16\">\n  <path d=\"M1.161 8a6.84 6.84 0 1 0 6.842-6.84.58.58 0 0 1 0-1.16 8 8 0 1 1-6.556 3.412l-.663-.577a.58.58 0 0 1 .227-.997l2.52-.69a.58.58 0 0 1 .728.633l-.332 2.592a.58.58 0 0 1-.956.364l-.643-.56A6.812 6.812 0 0 0 1.16 8z\"/>\n  <path d=\"M6.641 11.671V8.843h1.57l1.498 2.828h1.314L9.377 8.665c.897-.3 1.427-1.106 1.427-2.1 0-1.37-.943-2.246-2.456-2.246H5.5v7.352h1.141zm0-3.75V5.277h1.57c.881 0 1.416.499 1.416 1.32 0 .84-.504 1.324-1.386 1.324h-1.6z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/box-arrow-in-left.svg":
+/***/ "./node_modules/bootstrap-icons/icons/box-arrow-in-left.svg"
 /*!******************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/box-arrow-in-left.svg ***!
   \******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -166,13 +166,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-box-arrow-in-left\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z\"/>\n  <path fill-rule=\"evenodd\" d=\"M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/box-arrow-right.svg":
+/***/ "./node_modules/bootstrap-icons/icons/box-arrow-right.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/box-arrow-right.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -181,13 +181,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-box-arrow-right\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z\"/>\n  <path fill-rule=\"evenodd\" d=\"M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/chat-right-quote.svg":
+/***/ "./node_modules/bootstrap-icons/icons/chat-right-quote.svg"
 /*!*****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/chat-right-quote.svg ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -196,13 +196,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-chat-right-quote\" viewBox=\"0 0 16 16\">\n  <path d=\"M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z\"/>\n  <path d=\"M7.066 4.76A1.665 1.665 0 0 0 4 5.668a1.667 1.667 0 0 0 2.561 1.406c-.131.389-.375.804-.777 1.22a.417.417 0 1 0 .6.58c1.486-1.54 1.293-3.214.682-4.112zm4 0A1.665 1.665 0 0 0 8 5.668a1.667 1.667 0 0 0 2.561 1.406c-.131.389-.375.804-.777 1.22a.417.417 0 1 0 .6.58c1.486-1.54 1.293-3.214.682-4.112z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/check-square.svg":
+/***/ "./node_modules/bootstrap-icons/icons/check-square.svg"
 /*!*************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/check-square.svg ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -211,13 +211,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-check-square\" viewBox=\"0 0 16 16\">\n  <path d=\"M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z\"/>\n  <path d=\"M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/chevron-down.svg":
+/***/ "./node_modules/bootstrap-icons/icons/chevron-down.svg"
 /*!*************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/chevron-down.svg ***!
   \*************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -226,13 +226,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-chevron-down\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/chevron-up.svg":
+/***/ "./node_modules/bootstrap-icons/icons/chevron-up.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/chevron-up.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -241,13 +241,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-chevron-up\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/file-earmark-image.svg":
+/***/ "./node_modules/bootstrap-icons/icons/file-earmark-image.svg"
 /*!*******************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/file-earmark-image.svg ***!
   \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -256,13 +256,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-file-earmark-image\" viewBox=\"0 0 16 16\">\n  <path d=\"M6.502 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z\"/>\n  <path d=\"M14 14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5V14zM4 1a1 1 0 0 0-1 1v10l2.224-2.224a.5.5 0 0 1 .61-.075L8 11l2.157-3.02a.5.5 0 0 1 .76-.063L13 10V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/file-earmark-music.svg":
+/***/ "./node_modules/bootstrap-icons/icons/file-earmark-music.svg"
 /*!*******************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/file-earmark-music.svg ***!
   \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -271,13 +271,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-file-earmark-music\" viewBox=\"0 0 16 16\">\n  <path d=\"M11 6.64a1 1 0 0 0-1.243-.97l-1 .25A1 1 0 0 0 8 6.89v4.306A2.572 2.572 0 0 0 7 11c-.5 0-.974.134-1.338.377-.36.24-.662.628-.662 1.123s.301.883.662 1.123c.364.243.839.377 1.338.377.5 0 .974-.134 1.338-.377.36-.24.662-.628.662-1.123V8.89l2-.5V6.64z\"/>\n  <path d=\"M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/filter.svg":
+/***/ "./node_modules/bootstrap-icons/icons/filter.svg"
 /*!*******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/filter.svg ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -286,13 +286,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-filter\" viewBox=\"0 0 16 16\">\n  <path d=\"M6 10.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5zm-2-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/fullscreen-exit.svg":
+/***/ "./node_modules/bootstrap-icons/icons/fullscreen-exit.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/fullscreen-exit.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -301,13 +301,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-fullscreen-exit\" viewBox=\"0 0 16 16\">\n  <path d=\"M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5zm5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5zM0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zm10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/fullscreen.svg":
+/***/ "./node_modules/bootstrap-icons/icons/fullscreen.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/fullscreen.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -316,13 +316,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-fullscreen\" viewBox=\"0 0 16 16\">\n  <path d=\"M1.5 1a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0v-4A1.5 1.5 0 0 1 1.5 0h4a.5.5 0 0 1 0 1h-4zM10 .5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 16 1.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5zM.5 10a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 0 14.5v-4a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v4a1.5 1.5 0 0 1-1.5 1.5h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/gear.svg":
+/***/ "./node_modules/bootstrap-icons/icons/gear.svg"
 /*!*****************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/gear.svg ***!
   \*****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -331,13 +331,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-gear\" viewBox=\"0 0 16 16\">\n  <path d=\"M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z\"/>\n  <path d=\"M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/github.svg":
+/***/ "./node_modules/bootstrap-icons/icons/github.svg"
 /*!*******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/github.svg ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -346,13 +346,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-github\" viewBox=\"0 0 16 16\">\n  <path d=\"M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/image.svg":
+/***/ "./node_modules/bootstrap-icons/icons/image.svg"
 /*!******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/image.svg ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -361,13 +361,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-image\" viewBox=\"0 0 16 16\">\n  <path d=\"M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z\"/>\n  <path d=\"M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2h-12zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1h12z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/info-circle.svg":
+/***/ "./node_modules/bootstrap-icons/icons/info-circle.svg"
 /*!************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/info-circle.svg ***!
   \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -376,13 +376,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-info-circle\" viewBox=\"0 0 16 16\">\n  <path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>\n  <path d=\"M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/layout-text-window.svg":
+/***/ "./node_modules/bootstrap-icons/icons/layout-text-window.svg"
 /*!*******************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/layout-text-window.svg ***!
   \*******************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -391,13 +391,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-layout-text-window\" viewBox=\"0 0 16 16\">\n  <path d=\"M3 6.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm0 3a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5zm.5 2.5a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1h-5z\"/>\n  <path d=\"M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm12 1a1 1 0 0 1 1 1v1H1V2a1 1 0 0 1 1-1h12zm1 3v10a1 1 0 0 1-1 1h-2V4h3zm-4 0v11H2a1 1 0 0 1-1-1V4h10z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/link-45deg.svg":
+/***/ "./node_modules/bootstrap-icons/icons/link-45deg.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/link-45deg.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -406,13 +406,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-link-45deg\" viewBox=\"0 0 16 16\">\n  <path d=\"M4.715 6.542L3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.001 1.001 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z\"/>\n  <path d=\"M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 0 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 0 0-4.243-4.243L6.586 4.672z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/music-note-list.svg":
+/***/ "./node_modules/bootstrap-icons/icons/music-note-list.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/music-note-list.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -421,13 +421,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-music-note-list\" viewBox=\"0 0 16 16\">\n  <path d=\"M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2z\"/>\n  <path fill-rule=\"evenodd\" d=\"M12 3v10h-1V3h1z\"/>\n  <path d=\"M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1V2.82z\"/>\n  <path fill-rule=\"evenodd\" d=\"M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/pause-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/pause-fill.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/pause-fill.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -436,13 +436,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-pause-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/pause.svg":
+/***/ "./node_modules/bootstrap-icons/icons/pause.svg"
 /*!******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/pause.svg ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -451,13 +451,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-pause\" viewBox=\"0 0 16 16\">\n  <path d=\"M6 3.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-1 0V4a.5.5 0 0 1 .5-.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/play-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/play-fill.svg"
 /*!**********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/play-fill.svg ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -466,13 +466,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-play-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/play.svg":
+/***/ "./node_modules/bootstrap-icons/icons/play.svg"
 /*!*****************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/play.svg ***!
   \*****************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -481,13 +481,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-play\" viewBox=\"0 0 16 16\">\n  <path d=\"M10.804 8L5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/plus-circle.svg":
+/***/ "./node_modules/bootstrap-icons/icons/plus-circle.svg"
 /*!************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/plus-circle.svg ***!
   \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -496,13 +496,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-plus-circle\" viewBox=\"0 0 16 16\">\n  <path d=\"M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z\"/>\n  <path d=\"M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/search.svg":
+/***/ "./node_modules/bootstrap-icons/icons/search.svg"
 /*!*******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/search.svg ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -511,13 +511,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-search\" viewBox=\"0 0 16 16\">\n  <path d=\"M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/shuffle.svg":
+/***/ "./node_modules/bootstrap-icons/icons/shuffle.svg"
 /*!********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/shuffle.svg ***!
   \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -526,13 +526,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-shuffle\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.26-.43.636-.98 1.126-1.532C9.173 4.24 10.798 3 13 3v1c-1.798 0-3.173 1.01-4.126 2.082A9.624 9.624 0 0 0 7.556 8a9.624 9.624 0 0 0 1.317 1.918C9.828 10.99 11.204 12 13 12v1c-2.202 0-3.827-1.24-4.874-2.418A10.595 10.595 0 0 1 7 9.05c-.26.43-.636.98-1.126 1.532C4.827 11.76 3.202 13 1 13H.5a.5.5 0 0 1 0-1H1c1.798 0 3.173-1.01 4.126-2.082A9.624 9.624 0 0 0 6.444 8a9.624 9.624 0 0 0-1.317-1.918C4.172 5.01 2.796 4 1 4H.5a.5.5 0 0 1-.5-.5z\"/>\n  <path d=\"M13 5.466V1.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192zm0 9v-3.932a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384l-2.36 1.966a.25.25 0 0 1-.41-.192z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/skip-end-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/skip-end-fill.svg"
 /*!**************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/skip-end-fill.svg ***!
   \**************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -541,13 +541,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-skip-end-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.693 3.3 4 3.678 4 4.308v7.384c0 .63.692 1.01 1.233.697L11.5 8.753V12a.5.5 0 0 0 1 0V4z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/skip-end.svg":
+/***/ "./node_modules/bootstrap-icons/icons/skip-end.svg"
 /*!*********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/skip-end.svg ***!
   \*********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -556,13 +556,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-skip-end\" viewBox=\"0 0 16 16\">\n  <path d=\"M12.5 4a.5.5 0 0 0-1 0v3.248L5.233 3.612C4.713 3.31 4 3.655 4 4.308v7.384c0 .653.713.998 1.233.696L11.5 8.752V12a.5.5 0 0 0 1 0V4zM5 4.633L10.804 8 5 11.367V4.633z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/skip-start-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/skip-start-fill.svg"
 /*!****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/skip-start-fill.svg ***!
   \****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -571,13 +571,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-skip-start-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M4 4a.5.5 0 0 1 1 0v3.248l6.267-3.636c.54-.313 1.232.066 1.232.696v7.384c0 .63-.692 1.01-1.232.697L5 8.753V12a.5.5 0 0 1-1 0V4z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/skip-start.svg":
+/***/ "./node_modules/bootstrap-icons/icons/skip-start.svg"
 /*!***********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/skip-start.svg ***!
   \***********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -586,13 +586,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-skip-start\" viewBox=\"0 0 16 16\">\n  <path d=\"M4 4a.5.5 0 0 1 1 0v3.248l6.267-3.636c.52-.302 1.233.043 1.233.696v7.384c0 .653-.713.998-1.233.696L5 8.752V12a.5.5 0 0 1-1 0V4zm7.5.633L5.696 8l5.804 3.367V4.633z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/soundwave.svg":
+/***/ "./node_modules/bootstrap-icons/icons/soundwave.svg"
 /*!**********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/soundwave.svg ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -601,13 +601,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-soundwave\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8.5 2a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-1 0v-11a.5.5 0 0 1 .5-.5zm-2 2a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm4 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zm-6 1.5A.5.5 0 0 1 5 6v4a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm8 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm-10 1A.5.5 0 0 1 3 7v2a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5zm12 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0V7a.5.5 0 0 1 .5-.5z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/speaker.svg":
+/***/ "./node_modules/bootstrap-icons/icons/speaker.svg"
 /*!********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/speaker.svg ***!
   \********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -616,13 +616,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-speaker\" viewBox=\"0 0 16 16\">\n  <path d=\"M12 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z\"/>\n  <path d=\"M8 4.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5zM8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm-3.5 1.5a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/square.svg":
+/***/ "./node_modules/bootstrap-icons/icons/square.svg"
 /*!*******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/square.svg ***!
   \*******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -631,13 +631,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-square\" viewBox=\"0 0 16 16\">\n  <path d=\"M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/tools.svg":
+/***/ "./node_modules/bootstrap-icons/icons/tools.svg"
 /*!******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/tools.svg ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -646,13 +646,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-tools\" viewBox=\"0 0 16 16\">\n  <path d=\"M1 0L0 1l2.2 3.081a1 1 0 0 0 .815.419h.07a1 1 0 0 1 .708.293l2.675 2.675-2.617 2.654A3.003 3.003 0 0 0 0 13a3 3 0 1 0 5.878-.851l2.654-2.617.968.968-.305.914a1 1 0 0 0 .242 1.023l3.356 3.356a1 1 0 0 0 1.414 0l1.586-1.586a1 1 0 0 0 0-1.414l-3.356-3.356a1 1 0 0 0-1.023-.242L10.5 9.5l-.96-.96 2.68-2.643A3.005 3.005 0 0 0 16 3c0-.269-.035-.53-.102-.777l-2.14 2.141L12 4l-.364-1.757L13.777.102a3 3 0 0 0-3.675 3.68L7.462 6.46 4.793 3.793a1 1 0 0 1-.293-.707v-.071a1 1 0 0 0-.419-.814L1 0zm9.646 10.646a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708zM3 11l.471.242.529.026.287.445.445.287.026.529L5 13l-.242.471-.026.529-.445.287-.287.445-.529.026L3 15l-.471-.242L2 14.732l-.287-.445L1.268 14l-.026-.529L1 13l.242-.471.026-.529.445-.287.287-.445.529-.026L3 11z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/trash.svg":
+/***/ "./node_modules/bootstrap-icons/icons/trash.svg"
 /*!******************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/trash.svg ***!
   \******************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -661,13 +661,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-trash\" viewBox=\"0 0 16 16\">\n  <path d=\"M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z\"/>\n  <path fill-rule=\"evenodd\" d=\"M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/volume-mute-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/volume-mute-fill.svg"
 /*!*****************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/volume-mute-fill.svg ***!
   \*****************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -676,13 +676,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-volume-mute-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/volume-mute.svg":
+/***/ "./node_modules/bootstrap-icons/icons/volume-mute.svg"
 /*!************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/volume-mute.svg ***!
   \************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -691,13 +691,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-volume-mute\" viewBox=\"0 0 16 16\">\n  <path d=\"M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zM6 5.04L4.312 6.39A.5.5 0 0 1 4 6.5H2v3h2a.5.5 0 0 1 .312.11L6 10.96V5.04zm7.854.606a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/volume-up-fill.svg":
+/***/ "./node_modules/bootstrap-icons/icons/volume-up-fill.svg"
 /*!***************************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/volume-up-fill.svg ***!
   \***************************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -706,13 +706,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-volume-up-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z\"/>\n  <path d=\"M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z\"/>\n  <path d=\"M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182L8 5.525A3.489 3.489 0 0 1 9.025 8 3.49 3.49 0 0 1 8 10.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/volume-up.svg":
+/***/ "./node_modules/bootstrap-icons/icons/volume-up.svg"
 /*!**********************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/volume-up.svg ***!
   \**********************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -721,13 +721,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-volume-up\" viewBox=\"0 0 16 16\">\n  <path d=\"M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z\"/>\n  <path d=\"M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.483 5.483 0 0 1 11.025 8a5.483 5.483 0 0 1-1.61 3.89l.706.706z\"/>\n  <path d=\"M10.025 8a4.486 4.486 0 0 1-1.318 3.182L8 10.475A3.489 3.489 0 0 0 9.025 8c0-.966-.392-1.841-1.025-2.475l.707-.707A4.486 4.486 0 0 1 10.025 8zM7 4a.5.5 0 0 0-.812-.39L3.825 5.5H1.5A.5.5 0 0 0 1 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 7 12V4zM4.312 6.39L6 5.04v5.92L4.312 9.61A.5.5 0 0 0 4 9.5H2v-3h2a.5.5 0 0 0 .312-.11z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./node_modules/bootstrap-icons/icons/x.svg":
+/***/ "./node_modules/bootstrap-icons/icons/x.svg"
 /*!**************************************************!*\
   !*** ./node_modules/bootstrap-icons/icons/x.svg ***!
   \**************************************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
@@ -736,13 +736,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-x\" viewBox=\"0 0 16 16\">\n  <path d=\"M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z\"/>\n</svg>");
 
-/***/ }),
+/***/ },
 
-/***/ "./src/_.js":
+/***/ "./src/_.js"
 /*!******************!*\
   !*** ./src/_.js ***!
   \******************/
-/***/ ((module) => {
+(module) {
 
 const _ = module.exports;
 
@@ -784,7 +784,6 @@ module.exports.isEqual = function isEqual(a, b, strict = true) {
 		allKeys.push(...Object.keys(b).filter(k => !allKeys.includes(k)));
 		return allKeys.every(key => _.isEqual(a[key], b[key]));
 	}
-	// eslint-disable-next-line eqeqeq
 	return strict ? a === b : a == b;
 };
 
@@ -798,13 +797,11 @@ module.exports.toDuration = function toDuration(number) {
 
 module.exports.timeAgo = function timeAgo(date) {
 	const [ seconds, minutes, hours, days, weeks ] = _duration(Math.floor(date), Math.floor(Date.now() / 1000));
-	/* _eslint-disable indent */
 	return weeks > 1 ? weeks + ' weeks ago'
 		: days > 0 ? days + (days === 1 ? ' day' : ' days') + ' ago'
 		: hours > 0 ? hours + (hours === 1 ? ' hour' : ' hours') + ' ago'
 		: minutes > 0 ? minutes + (minutes === 1 ? ' minute' : ' minutes') + ' ago'
 		: seconds + (seconds === 1 ? ' second' : ' seconds') + ' ago';
-	/* eslint-enable indent */
 };
 
 function _duration(from, to) {
@@ -866,13 +863,13 @@ module.exports.escAttr = function (str, escapeDoubleQuote) {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/api.js":
+/***/ "./src/api.js"
 /*!********************!*\
   !*** ./src/api.js ***!
   \********************/
-/***/ ((module) => {
+(module) {
 
 const cache = {};
 
@@ -903,13 +900,13 @@ async function get(url) {
 }
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/actions/index.js":
+/***/ "./src/components/actions/index.js"
 /*!*****************************************!*\
   !*** ./src/components/actions/index.js ***!
   \*****************************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = {
 	atRoot: ['togglePlay', 'play', 'pause', 'next', 'previous', 'stop', 'toggleMute', 'volumeUp', 'volumeDown'],
@@ -1098,13 +1095,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/controls/index.js":
+/***/ "./src/components/controls/index.js"
 /*!******************************************!*\
   !*** ./src/components/controls/index.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 module.exports = {
@@ -1359,13 +1356,74 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/display/index.js":
+/***/ "./src/components/controls/templates/controls.tpl"
+/*!********************************************************!*\
+  !*** ./src/components/controls/templates/controls.tpl ***!
+  \********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-controls ${ns}-row ${data.inline ? `${ns}-inline-controls` : '' }" data-audio="${data.audioId}">
+	<div class="${ns}-col-auto">
+		${data.inline && !data.multiple ? '' : `
+			<div class="${ns}-media-control ${ns}-previous-button ${ns}-hover-fill ${data.inline && Player.config.expandedRepeat !== 'all' ? 'disabled' : ''}" @click.disabled='${data.actions.previous}' data-hide-id="previous">
+				${Icons.skipStart} ${Icons.skipStartFill}
+			</div>
+		`}
+		<div class="${ns}-media-control ${ns}-play-button ${ns}-hover-fill ${!data.audio || data.audio.paused ? `${ns}-play` : ''}" @click='${data.actions.playPause}' data-audio="${data.audioId}">
+			${Icons.play} ${Icons.pause} ${Icons.playFill} ${Icons.pauseFill}
+		</div>
+		${data.inline && !data.multiple ? '' : `
+			<div class="${ns}-media-control ${ns}-next-button ${ns}-hover-fill" @click.disabled='${data.actions.next}' data-hide-id="next">
+				${Icons.skipEnd} ${Icons.skipEndFill}
+			</div>
+		`}
+	</div>
+	<div class="${ns}-col" data-hide-id="seek-bar">
+		<div class="${ns}-seek-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.seek}'>
+			<div class="${ns}-full-bar">
+				<div class="${ns}-loaded-bar"></div>
+				<div class="${ns}-current-bar"></div>
+			</div>
+		</div>
+	</div>
+	<div class="${ns}-col-auto" data-hide-id="time">
+		<span>
+			<span class="${ns}-current-time" data-audio="${data.audioId}">0:00</span>
+			<span class="${ns}-text-muted" data-hide-id="duration">
+				/ <span class="${ns}-duration" data-audio="${data.audioId}">0:00</span>
+			</span>
+		</span>
+	</div>
+	<div class="${ns}-col-auto" data-hide-id="volume">
+		<div class="${ns}-media-control ${ns}-volume-button ${ns}-hover-fill up" @click='${data.actions.mute}' data-hide-id="volume-button" data-audio="${data.audioId}">
+			${Icons.volumeMute} ${Icons.volumeMuteFill}
+			${Icons.volumeUp} ${Icons.volumeUpFill}
+		</div>
+		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' data-hide-id="volume-bar">
+			<div class="${ns}-full-bar">
+				<div class="${ns}-current-bar" style="width: ${Player.audio.volume * 100}%"></div>
+			</div>
+		</div>
+	</div>
+	${data.inline ? '' : `
+		<div class="${ns}-col-auto" data-hide-id="fullscreen">
+			<div class="${ns}-media-control ${ns}-fullscreen-button" @click='${data.actions.fullscreen}'>
+				${Icons.fullscreen} ${Icons.fullscreenExit}
+			</div>
+		</div>
+	`}
+</div>`
+
+/***/ },
+
+/***/ "./src/components/display/index.js"
 /*!*****************************************!*\
   !*** ./src/components/display/index.js ***!
   \*****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const cssTemplate = __webpack_require__(/*! ../../scss/style.scss */ "./src/scss/style.scss");
@@ -1797,13 +1855,84 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/events/index.js":
+/***/ "./src/components/display/templates/body.tpl"
+/*!***************************************************!*\
+  !*** ./src/components/display/templates/body.tpl ***!
+  \***************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Player.config.viewStyle}" @drop.stop.prevent='playlist.addFromDrop' style="top: 30px; left: 0px; width: 360px; height: 360px; display: none;">
+	<div class="${ns}-header ${ns}-row ${ns}-align-center ${ns}-hover-trigger" @pointdragstart="position.initMove" @pointdrag.unbound="position.doMove" @pointdragend="position.stopMove">
+		${Player.header.template(data)}
+	</div>
+
+	<div class="${ns}-player ${!Player.config.hoverImages ? `${ns}-hide-hover-image` : ''}" @fullscreenchange="display._handleFullScreenChange">
+		${Player.playlist.template(data)}
+	</div>
+	<div class="${ns}-settings ${ns}-panel">
+		${Player.settings.template(data)}
+	</div>
+	<div class="${ns}-threads ${ns}-panel">
+		${Player.threads.template(data)}
+	</div>
+	<div class="${ns}-tools ${ns}-panel">
+		${Player.tools.template(data)}
+	</div>
+
+	<div class="${ns}-footer ${ns}-row ${ns}-align-center ${ns}-hover-trigger">
+		${Player.footer.template(data)}
+	</div>
+	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm,.mp4" multiple>
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/display/templates/themes_menu.tpl"
+/*!**********************************************************!*\
+  !*** ./src/components/display/templates/themes_menu.tpl ***!
+  \**********************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
+	${[ 'Default' ].concat(Player.config.savedThemesOrder).map(name => `
+		<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent='theme.switch("${name}");playlist.restore'>
+			<span ${Player.config.selectedTheme === name ? 'style="font-weight: 700;"' : ''}>${name}</span>
+		</a>
+	`).join('')}
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/display/templates/views_menu.tpl"
+/*!*********************************************************!*\
+  !*** ./src/components/display/templates/views_menu.tpl ***!
+  \*********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
+	${[ 'playlist', 'image' ].includes(Player.config.viewStyle) ? ''
+		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="playlist.restore"><div class="${ns}-col">Player</div><div class="${ns}-col-auto">${Icons.musicNoteList}</div></a>`}
+	${Player.config.viewStyle === 'settings' ? ''
+		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="settings.toggle()"><div class="${ns}-col">Settings</div><div class="${ns}-col-auto">${Icons.gear}</div></span></a>`}
+	${Player.config.viewStyle === 'threads' ? ''
+		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="threads.toggle"><div class="${ns}-col">Threads</div><div class="${ns}-col-auto">${Icons.search}</div></span></a>`}
+	${Player.config.viewStyle === 'tools' ? ''
+		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="tools.toggle"><div class="${ns}-col">Tools</div><div class="${ns}-col-auto">${Icons.tools}</div></span></a>`}
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/events/index.js"
 /*!****************************************!*\
   !*** ./src/components/events/index.js ***!
   \****************************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = {
 	atRoot: [ 'on', 'off', 'trigger' ],
@@ -1972,13 +2101,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/footer/index.js":
+/***/ "./src/components/footer/index.js"
 /*!****************************************!*\
   !*** ./src/components/footer/index.js ***!
   \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 module.exports = {
@@ -2001,13 +2130,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/header/index.js":
+/***/ "./src/components/header/index.js"
 /*!****************************************!*\
   !*** ./src/components/header/index.js ***!
   \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 module.exports = {
@@ -2030,13 +2159,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/hotkeys/index.js":
+/***/ "./src/components/hotkeys/index.js"
 /*!*****************************************!*\
   !*** ./src/components/hotkeys/index.js ***!
   \*****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 const settingsConfig = __webpack_require__(/*! config */ "./src/config/index.js");
 
@@ -2220,13 +2349,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/inline/index.js":
+/***/ "./src/components/inline/index.js"
 /*!****************************************!*\
   !*** ./src/components/inline/index.js ***!
   \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js");
@@ -2550,13 +2679,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/minimised/index.js":
+/***/ "./src/components/minimised/index.js"
 /*!*******************************************!*\
   !*** ./src/components/minimised/index.js ***!
   \*******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 /* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
@@ -2642,13 +2771,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/playlist/index.js":
+/***/ "./src/components/playlist/index.js"
 /*!******************************************!*\
   !*** ./src/components/playlist/index.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 /* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
@@ -3298,17 +3427,160 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/position/index.js":
+/***/ "./src/components/playlist/templates/item_menu.tpl"
+/*!*********************************************************!*\
+  !*** ./src/components/playlist/templates/item_menu.tpl ***!
+  \*********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+module.exports = (data = {}) => `<div class="${ns}-menu dialog ${ns}-dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
+	${data.sound.post ? `<a class="entry" href="#${data.postIdPrefix + data.sound.post}">Show Post</a>` : ''}
+	<div class="entry has-submenu" @entry-focus='playlist.loadTags("${data.sound.id}")' @entry-blur='playlist.abortTags("${data.sound.id}")'>
+		Details
+		<div class="dialog submenu tags-dialog" @click.stop="" data-sound-id="${data.sound.id}" style="inset: 0px auto auto 100%;">
+			${Player.playlist.tagsDialogTemplate(data.sound)}
+		</div>
+	</div>
+	<div class="entry has-submenu">
+		Open
+		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
+			<a class="entry" href="${data.sound.image}" target="_blank">Image</a>
+			<a class="entry" href="${data.sound.src}" target="_blank">Sound</a>
+		</div>
+	</div>
+	<div class="entry has-submenu">
+		Download
+		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
+			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.image, true)}", "${_.escAttr(data.sound.filename, true)}")'>Image</a>
+			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name, true)}")'>Sound</a>
+		</div>
+	</div>
+	<div class="entry has-submenu">
+		Filter
+		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
+			${data.sound.imageMD5 ? `<a class="entry" href="#" @click.prevent='playlist.addFilter("${data.sound.imageMD5}")'>Image</a>` : ''}
+			<a class="entry" href="#" @click.prevent='playlist.addFilter("${_.escAttr(data.sound.src, true).replace(/^(https?\:)?\/\//, '')}")'>Sound</a>
+		</div>
+	</div>
+	<a class="entry" href="#" @click.prevent='remove("${data.sound.id}")'>Remove</a>
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/playlist/templates/list.tpl"
+/*!****************************************************!*\
+  !*** ./src/components/playlist/templates/list.tpl ***!
+  \****************************************************/
+(module) {
+
+module.exports = (data = {}) => (data.sounds || Player.sounds).map(sound => !Player.playlist.matchesSearch(sound) ? '' : `
+	<div
+		class="${ns}-list-item ${ns}-row ${sound.playing ? 'playing' : ''} ${ns}-align-center ${ns}-hover-trigger"
+		@click="playlist.handleSelect"
+		@dragstart.passive="playlist.handleDragStart"
+		@dragenter.prevent="playlist.handleDragEnter"
+		@dragend.prevent="playlist.handleDragEnd"
+		@dragover.prevent=""
+		@drop.prevent=""
+		@contextmenu.stop.prevent='playlist.handleItemMenu($event, "${sound.id}")'
+		@mouseenter="playlist.updateHoverImage"
+		@mouseleave="playlist.removeHoverImage"
+		@mousemove.passive="playlist.positionHoverImage"
+		data-id="${sound.id}"
+		${!Player.playlist.matchesSearch(sound) ? '__style="display: none"' : ''}
+		draggable="true"
+	>
+		${Player.userTemplate.build({
+			template: Player.config.rowTemplate,
+			location: 'item-' + sound.id,
+			sound,
+			outerClass: `${ns}-col-auto`
+		})}
+	</div>`
+).join('')
+
+/***/ },
+
+/***/ "./src/components/playlist/templates/player.tpl"
+/*!******************************************************!*\
+  !*** ./src/components/playlist/templates/player.tpl ***!
+  \******************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<a
+	class="${ns}-image-link"
+	target="_blank"
+	style="height: ${Player.config.imageHeight}px"
+	@pointdragstart.prevent="playlist.expandImageStart"
+	@pointdrag.move.prevent="playlist.expandImage"
+	@pointdragend.prevent="playlist.setImageHeight"
+	@click="playlist.expandImageClick"
+>
+	<div class="fullscreen-details"></div>
+	<div class="image-color-overlay"></div>
+	<img class="${ns}-background-image"></img>
+	<div class="${ns}-image-transparent-bg"></div>
+	<img id="fcspImage" class="${ns}-image" src="data:image/svg+xml;base64,${btoa(Icons.fcSounds)}"></img>
+	<video class="${ns}-video" @play='controls.sync' @pause='controls.sync' loop="true"></video>
+</a>
+${Player.controls.template({
+	audio: Player.audio,
+	audioId: Player.audio.dataset.id,
+	actions: Player.controls.actions
+})}
+<div class="${ns}-under-image">
+	<input
+		type="input"
+		class="${ns}-playlist-search"
+		@keyup="playlist._handleSearch"
+		style="min-width: 100%; box-sizing: border-box; ${!Player.config.showPlaylistSearch ? 'display: none;' : ''}"
+		placeholder="Search"
+	/>
+	<div class="${ns}-list-container">
+		${Player.playlist.listTemplate()}
+	</div>
+</div>
+<img class="${ns}-hover-image">`
+
+/***/ },
+
+/***/ "./src/components/playlist/templates/tags_dialog.tpl"
+/*!***********************************************************!*\
+  !*** ./src/components/playlist/templates/tags_dialog.tpl ***!
+  \***********************************************************/
+(module) {
+
+module.exports = (data = {}) => {
+	if (!data.tags) {
+		return '<div class="entry">Loading</div>';
+	}
+	const tagsArr = Object.entries(data.tags);
+	if (!tagsArr.length) {
+		return '<div class="entry">No data</div>';
+	}
+	return tagsArr.map(([ name, value ]) => `<div class="entry">
+		<span class="tag-name">
+			${name[0].toUpperCase() + name.slice(1)}:
+		</span>
+		${value}
+	</div>`).join('');
+}
+
+/***/ },
+
+/***/ "./src/components/position/index.js"
 /*!******************************************!*\
   !*** ./src/components/position/index.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js");
 
-/* eslint-disable max-statements-per-line, no-empty */
 module.exports = {
 	initialize() {
 		// Set the header offsets for use in templates.
@@ -3550,13 +3822,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/posts/index.js":
+/***/ "./src/components/posts/index.js"
 /*!***************************************!*\
   !*** ./src/components/posts/index.js ***!
   \***************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js");
@@ -3779,13 +4051,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/settings/colorpicker.js":
+/***/ "./src/components/settings/colorpicker.js"
 /*!************************************************!*\
   !*** ./src/components/settings/colorpicker.js ***!
   \************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const colorpickerTemplate = __webpack_require__(/*! ./templates/colorpicker.tpl */ "./src/components/settings/templates/colorpicker.tpl");
@@ -3928,14 +4200,23 @@ module.exports = {
 		const v = max / 255;
 		let h;
 
-		/* eslint-disable max-statements-per-line */
 		switch (max) {
-			case min: h = 0; break;
-			case r: h = (g - b) + d * (g < b ? 6 : 0); h /= 6 * d; break;
-			case g: h = (b - r) + d * 2; h /= 6 * d; break;
-			case b: h = (r - g) + d * 4; h /= 6 * d; break;
+			case min:
+				h = 0;
+				break;
+			case r:
+				h = (g - b) + d * (g < b ? 6 : 0);
+				h /= 6 * d;
+				break;
+			case g:
+				h = (b - r) + d * 2;
+				h /= 6 * d;
+				break;
+			case b:
+				h = (r - g) + d * 4;
+				h /= 6 * d;
+				break;
 		}
-		/* eslint-enable max-statements-per-line */
 
 		return [ h, s, v, a || 1 ];
 	},
@@ -3948,13 +4229,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/settings/hosts.js":
+/***/ "./src/components/settings/hosts.js"
 /*!******************************************!*\
   !*** ./src/components/settings/hosts.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 function validURL(value) {
 	try {
@@ -4048,10 +4329,11 @@ module.exports = {
 	},
 
 	add() {
-		let i,
+		let i = '',
 			name = 'New Host';
-		// eslint-disable-next-line curly
-		for (i = ''; Player.config.uploadHosts[`${name}${i}`]; i = ` ${++i}`);
+		while (Player.config.uploadHosts[`${name}${i}`]) {
+			i = ` ${++i}`;
+		}
 		const hosts = {
 			[`${name}${i}`]: { invalid: true, data: { file: '$file' } },
 			...Player.config.uploadHosts
@@ -4093,13 +4375,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/settings/index.js":
+/***/ "./src/components/settings/index.js"
 /*!******************************************!*\
   !*** ./src/components/settings/index.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const settingsConfig = __webpack_require__(/*! config */ "./src/config/index.js");
@@ -4482,13 +4764,288 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/theme/index.js":
+/***/ "./src/components/settings/templates/colorpicker.tpl"
+/*!***********************************************************!*\
+  !*** ./src/components/settings/templates/colorpicker.tpl ***!
+  \***********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-colorpicker ${ns}-dialog dialog" data-allow-click="true" style="top: 0px; left: 0px;">
+	<div class="${ns}-cp-saturation" @pointdrag="colorpicker.satMove" style="height: ${data.HEIGHT}px; width: ${data.WIDTH}px;">
+		<div class="position" style="left: ${data.WIDTH - 3}px; top: -3px;"></div>
+	</div>
+	<div class="${ns}-cp-hue" @pointdrag="colorpicker.hueMove" style="height: ${data.HEIGHT}px">
+		<div class="position"></div>
+	</div>
+	<div class="${ns}-output" style="text-align: right;">
+		<a href="#" class="${ns}-close-colorpicker" @click.prevent="display.closeDialogs()">${Icons.close}</a>
+		<div class="output-color" style="background: rgb(${data.rgb[0]}, ${data.rgb[1]}, ${data.rgb[2]});"></div>
+
+		<table>
+			${['R','G','B','A'].map((n, i) => `
+				<tr>
+					<td>${n}:</td>
+					<td>
+						<input
+							type="text"
+							class="${ns}-rgb-input"
+							@change="colorpicker.inputRGBA"
+							data-color="${i}"
+							value="${data.rgb[i]}"
+						/>
+					</td>
+				</tr>
+			`).join('')}
+		</table>
+
+		<button @click.stop.prevent="colorpicker.apply">Apply</button><br>
+	</div>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/host_input.tpl"
+/*!**********************************************************!*\
+  !*** ./src/components/settings/templates/host_input.tpl ***!
+  \**********************************************************/
+(module) {
+
+module.exports = (data = {}) => Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
+	<div class="${ns}-row ${ns}-col ${ns}-host-input ${host.invalid ? 'invalid' : ''}" data-host-name="${name}">
+		<div class="${ns}-row ${ns}-host-controls">
+			<div class="${ns}-col-auto">
+				<label>
+					<input
+						type="checkbox"
+						data-property="defaultUploadHost"
+						${Player.config.defaultUploadHost === name ? 'checked': ''}
+					/>
+					Default
+				</label>
+			</div>
+			<div class="${ns}-col-auto">
+				<a href="#" class="${ns}-heading-action" @click.prevent="settings.hosts.remove">
+					Remove
+				</a>
+			</div>
+		</div>
+		<div class="${ns}-row">
+			${Object.entries(Player.settings.hosts.fields).map(([ field, title ]) => `
+				<div class="${ns}-col">
+					<input
+						type="text"
+						data-property="uploadHosts"
+						name="${field}"
+						value="${(field === 'name' ? name : host[field]) || ''}"
+						placeholder="${title}"
+					/>
+				</div>
+			`).join('')}
+		</div>
+		<div class="${ns}-row">
+			<div class="${ns}-col">
+				<textarea data-property="uploadHosts" name="data" placeholder="Data (JSON)">${
+					JSON.stringify(host.data, null, 4)
+				}</textarea>
+			</div>
+		</div>
+		<div class="${ns}-row">
+			<div class="${ns}-col">
+				<textarea data-property="uploadHosts" name="headers" placeholder="Headers (JSON)">${
+					host.headers ? JSON.stringify(host.headers, null, 4) : ''
+				}</textarea>
+			</div>
+		</div>
+	</div>
+`).join('')
+
+/***/ },
+
+/***/ "./src/components/settings/templates/inputs/checkbox.tpl"
+/*!***************************************************************!*\
+  !*** ./src/components/settings/templates/inputs/checkbox.tpl ***!
+  \***************************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
+	<input type="checkbox" ${data.attrs} ${data.value ? 'checked' : ''} />
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/inputs/input.tpl"
+/*!************************************************************!*\
+  !*** ./src/components/settings/templates/inputs/input.tpl ***!
+  \************************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
+	<input type="text" ${data.attrs} value="${data.value}"/>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/inputs/select.tpl"
+/*!*************************************************************!*\
+  !*** ./src/components/settings/templates/inputs/select.tpl ***!
+  \*************************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
+	<select ${data.attrs}>
+		${Object.keys(data.setting.options).map(k => `<option value="${k}" ${data.value === k ? 'selected' : ''}>
+			${data.setting.options[k]}
+		</option>`).join('')}
+	</select>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/inputs/textarea.tpl"
+/*!***************************************************************!*\
+  !*** ./src/components/settings/templates/inputs/textarea.tpl ***!
+  \***************************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-col ${!data.setting.inlineTextarea ? `${ns}-row` : ''} ${ns}-align-center">
+	<textarea ${data.attrs}>${data.value}</textarea>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/setting.tpl"
+/*!*******************************************************!*\
+  !*** ./src/components/settings/templates/setting.tpl ***!
+  \*******************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => data.displayMethod === null ? '' : `
+<div class="${ns}-row ${ns}-align-start ${ns}-setting ${data.isSubSetting ? `${ns}-sub-settings` : ''}" data-property="${data.property}">
+	<div class="${ns}-col ${ns}-heading">
+		<span>
+			${data.title}
+			${data.description ? `<i class="${ns}-info-circle ${ns}-popover ${data.wideDesc ? 'wide' : ''}" data-content="${_.escAttr(data.description)}">${Icons.infoCircle}</i>` : ''}
+		</span>
+		${!data.actions || !data.actions.length ? '' : `<div style="display: inline-block; margin: 0 .25rem">
+			${(data.actions || []).map(action => `
+				<a href="#" class="${ns}-heading-action" @click${action.mods || ''}='${action.handler}'>${action.title}</a>
+			`).join(' ')}
+		</div>`}
+	</div>
+
+	${data.dismissTextId
+		? `<div class="${ns}-col" style="min-width: 100%">
+			${Player.display.ifNotDismissed(
+				data.dismissTextId,
+				data.dismissRestoreText,
+				`<div data-dismiss-id="${data.dismissTextId}">
+					${data.text}
+					<a href="#" @click.prevent='display.dismiss("${data.dismissTextId}")' style="display:block; margin-top:.25rem">
+						Dismiss
+					</a>
+				</div>`
+			)}
+		</div>`
+	: data.text
+		? data.text
+	: ''}
+
+	${(() => {
+		// Recusively call for sub settings.
+		if (data.settings) {
+			return data.settings.map(subSetting => Player.settings.settingTemplate({
+				...data,
+				actions: null,
+				settings: null,
+				description: null,
+				...subSetting,
+				isSubSetting: true
+			})).join('')
+		}
+
+		value = _.get(Player.config, data.property, data.default);
+		attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
+			+ (data.class ? ` class="${data.class}"` : '')
+			+ ` data-property="${data.property}"`;
+
+		if (data.format) {
+			value = Player.getHandler(data.format)(value);
+		}
+		let type = typeof value;
+		if (type === 'object') {
+			value = JSON.stringify(value, null, 4)
+		}
+
+		inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
+			|| _.get(Player, data.displayMethod)
+			|| data.displayMethod && Player.settings.inputTemplates[data.displayMethod]
+			|| type === 'boolean' && Player.settings.inputTemplates.checkbox
+			|| type === 'object' && Player.settings.inputTemplates.textarea
+			|| data.options && Player.settings.inputTemplates.select
+			|| Player.settings.inputTemplates.input;
+
+		return inputTemplate({ value, attrs, setting: data });
+	})()}
+</div>`
+
+/***/ },
+
+/***/ "./src/components/settings/templates/settings.tpl"
+/*!********************************************************!*\
+  !*** ./src/components/settings/templates/settings.tpl ***!
+  \********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
+	<div class="${ns}-settings-tab-group ${ns}-col-auto">
+		<a href="#" class="${ns}-settings-reset-all ${ns}-settings-tab"
+			@click.prevent='settings.load({},{"applyDefault":true,"ignore":["viewStyle"]})'
+			title="Reset all settings to their default values.">
+			${Icons.reboot}
+		</a>
+		<a href="#" class="${ns}-settings-export ${ns}-settings-tab"
+			@click.prevent="settings.export"
+			title="Export. Shift click to export all settings. Otherwise only modified settings are included in the export.">
+			${Icons.boxArrowRight}
+		</a>
+		<a href="#" class="${ns}-settings-import ${ns}-settings-tab"
+			@click.prevent="settings.import"
+			title="Import. Settings not included in the import will be left as their current value.">
+			${Icons.boxArrowInLeft}
+		</a>
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.6.0"}">
+			${Icons.github}
+		</a>
+	</div>
+	<div class="${ns}-settings-tab-group ${ns}-col-auto">
+		${Object.keys(Player.settings.groups).map(name => 
+			`<a href="#" class="${ns}-settings-tab ${Player.settings.view !== name ? '' : 'active'}"
+				@click.prevent='settings.showGroup("${name}")'
+				data-group="${name}">
+				${name}
+			</a>`
+		).join(' | ')}
+	</div>
+</div>
+${Object.entries(Player.settings.groups).map(([ name, settings ]) => `
+	<div class="${ns}-settings-group ${Player.settings.view !== name ? '' : 'active'}" data-group="${name}">
+		${settings.map(Player.settings.settingTemplate).join('')}
+	</div>
+`).join('')}`
+
+/***/ },
+
+/***/ "./src/components/theme/index.js"
 /*!***************************************!*\
   !*** ./src/components/theme/index.js ***!
   \***************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js");
@@ -4732,13 +5289,101 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/theme/themes.js":
+/***/ "./src/components/theme/templates/save_theme_menu.tpl"
+/*!************************************************************!*\
+  !*** ./src/components/theme/templates/save_theme_menu.tpl ***!
+  \************************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-theme-save-options ${ns}-dialog fields-collapsed dialog" data-allow-click="true" style="top: 0px; left: 0px;">
+	<div class="${ns}-row ${ns}-align-center">
+		<div class="${ns}-col">
+			<input type="text" class="${ns}-save-theme-name" @keyup.prevent="theme.toggleSaveButtonText" placeholder="Name">
+		</div>
+		<div class="${ns}-col">
+			<a class="${ns}-save-theme" @click.prevent="theme.save" href="#">Create</a>
+		</div>
+	</div>
+	<a class="${ns}-row" @click.prevent="theme.toggleSaveFields" href="#" style="margin: .25rem 0">
+		<span style="margin-right: .25rem">Included Settings</span>
+		${Icons.chevronDown}
+		${Icons.chevronUp}
+	</a>
+	${(function saveFieldOptions(settings, parent) {
+		return settings.map(s => {
+			const id = s.property && `theme_field-${s.property.replace(/\./g, '_')}`;
+			return s.settings
+				? saveFieldOptions(s.settings, s)
+				: { ...(parent || {}), ...s }.allowInTheme || s.themeField
+					? `<div><input type="checkbox" id="${id}" value="${s.property}" ${s.themeField ? 'checked' : ''}><label for="${id}">${parent ? `${parent.themeFieldTitle || parent.title}: ` : ''}${s.title}</label></div>`
+					: '';
+		}).join('');
+	})(data.settingsConfig)}
+</div>`
+
+/***/ },
+
+/***/ "./src/components/theme/templates/saved_themes.tpl"
+/*!*********************************************************!*\
+  !*** ./src/components/theme/templates/saved_themes.tpl ***!
+  \*********************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-row ${ns}-saved-themes">
+	<div class="${ns}-row ${ns}-align-start ${ns}-sub-settings" data-theme="Default" style="order: ${-1}">
+		<div class="${ns}-col ${ns}-space-between">Default</div>
+		<div class="${ns}-col">
+			<a href="#" class="${ns}-heading-action" @click.prevent='theme.switch("Default")' data-property="savedTheme">${Player.config.selectedTheme === 'Default' ? Icons.checkSquare : Icons.square}</a>
+		</div>
+	</div>
+	${Player.config.savedThemesOrder.map((name, i) => `
+		<div class="${ns}-row ${ns}-align-start ${ns}-sub-settings" data-theme="${name}" style="order: ${i}">
+			<div class="${ns}-col ${ns}-space-between">${name}</div>
+			<div class="${ns}-col">
+				<a href="#" class="${ns}-heading-action" @click.prevent='theme.switch("${name}")'>${Player.config.selectedTheme === name ? Icons.checkSquare : Icons.square}</a>
+				<a href="#" class="${ns}-heading-action ${ns}-move-theme-up ${i === 0 ? 'disabled' : '' }" @click.prevent="theme.moveUp" >${Icons.arrowUp}</a>
+				<a href="#" class="${ns}-heading-action ${ns}-move-theme-down ${i === Player.config.savedThemesOrder.length - 1 ? 'disabled' : '' }" @click.prevent="theme.moveDown">${Icons.arrowDown}</a>
+				<a href="#" class="${ns}-heading-action ${ns}-remove-theme" @click.prevent="theme.remove">${Icons.trash}</a>
+			</div>
+		</div>
+	`).join('')}
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/theme/templates/theme_keybinds.tpl"
+/*!***********************************************************!*\
+  !*** ./src/components/theme/templates/theme_keybinds.tpl ***!
+  \***********************************************************/
+(module) {
+
+module.exports = (data = {}) => [ 'Default' ].concat(Player.config.savedThemesOrder).map(name => `
+	<div class="${ns}-row ${ns}-select-themes">
+		<div class="${ns}-col"><span style="padding-left: .5rem">- ${name}</span></div>
+		<div class="${ns}-col" data-name="${name}">
+			<input
+				type="text"
+				@keydown="settings.handleKeyChange"
+				value="${Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def.themeName === name) || { key: '' })}"
+				data-property="hotkey_bindings.switchTheme"
+			/>
+		</div>
+	</div>
+`).join('')
+
+
+/***/ },
+
+/***/ "./src/components/theme/themes.js"
 /*!****************************************!*\
   !*** ./src/components/theme/themes.js ***!
   \****************************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = {
 	'Fixed Playlist': {
@@ -4750,13 +5395,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/threads/index.js":
+/***/ "./src/components/threads/index.js"
 /*!*****************************************!*\
   !*** ./src/components/threads/index.js ***!
   \*****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const { get } = __webpack_require__(/*! ../../api */ "./src/api.js");
@@ -4976,13 +5621,126 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/tools/create.js":
+/***/ "./src/components/threads/templates/boards.tpl"
+/*!*****************************************************!*\
+  !*** ./src/components/threads/templates/boards.tpl ***!
+  \*****************************************************/
+(module) {
+
+module.exports = (data = {}) => (Player.threads.boardList || []).map(board => {
+	let checked = Player.threads.selectedBoards.includes(board.board);
+	return !checked && !Player.threads.showAllBoards ? '' : `
+		<label>
+			<input
+				type="checkbox"
+				@change='threads.toggleBoard("${board.board}", $event.currentTarget.checked)'
+				value="${board.board}"
+				${checked ? 'checked' : ''}
+			/>
+			/${board.board}/
+		</label>`
+}).join('')
+
+/***/ },
+
+/***/ "./src/components/threads/templates/list.tpl"
+/*!***************************************************!*\
+  !*** ./src/components/threads/templates/list.tpl ***!
+  \***************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+module.exports = (data = {}) => Object.keys(Player.threads.displayThreads).reduce((rows, board) => {
+	return rows.concat(Player.threads.displayThreads[board].map(thread => `
+		<tr>
+			<td>
+				<a class="quotelink" href="//boards.${thread.ws_board ? '4channel' : '4chan'}.org/${thread.board}/thread/${thread.no}#p${thread.no}" target="_blank">
+					>>>/${thread.board}/${thread.no}
+				</a>
+			</td>
+			<td>${thread.sub || ''}</td>
+			<td>${thread.replies} / ${thread.images}</td>
+			<td>${_.timeAgo(thread.time)}</td>
+			<td>${_.timeAgo(thread.last_modified)}</td>
+		</tr>
+	`))
+}, []).join('')
+
+
+/***/ },
+
+/***/ "./src/components/threads/templates/threads.tpl"
+/*!******************************************************!*\
+  !*** ./src/components/threads/templates/threads.tpl ***!
+  \******************************************************/
+(module) {
+
+module.exports = (data = {}) => `<div class="${ns}-heading lined">
+	Active Threads
+	${!Player.threads.loading ? `- <a class="${ns}-heading-action" @click.prevent="threads.fetch" href="#">Update</a>` : ''}
+</div>
+
+<div style="margin: 0 .25rem; display: ${Player.threads.loading ? 'block' : 'none'}">Loading</div>
+
+<div style="margin: 0 .25rem; display: ${Player.threads.loading ? 'none' : 'block'}">
+	<div class="${ns}-heading">
+		Filter
+	</div>
+	<input
+		type="text"
+		class="${ns}-threads-filter"
+		@keyup='threads.filter($event.target.value)'
+		value="${Player.threads.filterValue || ''}"
+	/>
+
+	<div class="${ns}-heading">
+		Boards -
+		<a class="${ns}-all-boards-link ${ns}-heading-action" @click.prevent="threads.toggleBoardList" href="#">
+			${Player.threads.showAllBoards ? 'Selected Only' : 'Show All'}
+		</a>
+	</div>
+	<div class="${ns}-thread-board-list">
+		${Player.threads.boardsTemplate(data)}
+	</div>
+
+	${!Player.threads.hasParser
+		? ''
+		: `<div class="${ns}-heading" style="text-align: center">
+			${Player.config.threadsViewStyle !== 'table'
+				? `<a class="${ns}-heading-action" @click.prevent='set("threadsViewStyle","table")' href="#">Table</a>`
+				: `<span>Table</span>`}
+			|
+			${Player.config.threadsViewStyle !== 'board'
+				? `<a class="${ns}-heading-action" @click.prevent='set("threadsViewStyle","board")' href="#">Board</a>`
+				: `<span>Board</span>`}
+		</div>`
+	}
+	${
+		!Player.threads.hasParser || Player.config.threadsViewStyle === 'table'
+		? `<table>
+				<tr>
+					<th>Thread</th>
+					<th>Subject</th>
+					<th>Replies/Images</th>
+					<th>Started</th>
+					<th>Updated</th>
+				<tr>
+				<tbody class="${ns}-threads-body"></tbody>
+			</table>`
+		: `<div class="${ns}-thread-list"></div>`
+	}
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/tools/create.js"
 /*!****************************************!*\
   !*** ./src/components/tools/create.js ***!
   \****************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 /* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
@@ -5330,13 +6088,13 @@ const createTool = module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/tools/download.js":
+/***/ "./src/components/tools/download.js"
 /*!******************************************!*\
   !*** ./src/components/tools/download.js ***!
   \******************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const progressBarsTemplate = __webpack_require__(/*! ./templates/download-progress.tpl */ "./src/components/tools/templates/download-progress.tpl");
@@ -5578,13 +6336,13 @@ const downloadTool = module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/tools/index.js":
+/***/ "./src/components/tools/index.js"
 /*!***************************************!*\
   !*** ./src/components/tools/index.js ***!
   \***************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const createTool = __webpack_require__(/*! ./create */ "./src/components/tools/create.js");
@@ -5631,13 +6389,250 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/user-template/buttons.js":
+/***/ "./src/components/tools/templates/create-complete.tpl"
+/*!************************************************************!*\
+  !*** ./src/components/tools/templates/create-complete.tpl ***!
+  \************************************************************/
+(module) {
+
+module.exports = (data = {}) => `<span>
+	<br>Complete!<br>
+	${is4chan ? '<a href="#" @click.prevent="tools.addCreatedToQR">Post</a> - ' : ''}
+	<a href="#" @click.prevent="tools.addCreatedToPlayer">Add</a> -
+	<a href="${Player.tools._createdImageURL}" download="${Player.tools._createdImage.name}" title="${Player.tools._createdImage.name}">Download</a>
+</span>`
+
+/***/ },
+
+/***/ "./src/components/tools/templates/create.tpl"
+/*!***************************************************!*\
+  !*** ./src/components/tools/templates/create.tpl ***!
+  \***************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-heading lined">
+	Create Sound Image
+</div>
+<div class="m-2">
+	<div class="${ns}-create-sound-form" @drop.stop.prevent="tools.handleCreateSoundDrop">
+		<div class="${ns}-row mb-4">
+			${Player.display.ifNotDismissed('createSoundDetails', 'Show Help',
+			`<div class="${ns}-col" data-dismiss-id="createSoundDetails">
+				Select an image and sound to combine as a sound image.
+				The sound will be uploaded to the selected file host and the url will be added to the image filename.<br/>
+				<br/>
+				Multiple sound files, or a comma-separated list of sound URLs, can be given for a single image.
+				If you do have multiple sounds the name will also be a considered comma-separated list.<br/>
+				<a href="#" @click.prevent='display.dismiss("createSoundDetails")'>Dismiss</a>
+			</div>`)}
+		</div>
+
+		<div class="${ns}-row">
+			<span>Host - <a @click.prevent='settings.toggle("Hosts")' href="#">Config</a></span>
+		</div>
+		<div class="${ns}-row">
+			<div class="${ns}-col ${ns}-create-hosts-container">
+				${Player.tools.createHostsTemplate()}
+			</div>
+		</div>
+
+		<div class="${ns}-row mt-2">
+			Data
+		</div>
+		<div class="${ns}-row">
+			<div class="${ns}-col">
+				<input type="text" class="${ns}-create-sound-name w-100" placeholder="Name/s">
+			</div>
+		</div>
+
+		<div class="${ns}-row">
+			<div class="${ns}-col">
+				<div class="${ns}-file-input placeholder">
+					<div class="${ns}-file-overlay w-100">
+						<span class="placeholder-text">Select/Drop Image</span>
+						<span class="text"></span>
+						<input
+							class="${ns}-create-sound-img"
+							@change='tools.handleImageSelect;tools.handleFileSelect($event.target)'
+							type="file"
+							accept="image/*,.webm,.mp4"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div class="${ns}-col">
+				<div class="${ns}-file-input placeholder" ${Player.tools.useSoundURL ? 'display: none;' : ''}>
+					<div class="${ns}-file-overlay w-100">
+						<span class="placeholder-text">Select/Drop Sound/s</span>
+						<span class="text"></span>
+						<div class="overfile ${ns}-input-append">
+							<a href="#" @click.prevent='tools.toggleSoundInput("url")' title="Enter a URL of a previously uploaded file.">
+								${Icons.link}
+							</a>
+						</div>
+						<input
+							type="file"
+							class="${ns}-create-sound-snd"
+							@change='tools.handleFileSelect($event.target)'
+							accept="audio/*,video/*"
+							multiple
+						/>
+					</div>
+					<div class="${ns}-file-list"></div>
+				</div>
+				<div class="${ns}-row ${ns}-align-center" style="position: relative; ${Player.tools.useSoundURL ? '' : 'display: none;'}">
+					<a href="#" class="${ns}-input-append" @click.prevent='tools.toggleSoundInput("file")' title="Select a file to upload.">
+						${Icons.fileEarmarkMusic}
+					</a>
+					<input
+						type="text"
+						class="${ns}-create-sound-snd-url w-100"
+						placeholder="Sound URL/s"
+					/>
+				</div>
+			</div>
+		</div>
+
+		<div class="${ns}-row mt-4">
+			<div class="${ns}-col-auto">
+				<button class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="${ns}-create-sound-status" ${Player.tools._createdImage ? '' : 'style="display: none"'}>
+		${Player.tools._createdImage ? Player.tools.createCompleteTemplate() : ''}
+	</div>
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/tools/templates/download-progress.tpl"
+/*!**************************************************************!*\
+  !*** ./src/components/tools/templates/download-progress.tpl ***!
+  \**************************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="mb-2">
+	<div>
+		<a class="${ns}-cancel-download pointer">${Icons.close}</a>
+		<span class="${ns}-current-status"></span>
+	</div>
+	<div class="${ns}-row ${ns}-align-center" ${data.includeImages ? '' : 'style="display: none;"'}>
+		<div class="${ns}-col-auto mr-4">${Icons.image}</div>
+		<div class="${ns}-col"><div class="${ns}-full-bar"><div class="${ns}-image-bar"></div></div></div>
+	</div>
+	<div class="${ns}-row ${ns}-align-center" ${data.includeSounds ? '' : 'style="display: none;"'}>
+		<div class="${ns}-col-auto mr-4">${Icons.soundwave}</div>
+		<div class="${ns}-col"><div class="${ns}-full-bar"><div class="${ns}-sound-bar"></div></div></div>
+	</div>
+</div>`
+
+
+/***/ },
+
+/***/ "./src/components/tools/templates/download.tpl"
+/*!*****************************************************!*\
+  !*** ./src/components/tools/templates/download.tpl ***!
+  \*****************************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
+module.exports = (data = {}) => `<div class="${ns}-heading lined mt-5">Download All</div>
+<div class="m-2">
+	<div class="${ns}-row" style="white-space: nowrap">
+		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
+			<input type="checkbox" class="download-all-images m-0 mr-2" checked>
+			Images
+		</label>
+		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
+			<input type="checkbox" class="download-all-audio m-0 mr-2" checked>
+			Audio
+		</label>
+		<label class="${ns}-col-auto m-0 mr-3 ${ns}-ignore-downloaded" style="height: 1.5rem;">
+			<input type="checkbox" class="download-all-ignore-downloaded m-0 mr-2" checked>
+			<span>
+				Skip Downloaded <i class="${ns}-info-circle ${ns}-popover" data-content="Skip sounds you've already downloaded.">${Icons.infoCircle}</i>
+			</span>
+		</label>
+		<div class="${ns}-row ${ns}-align-center">
+			<div class="${ns}-col mr-2">Download Concurrency</div>
+			<div class="${ns}-col"><input type="number" class="download-all-concurrency" min="1" value="1" style="width: 3rem;"></div>
+		</div>
+		<div class="${ns}-row ${ns}-align-center">
+			<div class="${ns}-col mr-2">
+				Compression Level
+				<i class="${ns}-info-circle ${ns}-popover" data-content="0 (none/fastest) to 9 (best/slowest). It's unlikely to achieve significant compression however.">${Icons.infoCircle}</i>
+			</div>
+			<div class="${ns}-col"><input type="number" class="download-all-compression" min="0" max="9" value="0" style="width: 3rem;"></div>
+		</div>
+		<div class="${ns}-row ${ns}-align-center">
+			<div class="${ns}-col mr-2">
+				Max Sounds
+				<i class="${ns}-info-circle ${ns}-popover" data-content="Maximum number of sounds to download in one zip. 0 for unlimited. Useful for batching downloads to avoid memory contraints.">${Icons.infoCircle}</i>
+			</div>
+			<div class="${ns}-col"><input type="number" class="download-all-max-sounds" min="0" value="0" style="width: 3rem;"></div>
+		</div>
+	</div>
+	<div class="${ns}-download-all-status" style="display: none;"></div>
+	<div class="${ns}-row mt-4 ${ns}-align-center">
+		<button @click.prevent="tools._handleDownload" class="${ns}-download-all-start">Download</button>
+		<button @click.prevent="tools._handleDownloadCancel" class="${ns}-download-all-cancel">Cancel</button>
+		<button @click.prevent="tools.saveThreadDownload" class="${ns}-download-all-save ml-2 ${ns}-popover" @click="tools.saveThreadDownload" data-content="Save the last download.">Save</button>
+		<div class="${ns}-download-all-clear ml-2">
+			<a href="#" @click.prevent="tools.clearDownloadBlob">Clear</a><i class="${ns}-info-circle ${ns}-popover ml-1" data-content="Clear the last download to free memory.">${Icons.infoCircle}</i>
+		</div>
+	</div>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/tools/templates/hosts-select.tpl"
+/*!*********************************************************!*\
+  !*** ./src/components/tools/templates/hosts-select.tpl ***!
+  \*********************************************************/
+(module) {
+
+module.exports = (data = {}) => `<select class="${ns}-create-sound-host">
+	${Object.keys(Player.config.uploadHosts).map((hostId, i) =>
+		Player.config.uploadHosts[hostId] && !Player.config.uploadHosts[hostId].invalid
+			? `<option value="${hostId}" ${Player.config.defaultUploadHost === hostId ? 'selected' : ''}>${hostId}</option>`
+			: ''
+	).join('')}
+</select>`
+
+/***/ },
+
+/***/ "./src/components/tools/templates/tools.tpl"
+/*!**************************************************!*\
+  !*** ./src/components/tools/templates/tools.tpl ***!
+  \**************************************************/
+(module) {
+
+module.exports = (data = {}) => `${Player.tools.createTemplate()}
+${Player.tools.downloadTemplate()}
+
+<div class="${ns}-heading lined mt-5">Encode / Decode URL</div>
+<div class="m-2">
+	<div class="${ns}-row">
+		<input type="text" class="${ns}-col ${ns}-decoded-input" @keyup="tools.handleDecoded" placeholder="https://">
+		<input type="text" class="${ns}-col ${ns}-encoded-input" @keyup="tools.handleEncoded" placeholder="https%3A%2F%2F">
+	</div>
+</div>`
+
+/***/ },
+
+/***/ "./src/components/user-template/buttons.js"
 /*!*************************************************!*\
   !*** ./src/components/user-template/buttons.js ***!
   \*************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
@@ -5847,13 +6842,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/user-template/index.js":
+/***/ "./src/components/user-template/index.js"
 /*!***********************************************!*\
   !*** ./src/components/user-template/index.js ***!
   \***********************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const buttons = __webpack_require__(/*! ./buttons */ "./src/components/user-template/buttons.js");
@@ -6042,13 +7037,13 @@ module.exports = {
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/display.js":
+/***/ "./src/config/display.js"
 /*!*******************************!*\
   !*** ./src/config/display.js ***!
   \*******************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = [
 	{
@@ -6281,13 +7276,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/filter.js":
+/***/ "./src/config/filter.js"
 /*!******************************!*\
   !*** ./src/config/filter.js ***!
   \******************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = [
 	{
@@ -6337,13 +7332,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/hosts.js":
+/***/ "./src/config/hosts.js"
 /*!*****************************!*\
   !*** ./src/config/hosts.js ***!
   \*****************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = [
 	{
@@ -6408,13 +7403,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/index.js":
+/***/ "./src/config/index.js"
 /*!*****************************!*\
   !*** ./src/config/index.js ***!
   \*****************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 module.exports = [
 	// Order the groups appear in.
@@ -6450,13 +7445,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/keybinds.js":
+/***/ "./src/config/keybinds.js"
 /*!********************************!*\
   !*** ./src/config/keybinds.js ***!
   \********************************/
-/***/ ((module) => {
+(module) {
 
 const hasMediaSession = 'mediaSession' in navigator;
 const keybindOpts = {
@@ -6648,13 +7643,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/playback.js":
+/***/ "./src/config/playback.js"
 /*!********************************!*\
   !*** ./src/config/playback.js ***!
   \********************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = [
 	{
@@ -6754,13 +7749,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/config/theme.js":
+/***/ "./src/config/theme.js"
 /*!*****************************!*\
   !*** ./src/config/theme.js ***!
   \*****************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 module.exports = [
 	{
@@ -6840,13 +7835,13 @@ module.exports = [
 ];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/globals.js":
+/***/ "./src/globals.js"
 /*!************************!*\
   !*** ./src/globals.js ***!
   \************************/
-/***/ (() => {
+() {
 
 /**
  * Global variables and helpers.
@@ -6878,13 +7873,13 @@ class PlayerError extends Error {
 window.PlayerError = PlayerError;
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/hosts.js":
+/***/ "./src/hosts.js"
 /*!**********************!*\
   !*** ./src/hosts.js ***!
   \**********************/
-/***/ ((module) => {
+(module) {
 
 module.exports = {
 	'catbox': {
@@ -6899,1061 +7894,312 @@ module.exports = {
 	},
 }
 
-/***/ }),
+/***/ },
 
-/***/ "./src/icons.js":
+/***/ "./src/icons.js"
 /*!**********************!*\
   !*** ./src/icons.js ***!
   \**********************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 module.exports = {
 	fcSounds: '<svg width="452" height="257" xmlns="http://www.w3.org/2000/svg"><g><text font-weight="bold" font-style="italic" font-family="Helvetica, Arial, sans-serif" font-size="250" y="197" fill-opacity="0.05" fill="#000000">4sp</text></g></svg>',
-	arrowClockwise: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-clockwise.svg */ "./node_modules/bootstrap-icons/icons/arrow-clockwise.svg").default,
-	arrowsCollapse: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-collapse.svg */ "./node_modules/bootstrap-icons/icons/arrows-collapse.svg").default,
-	arrowDown: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-down.svg */ "./node_modules/bootstrap-icons/icons/arrow-down.svg").default,
-	arrowsExpand: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-expand.svg */ "./node_modules/bootstrap-icons/icons/arrows-expand.svg").default,
-	arrowRepeat: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-repeat.svg */ "./node_modules/bootstrap-icons/icons/arrow-repeat.svg").default,
-	arrowUp: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-up.svg */ "./node_modules/bootstrap-icons/icons/arrow-up.svg").default,
-	boxArrowInLeft: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/box-arrow-in-left.svg */ "./node_modules/bootstrap-icons/icons/box-arrow-in-left.svg").default,
-	boxArrowRight: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/box-arrow-right.svg */ "./node_modules/bootstrap-icons/icons/box-arrow-right.svg").default,
-	chatRightQuote: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chat-right-quote.svg */ "./node_modules/bootstrap-icons/icons/chat-right-quote.svg").default,
-	checkSquare: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/check-square.svg */ "./node_modules/bootstrap-icons/icons/check-square.svg").default,
-	chevronDown: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chevron-down.svg */ "./node_modules/bootstrap-icons/icons/chevron-down.svg").default,
-	chevronUp: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chevron-up.svg */ "./node_modules/bootstrap-icons/icons/chevron-up.svg").default,
-	close: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/x.svg */ "./node_modules/bootstrap-icons/icons/x.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	gear: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/gear.svg */ "./node_modules/bootstrap-icons/icons/gear.svg").default,
-	fileEarmarkImage: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-image.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-image.svg").default,
-	fileEarmarkMusic: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-music.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-music.svg").default,
-	filter: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/filter.svg */ "./node_modules/bootstrap-icons/icons/filter.svg").default,
-	fullscreen: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen.svg */ "./node_modules/bootstrap-icons/icons/fullscreen.svg").default,
-	fullscreenExit: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen-exit.svg */ "./node_modules/bootstrap-icons/icons/fullscreen-exit.svg").default,
-	github: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/github.svg */ "./node_modules/bootstrap-icons/icons/github.svg").default,
-	image: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/image.svg */ "./node_modules/bootstrap-icons/icons/image.svg").default,
-	infoCircle: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/info-circle.svg */ "./node_modules/bootstrap-icons/icons/info-circle.svg").default,
-	layoutTextWindow: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/layout-text-window.svg */ "./node_modules/bootstrap-icons/icons/layout-text-window.svg").default,
-	link: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/link-45deg.svg */ "./node_modules/bootstrap-icons/icons/link-45deg.svg").default,
-	musicNoteList: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/music-note-list.svg */ "./node_modules/bootstrap-icons/icons/music-note-list.svg").default,
-	play: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/play.svg */ "./node_modules/bootstrap-icons/icons/play.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	playFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/play-fill.svg */ "./node_modules/bootstrap-icons/icons/play-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	pause: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/pause.svg */ "./node_modules/bootstrap-icons/icons/pause.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	pauseFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/pause-fill.svg */ "./node_modules/bootstrap-icons/icons/pause-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	plus: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/plus-circle.svg */ "./node_modules/bootstrap-icons/icons/plus-circle.svg").default,
-	reboot: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/bootstrap-reboot.svg */ "./node_modules/bootstrap-icons/icons/bootstrap-reboot.svg").default,
-	search: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/search.svg */ "./node_modules/bootstrap-icons/icons/search.svg").default,
-	shuffle: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/shuffle.svg */ "./node_modules/bootstrap-icons/icons/shuffle.svg").default,
-	skipEnd: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-end.svg */ "./node_modules/bootstrap-icons/icons/skip-end.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	skipEndFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-end-fill.svg */ "./node_modules/bootstrap-icons/icons/skip-end-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	skipStart: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-start.svg */ "./node_modules/bootstrap-icons/icons/skip-start.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	skipStartFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-start-fill.svg */ "./node_modules/bootstrap-icons/icons/skip-start-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
-	soundwave: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/soundwave.svg */ "./node_modules/bootstrap-icons/icons/soundwave.svg").default,
-	speaker: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/speaker.svg */ "./node_modules/bootstrap-icons/icons/speaker.svg").default,
-	square: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/square.svg */ "./node_modules/bootstrap-icons/icons/square.svg").default,
-	tools: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/tools.svg */ "./node_modules/bootstrap-icons/icons/tools.svg").default,
-	trash: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/trash.svg */ "./node_modules/bootstrap-icons/icons/trash.svg").default,
-	volumeMute: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-mute.svg */ "./node_modules/bootstrap-icons/icons/volume-mute.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
-	volumeMuteFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-mute-fill.svg */ "./node_modules/bootstrap-icons/icons/volume-mute-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
-	volumeUp: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-up.svg */ "./node_modules/bootstrap-icons/icons/volume-up.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
-	volumeUpFill: __webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-up-fill.svg */ "./node_modules/bootstrap-icons/icons/volume-up-fill.svg").default.replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"')
+	arrowClockwise: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-clockwise.svg */ "./node_modules/bootstrap-icons/icons/arrow-clockwise.svg")["default"]),
+	arrowsCollapse: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-collapse.svg */ "./node_modules/bootstrap-icons/icons/arrows-collapse.svg")["default"]),
+	arrowDown: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-down.svg */ "./node_modules/bootstrap-icons/icons/arrow-down.svg")["default"]),
+	arrowsExpand: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-expand.svg */ "./node_modules/bootstrap-icons/icons/arrows-expand.svg")["default"]),
+	arrowRepeat: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-repeat.svg */ "./node_modules/bootstrap-icons/icons/arrow-repeat.svg")["default"]),
+	arrowUp: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-up.svg */ "./node_modules/bootstrap-icons/icons/arrow-up.svg")["default"]),
+	boxArrowInLeft: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/box-arrow-in-left.svg */ "./node_modules/bootstrap-icons/icons/box-arrow-in-left.svg")["default"]),
+	boxArrowRight: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/box-arrow-right.svg */ "./node_modules/bootstrap-icons/icons/box-arrow-right.svg")["default"]),
+	chatRightQuote: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chat-right-quote.svg */ "./node_modules/bootstrap-icons/icons/chat-right-quote.svg")["default"]),
+	checkSquare: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/check-square.svg */ "./node_modules/bootstrap-icons/icons/check-square.svg")["default"]),
+	chevronDown: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chevron-down.svg */ "./node_modules/bootstrap-icons/icons/chevron-down.svg")["default"]),
+	chevronUp: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/chevron-up.svg */ "./node_modules/bootstrap-icons/icons/chevron-up.svg")["default"]),
+	close: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/x.svg */ "./node_modules/bootstrap-icons/icons/x.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	gear: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/gear.svg */ "./node_modules/bootstrap-icons/icons/gear.svg")["default"]),
+	fileEarmarkImage: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-image.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-image.svg")["default"]),
+	fileEarmarkMusic: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-music.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-music.svg")["default"]),
+	filter: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/filter.svg */ "./node_modules/bootstrap-icons/icons/filter.svg")["default"]),
+	fullscreen: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen.svg */ "./node_modules/bootstrap-icons/icons/fullscreen.svg")["default"]),
+	fullscreenExit: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen-exit.svg */ "./node_modules/bootstrap-icons/icons/fullscreen-exit.svg")["default"]),
+	github: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/github.svg */ "./node_modules/bootstrap-icons/icons/github.svg")["default"]),
+	image: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/image.svg */ "./node_modules/bootstrap-icons/icons/image.svg")["default"]),
+	infoCircle: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/info-circle.svg */ "./node_modules/bootstrap-icons/icons/info-circle.svg")["default"]),
+	layoutTextWindow: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/layout-text-window.svg */ "./node_modules/bootstrap-icons/icons/layout-text-window.svg")["default"]),
+	link: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/link-45deg.svg */ "./node_modules/bootstrap-icons/icons/link-45deg.svg")["default"]),
+	musicNoteList: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/music-note-list.svg */ "./node_modules/bootstrap-icons/icons/music-note-list.svg")["default"]),
+	play: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/play.svg */ "./node_modules/bootstrap-icons/icons/play.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	playFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/play-fill.svg */ "./node_modules/bootstrap-icons/icons/play-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	pause: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/pause.svg */ "./node_modules/bootstrap-icons/icons/pause.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	pauseFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/pause-fill.svg */ "./node_modules/bootstrap-icons/icons/pause-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	plus: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/plus-circle.svg */ "./node_modules/bootstrap-icons/icons/plus-circle.svg")["default"]),
+	reboot: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/bootstrap-reboot.svg */ "./node_modules/bootstrap-icons/icons/bootstrap-reboot.svg")["default"]),
+	search: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/search.svg */ "./node_modules/bootstrap-icons/icons/search.svg")["default"]),
+	shuffle: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/shuffle.svg */ "./node_modules/bootstrap-icons/icons/shuffle.svg")["default"]),
+	skipEnd: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-end.svg */ "./node_modules/bootstrap-icons/icons/skip-end.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	skipEndFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-end-fill.svg */ "./node_modules/bootstrap-icons/icons/skip-end-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	skipStart: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-start.svg */ "./node_modules/bootstrap-icons/icons/skip-start.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	skipStartFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/skip-start-fill.svg */ "./node_modules/bootstrap-icons/icons/skip-start-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="2 2 12 12"'),
+	soundwave: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/soundwave.svg */ "./node_modules/bootstrap-icons/icons/soundwave.svg")["default"]),
+	speaker: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/speaker.svg */ "./node_modules/bootstrap-icons/icons/speaker.svg")["default"]),
+	square: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/square.svg */ "./node_modules/bootstrap-icons/icons/square.svg")["default"]),
+	tools: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/tools.svg */ "./node_modules/bootstrap-icons/icons/tools.svg")["default"]),
+	trash: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/trash.svg */ "./node_modules/bootstrap-icons/icons/trash.svg")["default"]),
+	volumeMute: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-mute.svg */ "./node_modules/bootstrap-icons/icons/volume-mute.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
+	volumeMuteFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-mute-fill.svg */ "./node_modules/bootstrap-icons/icons/volume-mute-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
+	volumeUp: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-up.svg */ "./node_modules/bootstrap-icons/icons/volume-up.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"'),
+	volumeUpFill: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/volume-up-fill.svg */ "./node_modules/bootstrap-icons/icons/volume-up-fill.svg")["default"]).replace(/viewBox="[^"]+"/, 'viewBox="1 1 14 14"')
 };
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/controls/templates/controls.tpl":
-/*!********************************************************!*\
-  !*** ./src/components/controls/templates/controls.tpl ***!
-  \********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ "./src/migrations.js"
+/*!***************************!*\
+  !*** ./src/migrations.js ***!
+  \***************************/
+(module) {
 
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-controls ${ns}-row ${data.inline ? `${ns}-inline-controls` : '' }" data-audio="${data.audioId}">
-	<div class="${ns}-col-auto">
-		${data.inline && !data.multiple ? '' : `
-			<div class="${ns}-media-control ${ns}-previous-button ${ns}-hover-fill ${data.inline && Player.config.expandedRepeat !== 'all' ? 'disabled' : ''}" @click.disabled='${data.actions.previous}' data-hide-id="previous">
-				${Icons.skipStart} ${Icons.skipStartFill}
-			</div>
-		`}
-		<div class="${ns}-media-control ${ns}-play-button ${ns}-hover-fill ${!data.audio || data.audio.paused ? `${ns}-play` : ''}" @click='${data.actions.playPause}' data-audio="${data.audioId}">
-			${Icons.play} ${Icons.pause} ${Icons.playFill} ${Icons.pauseFill}
-		</div>
-		${data.inline && !data.multiple ? '' : `
-			<div class="${ns}-media-control ${ns}-next-button ${ns}-hover-fill" @click.disabled='${data.actions.next}' data-hide-id="next">
-				${Icons.skipEnd} ${Icons.skipEndFill}
-			</div>
-		`}
-	</div>
-	<div class="${ns}-col" data-hide-id="seek-bar">
-		<div class="${ns}-seek-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.seek}'>
-			<div class="${ns}-full-bar">
-				<div class="${ns}-loaded-bar"></div>
-				<div class="${ns}-current-bar"></div>
-			</div>
-		</div>
-	</div>
-	<div class="${ns}-col-auto" data-hide-id="time">
-		<span>
-			<span class="${ns}-current-time" data-audio="${data.audioId}">0:00</span>
-			<span class="${ns}-text-muted" data-hide-id="duration">
-				/ <span class="${ns}-duration" data-audio="${data.audioId}">0:00</span>
-			</span>
-		</span>
-	</div>
-	<div class="${ns}-col-auto" data-hide-id="volume">
-		<div class="${ns}-media-control ${ns}-volume-button ${ns}-hover-fill up" @click='${data.actions.mute}' data-hide-id="volume-button" data-audio="${data.audioId}">
-			${Icons.volumeMute} ${Icons.volumeMuteFill}
-			${Icons.volumeUp} ${Icons.volumeUpFill}
-		</div>
-		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' data-hide-id="volume-bar">
-			<div class="${ns}-full-bar">
-				<div class="${ns}-current-bar" style="width: ${Player.audio.volume * 100}%"></div>
-			</div>
-		</div>
-	</div>
-	${data.inline ? '' : `
-		<div class="${ns}-col-auto" data-hide-id="fullscreen">
-			<div class="${ns}-media-control ${ns}-fullscreen-button" @click='${data.actions.fullscreen}'>
-				${Icons.fullscreen} ${Icons.fullscreenExit}
-			</div>
-		</div>
-	`}
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/display/templates/body.tpl":
-/*!***************************************************!*\
-  !*** ./src/components/display/templates/body.tpl ***!
-  \***************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Player.config.viewStyle}" @drop.stop.prevent='playlist.addFromDrop' style="top: 30px; left: 0px; width: 360px; height: 360px; display: none;">
-	<div class="${ns}-header ${ns}-row ${ns}-align-center ${ns}-hover-trigger" @pointdragstart="position.initMove" @pointdrag.unbound="position.doMove" @pointdragend="position.stopMove">
-		${Player.header.template(data)}
-	</div>
-
-	<div class="${ns}-player ${!Player.config.hoverImages ? `${ns}-hide-hover-image` : ''}" @fullscreenchange="display._handleFullScreenChange">
-		${Player.playlist.template(data)}
-	</div>
-	<div class="${ns}-settings ${ns}-panel">
-		${Player.settings.template(data)}
-	</div>
-	<div class="${ns}-threads ${ns}-panel">
-		${Player.threads.template(data)}
-	</div>
-	<div class="${ns}-tools ${ns}-panel">
-		${Player.tools.template(data)}
-	</div>
-
-	<div class="${ns}-footer ${ns}-row ${ns}-align-center ${ns}-hover-trigger">
-		${Player.footer.template(data)}
-	</div>
-	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm,.mp4" multiple>
-</div>`
+// Migrations must return { [prop]: [ previous, updated ], ... }
+module.exports = [
+	{
+		version: '3.0.0',
+		name: 'hosts-filename-length',
+		async run() {
+			const defaultHosts = Player.settings.findDefault('uploadHosts').default;
+			Object.keys(defaultHosts).forEach(host => {
+				Player.config.uploadHosts[host].filenameLength = defaultHosts[host].filenameLength;
+			});
+			return {};
+		}
+	},
+	{
+		version: '3.3.0',
+		name: 'sound-name-title-swap',
+		async run() {
+			const config = Player.config;
+			const changes = {};
+			const templates = [ 'headerTemplate', 'rowTemplate', 'footerTemplate', 'chanXTemplate', 'customCSS' ];
+			templates.forEach(prop => {
+				/sound-name/.test(config[prop]) && (changes[prop] = [
+					config[prop],
+					config[prop] = config[prop].replace(/sound-name/g, 'sound-title')
+				]);
+			});
+			return changes;
+		}
+	},
+	{
+		version: '3.4.0',
+		name: 'disable-inline-player-for-existing-users',
+		async run() {
+			Player.config.playExpandedImages = false;
+			Player.config.playHoveredImages = false;
+			return {
+				playExpandedImages: [ true, false ],
+				playHoveredImages: [ true, false ]
+			};
+		}
+	},
+	{
+		version: '3.4.7',
+		name: 'zz-ht-to-zz-fo',
+		async run() {
+			const original = [ ...Player.config.allow ];
+			Player.config.allow.push('zz.fo');
+			return {
+				allow: [ original, Player.config.allow ]
+			}
+		}
+	}
+];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/components/display/templates/themes_menu.tpl":
-/*!**********************************************************!*\
-  !*** ./src/components/display/templates/themes_menu.tpl ***!
-  \**********************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
-	${[ 'Default' ].concat(Player.config.savedThemesOrder).map(name => `
-		<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent='theme.switch("${name}");playlist.restore'>
-			<span ${Player.config.selectedTheme === name ? 'style="font-weight: 700;"' : ''}>${name}</span>
-		</a>
-	`).join('')}
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/display/templates/views_menu.tpl":
-/*!*********************************************************!*\
-  !*** ./src/components/display/templates/views_menu.tpl ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
-	${[ 'playlist', 'image' ].includes(Player.config.viewStyle) ? ''
-		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="playlist.restore"><div class="${ns}-col">Player</div><div class="${ns}-col-auto">${Icons.musicNoteList}</div></a>`}
-	${Player.config.viewStyle === 'settings' ? ''
-		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="settings.toggle()"><div class="${ns}-col">Settings</div><div class="${ns}-col-auto">${Icons.gear}</div></span></a>`}
-	${Player.config.viewStyle === 'threads' ? ''
-		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="threads.toggle"><div class="${ns}-col">Threads</div><div class="${ns}-col-auto">${Icons.search}</div></span></a>`}
-	${Player.config.viewStyle === 'tools' ? ''
-		: `<a class="${ns}-row nowrap ${ns}-align-center entry" href="#" @click.prevent="tools.toggle"><div class="${ns}-col">Tools</div><div class="${ns}-col-auto">${Icons.tools}</div></span></a>`}
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/playlist/templates/item_menu.tpl":
-/*!*********************************************************!*\
-  !*** ./src/components/playlist/templates/item_menu.tpl ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ "./src/player.js"
+/*!***********************!*\
+  !*** ./src/player.js ***!
+  \***********************/
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
-module.exports = (data = {}) => `<div class="${ns}-menu dialog ${ns}-dialog" id="menu" tabindex="0" data-type="post" style="position: fixed;">
-	${data.sound.post ? `<a class="entry" href="#${data.postIdPrefix + data.sound.post}">Show Post</a>` : ''}
-	<div class="entry has-submenu" @entry-focus='playlist.loadTags("${data.sound.id}")' @entry-blur='playlist.abortTags("${data.sound.id}")'>
-		Details
-		<div class="dialog submenu tags-dialog" @click.stop="" data-sound-id="${data.sound.id}" style="inset: 0px auto auto 100%;">
-			${Player.playlist.tagsDialogTemplate(data.sound)}
-		</div>
-	</div>
-	<div class="entry has-submenu">
-		Open
-		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
-			<a class="entry" href="${data.sound.image}" target="_blank">Image</a>
-			<a class="entry" href="${data.sound.src}" target="_blank">Sound</a>
-		</div>
-	</div>
-	<div class="entry has-submenu">
-		Download
-		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
-			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.image, true)}", "${_.escAttr(data.sound.filename, true)}")'>Image</a>
-			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name, true)}")'>Sound</a>
-		</div>
-	</div>
-	<div class="entry has-submenu">
-		Filter
-		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
-			${data.sound.imageMD5 ? `<a class="entry" href="#" @click.prevent='playlist.addFilter("${data.sound.imageMD5}")'>Image</a>` : ''}
-			<a class="entry" href="#" @click.prevent='playlist.addFilter("${_.escAttr(data.sound.src, true).replace(/^(https?\:)?\/\//, '')}")'>Sound</a>
-		</div>
-	</div>
-	<a class="entry" href="#" @click.prevent='remove("${data.sound.id}")'>Remove</a>
-</div>`
+const components = {
+	// Settings must be first.
+	settings: __webpack_require__(/*! ./components/settings */ "./src/components/settings/index.js"),
+	events: __webpack_require__(/*! ./components/events */ "./src/components/events/index.js"),
+	actions: __webpack_require__(/*! ./components/actions */ "./src/components/actions/index.js"),
+	colorpicker: __webpack_require__(/*! ./components/settings/colorpicker */ "./src/components/settings/colorpicker.js"),
+	controls: __webpack_require__(/*! ./components/controls */ "./src/components/controls/index.js"),
+	display: __webpack_require__(/*! ./components/display */ "./src/components/display/index.js"),
+	footer: __webpack_require__(/*! ./components/footer */ "./src/components/footer/index.js"),
+	header: __webpack_require__(/*! ./components/header */ "./src/components/header/index.js"),
+	hotkeys: __webpack_require__(/*! ./components/hotkeys */ "./src/components/hotkeys/index.js"),
+	inline: __webpack_require__(/*! ./components/inline */ "./src/components/inline/index.js"),
+	minimised: __webpack_require__(/*! ./components/minimised */ "./src/components/minimised/index.js"),
+	playlist: __webpack_require__(/*! ./components/playlist */ "./src/components/playlist/index.js"),
+	position: __webpack_require__(/*! ./components/position */ "./src/components/position/index.js"),
+	posts: __webpack_require__(/*! ./components/posts */ "./src/components/posts/index.js"),
+	theme: __webpack_require__(/*! ./components/theme */ "./src/components/theme/index.js"),
+	threads: __webpack_require__(/*! ./components/threads */ "./src/components/threads/index.js"),
+	tools: __webpack_require__(/*! ./components/tools */ "./src/components/tools/index.js"),
+	userTemplate: __webpack_require__(/*! ./components/user-template */ "./src/components/user-template/index.js")
+};
 
+// Create a global ref to the player.
+const Player = window.Player = module.exports = {
+	ns,
 
-/***/ }),
+	// Store a ref to the components so they can be iterated.
+	components,
 
-/***/ "./src/components/playlist/templates/list.tpl":
-/*!****************************************************!*\
-  !*** ./src/components/playlist/templates/list.tpl ***!
-  \****************************************************/
-/***/ ((module) => {
+	audio: new Audio(),
+	sounds: [],
+	filteredSounds: [],
+	isHidden: true,
+	container: null,
+	ui: {},
+	_public: [],
 
-module.exports = (data = {}) => (data.sounds || Player.sounds).map(sound => !Player.playlist.matchesSearch(sound) ? '' : `
-	<div
-		class="${ns}-list-item ${ns}-row ${sound.playing ? 'playing' : ''} ${ns}-align-center ${ns}-hover-trigger"
-		@click="playlist.handleSelect"
-		@dragstart.passive="playlist.handleDragStart"
-		@dragenter.prevent="playlist.handleDragEnter"
-		@dragend.prevent="playlist.handleDragEnd"
-		@dragover.prevent=""
-		@drop.prevent=""
-		@contextmenu.stop.prevent='playlist.handleItemMenu($event, "${sound.id}")'
-		@mouseenter="playlist.updateHoverImage"
-		@mouseleave="playlist.removeHoverImage"
-		@mousemove.passive="playlist.positionHoverImage"
-		data-id="${sound.id}"
-		${!Player.playlist.matchesSearch(sound) ? '__style="display: none"' : ''}
-		draggable="true"
-	>
-		${Player.userTemplate.build({
-			template: Player.config.rowTemplate,
-			location: 'item-' + sound.id,
-			sound,
-			outerClass: `${ns}-col-auto`
-		})}
-	</div>`
-).join('')
+	// Build the config from the default
+	config: {},
 
-/***/ }),
+	// Helper function to query elements in the player.
+	$: (...args) => Player.container && Player.container.querySelector(...args),
+	$all: (...args) => Player.container && Player.container.querySelectorAll(...args),
 
-/***/ "./src/components/playlist/templates/player.tpl":
-/*!******************************************************!*\
-  !*** ./src/components/playlist/templates/player.tpl ***!
-  \******************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+	/**
+	 * Set up the player.
+	 */
+	async initialize() {
+		if (Player.initialized) {
+			return;
+		}
+		Player.initialized = true;
+		try {
+			Player.audio.dataset.id = 'main';
+			Player.sounds = [ ];
+			// Run the initialisation for each component.
+			for (let name in components) {
+				components[name].initialize && await components[name].initialize();
+			}
 
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<a
-	class="${ns}-image-link"
-	target="_blank"
-	style="height: ${Player.config.imageHeight}px"
-	@pointdragstart.prevent="playlist.expandImageStart"
-	@pointdrag.move.prevent="playlist.expandImage"
-	@pointdragend.prevent="playlist.setImageHeight"
-	@click="playlist.expandImageClick"
->
-	<div class="fullscreen-details"></div>
-	<div class="image-color-overlay"></div>
-	<img class="${ns}-background-image"></img>
-	<div class="${ns}-image-transparent-bg"></div>
-	<img id="fcspImage" class="${ns}-image" src="data:image/svg+xml;base64,${btoa(Icons.fcSounds)}"></img>
-	<video class="${ns}-video" @play='controls.sync' @pause='controls.sync' loop="true"></video>
-</a>
-${Player.controls.template({
-	audio: Player.audio,
-	audioId: Player.audio.dataset.id,
-	actions: Player.controls.actions
-})}
-<div class="${ns}-under-image">
-	<input
-		type="input"
-		class="${ns}-playlist-search"
-		@keyup="playlist._handleSearch"
-		style="min-width: 100%; box-sizing: border-box; ${!Player.config.showPlaylistSearch ? 'display: none;' : ''}"
-		placeholder="Search"
-	/>
-	<div class="${ns}-list-container">
-		${Player.playlist.listTemplate()}
-	</div>
-</div>
-<img class="${ns}-hover-image">`
+			// Show a button to open the player.
+			Player.display.createPlayerButton();
 
-/***/ }),
+			// Render the player, but not neccessarily show it.
+			await Player.display.render();
 
-/***/ "./src/components/playlist/templates/tags_dialog.tpl":
-/*!***********************************************************!*\
-  !*** ./src/components/playlist/templates/tags_dialog.tpl ***!
-  \***********************************************************/
-/***/ ((module) => {
+			// Expose some functionality via PlayerEvent custom events.
+			document.addEventListener('PlayerEvent', e => {
+				if (e.detail.action && ( true || 0)) {
+					return _.get(Player, e.detail.action).apply(window, e.detail.arguments);
+				}
+			});
+		} catch (err) {
+			Player.logError('There was an error initializing the sound player. Please check the console for details.', err);
+			// Can't recover so throw this error.
+			throw err;
+		}
+	},
 
-module.exports = (data = {}) => {
-	if (!data.tags) {
-		return '<div class="entry">Loading</div>';
+	/**
+	 * Returns the function of Player referenced by name or a given handler function.
+	 * @param {String|Function} handler Name to function on Player or a handler function.
+	 */
+	getHandler(handler) {
+		return typeof handler === 'string' ? _.get(Player, handler) : handler;
+	},
+
+	/**
+	 * Compare two ids for sorting.
+	 */
+	compareIds(a, b) {
+		const [ aPID, aSID ] = a.split(':');
+		const [ bPID, bSID ] = b.split(':');
+		const postDiff = aPID - bPID;
+		return postDiff !== 0 ? postDiff : aSID - bSID;
+	},
+
+	/**
+	 * Check whether a sound src and image are allowed and not filtered.
+	 */
+	disallowedSound({ src, imageMD5 }) {
+		try {
+			const link = new URL(src);
+			src = src.replace(/^(https?:)?\/\//, '');
+			const host = link.hostname.toLowerCase();
+			const result = { };
+			result.host = !Player.config.allow.find(h => host === h || host.endsWith('.' + h)) && host;
+			for (let filter of Player.config.filters) {
+				result.image = result.image || filter === imageMD5 && imageMD5;
+				result.sound = result.sound || filter.replace(/^(https?:)?\/\//, '') === src && src;
+				if (result.image && result.sound) {
+					break;
+				}
+			}
+			return result.host || result.image || result.sound
+				? result
+				: false;
+		} catch (err) {
+			return { invalid: true };
+		}
+	},
+
+	/**
+	 * Listen for changes
+	 */
+	syncTab: (property, callback) => typeof GM_addValueChangeListener !== 'undefined' && GM_addValueChangeListener(property, (_prop, oldValue, newValue, remote) => {
+		remote && callback(newValue, oldValue);
+	}),
+
+	/**
+	 * Log errors and show an error notification.
+	 */
+	logError(message, error, type) {
+		console.error('[4chan sounds player]', message, error);
+		if (error instanceof PlayerError) {
+			error.error && console.error('[4chan sound player]', error.error);
+			message = error.reason;
+			type = error.type || type;
+		}
+		Player.alert(message, type || 'error', 5);
+	},
+
+	/**
+	 * Show a notification using 4chan X or the native extention.
+	 */
+	alert(content, type = 'info', lifetime = 5) {
+		if (isChanX) {
+			content = _.element(`<span>${content}</span`);
+			document.dispatchEvent(new CustomEvent('CreateNotification', {
+				bubbles: true,
+				detail: { content, type, lifetime }
+			}));
+		} else if (typeof Feedback !== 'undefined') {
+			Feedback.showMessage(content, type === 'info' ? 'notify' : 'error', lifetime * 1000);
+		}
 	}
-	const tagsArr = Object.entries(data.tags);
-	if (!tagsArr.length) {
-		return '<div class="entry">No data</div>';
-	}
-	return tagsArr.map(([ name, value ]) => `<div class="entry">
-		<span class="tag-name">
-			${name[0].toUpperCase() + name.slice(1)}:
-		</span>
-		${value}
-	</div>`).join('');
+};
+
+// Add each of the components to the player.
+for (let name in components) {
+	Player[name] = components[name];
+	(Player[name].atRoot || []).forEach(k => Player[k] = Player[name][k]);
+	(Player[name].public || []).forEach(k => {
+		Player._public.push((Player[name].atRoot || []).includes(k) ? k : `${name}.${k}`);
+	});
 }
 
-/***/ }),
 
-/***/ "./src/components/settings/templates/colorpicker.tpl":
-/*!***********************************************************!*\
-  !*** ./src/components/settings/templates/colorpicker.tpl ***!
-  \***********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ },
 
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-colorpicker ${ns}-dialog dialog" data-allow-click="true" style="top: 0px; left: 0px;">
-	<div class="${ns}-cp-saturation" @pointdrag="colorpicker.satMove" style="height: ${data.HEIGHT}px; width: ${data.WIDTH}px;">
-		<div class="position" style="left: ${data.WIDTH - 3}px; top: -3px;"></div>
-	</div>
-	<div class="${ns}-cp-hue" @pointdrag="colorpicker.hueMove" style="height: ${data.HEIGHT}px">
-		<div class="position"></div>
-	</div>
-	<div class="${ns}-output" style="text-align: right;">
-		<a href="#" class="${ns}-close-colorpicker" @click.prevent="display.closeDialogs()">${Icons.close}</a>
-		<div class="output-color" style="background: rgb(${data.rgb[0]}, ${data.rgb[1]}, ${data.rgb[2]});"></div>
-
-		<table>
-			${['R','G','B','A'].map((n, i) => `
-				<tr>
-					<td>${n}:</td>
-					<td>
-						<input
-							type="text"
-							class="${ns}-rgb-input"
-							@change="colorpicker.inputRGBA"
-							data-color="${i}"
-							value="${data.rgb[i]}"
-						/>
-					</td>
-				</tr>
-			`).join('')}
-		</table>
-
-		<button @click.stop.prevent="colorpicker.apply">Apply</button><br>
-	</div>
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/host_input.tpl":
-/*!**********************************************************!*\
-  !*** ./src/components/settings/templates/host_input.tpl ***!
-  \**********************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
-	<div class="${ns}-row ${ns}-col ${ns}-host-input ${host.invalid ? 'invalid' : ''}" data-host-name="${name}">
-		<div class="${ns}-row ${ns}-host-controls">
-			<div class="${ns}-col-auto">
-				<label>
-					<input
-						type="checkbox"
-						data-property="defaultUploadHost"
-						${Player.config.defaultUploadHost === name ? 'checked': ''}
-					/>
-					Default
-				</label>
-			</div>
-			<div class="${ns}-col-auto">
-				<a href="#" class="${ns}-heading-action" @click.prevent="settings.hosts.remove">
-					Remove
-				</a>
-			</div>
-		</div>
-		<div class="${ns}-row">
-			${Object.entries(Player.settings.hosts.fields).map(([ field, title ]) => `
-				<div class="${ns}-col">
-					<input
-						type="text"
-						data-property="uploadHosts"
-						name="${field}"
-						value="${(field === 'name' ? name : host[field]) || ''}"
-						placeholder="${title}"
-					/>
-				</div>
-			`).join('')}
-		</div>
-		<div class="${ns}-row">
-			<div class="${ns}-col">
-				<textarea data-property="uploadHosts" name="data" placeholder="Data (JSON)">${
-					JSON.stringify(host.data, null, 4)
-				}</textarea>
-			</div>
-		</div>
-		<div class="${ns}-row">
-			<div class="${ns}-col">
-				<textarea data-property="uploadHosts" name="headers" placeholder="Headers (JSON)">${
-					host.headers ? JSON.stringify(host.headers, null, 4) : ''
-				}</textarea>
-			</div>
-		</div>
-	</div>
-`).join('')
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/inputs/checkbox.tpl":
-/*!***************************************************************!*\
-  !*** ./src/components/settings/templates/inputs/checkbox.tpl ***!
-  \***************************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
-	<input type="checkbox" ${data.attrs} ${data.value ? 'checked' : ''} />
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/inputs/input.tpl":
-/*!************************************************************!*\
-  !*** ./src/components/settings/templates/inputs/input.tpl ***!
-  \************************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
-	<input type="text" ${data.attrs} value="${data.value}"/>
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/inputs/select.tpl":
-/*!*************************************************************!*\
-  !*** ./src/components/settings/templates/inputs/select.tpl ***!
-  \*************************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-col ${ns}-align-center">
-	<select ${data.attrs}>
-		${Object.keys(data.setting.options).map(k => `<option value="${k}" ${data.value === k ? 'selected' : ''}>
-			${data.setting.options[k]}
-		</option>`).join('')}
-	</select>
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/inputs/textarea.tpl":
-/*!***************************************************************!*\
-  !*** ./src/components/settings/templates/inputs/textarea.tpl ***!
-  \***************************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-col ${!data.setting.inlineTextarea ? `${ns}-row` : ''} ${ns}-align-center">
-	<textarea ${data.attrs}>${data.value}</textarea>
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/setting.tpl":
-/*!*******************************************************!*\
-  !*** ./src/components/settings/templates/setting.tpl ***!
-  \*******************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => data.displayMethod === null ? '' : `
-<div class="${ns}-row ${ns}-align-start ${ns}-setting ${data.isSubSetting ? `${ns}-sub-settings` : ''}" data-property="${data.property}">
-	<div class="${ns}-col ${ns}-heading">
-		<span>
-			${data.title}
-			${data.description ? `<i class="${ns}-info-circle ${ns}-popover ${data.wideDesc ? 'wide' : ''}" data-content="${_.escAttr(data.description)}">${Icons.infoCircle}</i>` : ''}
-		</span>
-		${!data.actions || !data.actions.length ? '' : `<div style="display: inline-block; margin: 0 .25rem">
-			${(data.actions || []).map(action => `
-				<a href="#" class="${ns}-heading-action" @click${action.mods || ''}='${action.handler}'>${action.title}</a>
-			`).join(' ')}
-		</div>`}
-	</div>
-
-	${data.dismissTextId
-		? `<div class="${ns}-col" style="min-width: 100%">
-			${Player.display.ifNotDismissed(
-				data.dismissTextId,
-				data.dismissRestoreText,
-				`<div data-dismiss-id="${data.dismissTextId}">
-					${data.text}
-					<a href="#" @click.prevent='display.dismiss("${data.dismissTextId}")' style="display:block; margin-top:.25rem">
-						Dismiss
-					</a>
-				</div>`
-			)}
-		</div>`
-	: data.text
-		? data.text
-	: ''}
-
-	${(() => {
-		// Recusively call for sub settings.
-		if (data.settings) {
-			return data.settings.map(subSetting => Player.settings.settingTemplate({
-				...data,
-				actions: null,
-				settings: null,
-				description: null,
-				...subSetting,
-				isSubSetting: true
-			})).join('')
-		}
-
-		value = _.get(Player.config, data.property, data.default);
-		attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
-			+ (data.class ? ` class="${data.class}"` : '')
-			+ ` data-property="${data.property}"`;
-
-		if (data.format) {
-			value = Player.getHandler(data.format)(value);
-		}
-		let type = typeof value;
-		if (type === 'object') {
-			value = JSON.stringify(value, null, 4)
-		}
-
-		inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
-			|| _.get(Player, data.displayMethod)
-			|| data.displayMethod && Player.settings.inputTemplates[data.displayMethod]
-			|| type === 'boolean' && Player.settings.inputTemplates.checkbox
-			|| type === 'object' && Player.settings.inputTemplates.textarea
-			|| data.options && Player.settings.inputTemplates.select
-			|| Player.settings.inputTemplates.input;
-
-		return inputTemplate({ value, attrs, setting: data });
-	})()}
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/settings/templates/settings.tpl":
-/*!********************************************************!*\
-  !*** ./src/components/settings/templates/settings.tpl ***!
-  \********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
-	<div class="${ns}-settings-tab-group ${ns}-col-auto">
-		<a href="#" class="${ns}-settings-reset-all ${ns}-settings-tab"
-			@click.prevent='settings.load({},{"applyDefault":true,"ignore":["viewStyle"]})'
-			title="Reset all settings to their default values.">
-			${Icons.reboot}
-		</a>
-		<a href="#" class="${ns}-settings-export ${ns}-settings-tab"
-			@click.prevent="settings.export"
-			title="Export. Shift click to export all settings. Otherwise only modified settings are included in the export.">
-			${Icons.boxArrowRight}
-		</a>
-		<a href="#" class="${ns}-settings-import ${ns}-settings-tab"
-			@click.prevent="settings.import"
-			title="Import. Settings not included in the import will be left as their current value.">
-			${Icons.boxArrowInLeft}
-		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.6.0"}">
-			${Icons.github}
-		</a>
-	</div>
-	<div class="${ns}-settings-tab-group ${ns}-col-auto">
-		${Object.keys(Player.settings.groups).map(name => 
-			`<a href="#" class="${ns}-settings-tab ${Player.settings.view !== name ? '' : 'active'}"
-				@click.prevent='settings.showGroup("${name}")'
-				data-group="${name}">
-				${name}
-			</a>`
-		).join(' | ')}
-	</div>
-</div>
-${Object.entries(Player.settings.groups).map(([ name, settings ]) => `
-	<div class="${ns}-settings-group ${Player.settings.view !== name ? '' : 'active'}" data-group="${name}">
-		${settings.map(Player.settings.settingTemplate).join('')}
-	</div>
-`).join('')}`
-
-/***/ }),
-
-/***/ "./src/components/theme/templates/save_theme_menu.tpl":
-/*!************************************************************!*\
-  !*** ./src/components/theme/templates/save_theme_menu.tpl ***!
-  \************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-theme-save-options ${ns}-dialog fields-collapsed dialog" data-allow-click="true" style="top: 0px; left: 0px;">
-	<div class="${ns}-row ${ns}-align-center">
-		<div class="${ns}-col">
-			<input type="text" class="${ns}-save-theme-name" @keyup.prevent="theme.toggleSaveButtonText" placeholder="Name">
-		</div>
-		<div class="${ns}-col">
-			<a class="${ns}-save-theme" @click.prevent="theme.save" href="#">Create</a>
-		</div>
-	</div>
-	<a class="${ns}-row" @click.prevent="theme.toggleSaveFields" href="#" style="margin: .25rem 0">
-		<span style="margin-right: .25rem">Included Settings</span>
-		${Icons.chevronDown}
-		${Icons.chevronUp}
-	</a>
-	${(function saveFieldOptions(settings, parent) {
-		return settings.map(s => {
-			const id = s.property && `theme_field-${s.property.replace(/\./g, '_')}`;
-			return s.settings
-				? saveFieldOptions(s.settings, s)
-				: { ...(parent || {}), ...s }.allowInTheme || s.themeField
-					? `<div><input type="checkbox" id="${id}" value="${s.property}" ${s.themeField ? 'checked' : ''}><label for="${id}">${parent ? `${parent.themeFieldTitle || parent.title}: ` : ''}${s.title}</label></div>`
-					: '';
-		}).join('');
-	})(data.settingsConfig)}
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/theme/templates/saved_themes.tpl":
-/*!*********************************************************!*\
-  !*** ./src/components/theme/templates/saved_themes.tpl ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-row ${ns}-saved-themes">
-	<div class="${ns}-row ${ns}-align-start ${ns}-sub-settings" data-theme="Default" style="order: ${-1}">
-		<div class="${ns}-col ${ns}-space-between">Default</div>
-		<div class="${ns}-col">
-			<a href="#" class="${ns}-heading-action" @click.prevent='theme.switch("Default")' data-property="savedTheme">${Player.config.selectedTheme === 'Default' ? Icons.checkSquare : Icons.square}</a>
-		</div>
-	</div>
-	${Player.config.savedThemesOrder.map((name, i) => `
-		<div class="${ns}-row ${ns}-align-start ${ns}-sub-settings" data-theme="${name}" style="order: ${i}">
-			<div class="${ns}-col ${ns}-space-between">${name}</div>
-			<div class="${ns}-col">
-				<a href="#" class="${ns}-heading-action" @click.prevent='theme.switch("${name}")'>${Player.config.selectedTheme === name ? Icons.checkSquare : Icons.square}</a>
-				<a href="#" class="${ns}-heading-action ${ns}-move-theme-up ${i === 0 ? 'disabled' : '' }" @click.prevent="theme.moveUp" >${Icons.arrowUp}</a>
-				<a href="#" class="${ns}-heading-action ${ns}-move-theme-down ${i === Player.config.savedThemesOrder.length - 1 ? 'disabled' : '' }" @click.prevent="theme.moveDown">${Icons.arrowDown}</a>
-				<a href="#" class="${ns}-heading-action ${ns}-remove-theme" @click.prevent="theme.remove">${Icons.trash}</a>
-			</div>
-		</div>
-	`).join('')}
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/theme/templates/theme_keybinds.tpl":
-/*!***********************************************************!*\
-  !*** ./src/components/theme/templates/theme_keybinds.tpl ***!
-  \***********************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => [ 'Default' ].concat(Player.config.savedThemesOrder).map(name => `
-	<div class="${ns}-row ${ns}-select-themes">
-		<div class="${ns}-col"><span style="padding-left: .5rem">- ${name}</span></div>
-		<div class="${ns}-col" data-name="${name}">
-			<input
-				type="text"
-				@keydown="settings.handleKeyChange"
-				value="${Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def.themeName === name) || { key: '' })}"
-				data-property="hotkey_bindings.switchTheme"
-			/>
-		</div>
-	</div>
-`).join('')
-
-
-/***/ }),
-
-/***/ "./src/components/threads/templates/boards.tpl":
-/*!*****************************************************!*\
-  !*** ./src/components/threads/templates/boards.tpl ***!
-  \*****************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => (Player.threads.boardList || []).map(board => {
-	let checked = Player.threads.selectedBoards.includes(board.board);
-	return !checked && !Player.threads.showAllBoards ? '' : `
-		<label>
-			<input
-				type="checkbox"
-				@change='threads.toggleBoard("${board.board}", $event.currentTarget.checked)'
-				value="${board.board}"
-				${checked ? 'checked' : ''}
-			/>
-			/${board.board}/
-		</label>`
-}).join('')
-
-/***/ }),
-
-/***/ "./src/components/threads/templates/list.tpl":
-/*!***************************************************!*\
-  !*** ./src/components/threads/templates/list.tpl ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
-module.exports = (data = {}) => Object.keys(Player.threads.displayThreads).reduce((rows, board) => {
-	return rows.concat(Player.threads.displayThreads[board].map(thread => `
-		<tr>
-			<td>
-				<a class="quotelink" href="//boards.${thread.ws_board ? '4channel' : '4chan'}.org/${thread.board}/thread/${thread.no}#p${thread.no}" target="_blank">
-					>>>/${thread.board}/${thread.no}
-				</a>
-			</td>
-			<td>${thread.sub || ''}</td>
-			<td>${thread.replies} / ${thread.images}</td>
-			<td>${_.timeAgo(thread.time)}</td>
-			<td>${_.timeAgo(thread.last_modified)}</td>
-		</tr>
-	`))
-}, []).join('')
-
-
-/***/ }),
-
-/***/ "./src/components/threads/templates/threads.tpl":
-/*!******************************************************!*\
-  !*** ./src/components/threads/templates/threads.tpl ***!
-  \******************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<div class="${ns}-heading lined">
-	Active Threads
-	${!Player.threads.loading ? `- <a class="${ns}-heading-action" @click.prevent="threads.fetch" href="#">Update</a>` : ''}
-</div>
-
-<div style="margin: 0 .25rem; display: ${Player.threads.loading ? 'block' : 'none'}">Loading</div>
-
-<div style="margin: 0 .25rem; display: ${Player.threads.loading ? 'none' : 'block'}">
-	<div class="${ns}-heading">
-		Filter
-	</div>
-	<input
-		type="text"
-		class="${ns}-threads-filter"
-		@keyup='threads.filter($event.target.value)'
-		value="${Player.threads.filterValue || ''}"
-	/>
-
-	<div class="${ns}-heading">
-		Boards -
-		<a class="${ns}-all-boards-link ${ns}-heading-action" @click.prevent="threads.toggleBoardList" href="#">
-			${Player.threads.showAllBoards ? 'Selected Only' : 'Show All'}
-		</a>
-	</div>
-	<div class="${ns}-thread-board-list">
-		${Player.threads.boardsTemplate(data)}
-	</div>
-
-	${!Player.threads.hasParser
-		? ''
-		: `<div class="${ns}-heading" style="text-align: center">
-			${Player.config.threadsViewStyle !== 'table'
-				? `<a class="${ns}-heading-action" @click.prevent='set("threadsViewStyle","table")' href="#">Table</a>`
-				: `<span>Table</span>`}
-			|
-			${Player.config.threadsViewStyle !== 'board'
-				? `<a class="${ns}-heading-action" @click.prevent='set("threadsViewStyle","board")' href="#">Board</a>`
-				: `<span>Board</span>`}
-		</div>`
-	}
-	${
-		!Player.threads.hasParser || Player.config.threadsViewStyle === 'table'
-		? `<table>
-				<tr>
-					<th>Thread</th>
-					<th>Subject</th>
-					<th>Replies/Images</th>
-					<th>Started</th>
-					<th>Updated</th>
-				<tr>
-				<tbody class="${ns}-threads-body"></tbody>
-			</table>`
-		: `<div class="${ns}-thread-list"></div>`
-	}
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/create-complete.tpl":
-/*!************************************************************!*\
-  !*** ./src/components/tools/templates/create-complete.tpl ***!
-  \************************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<span>
-	<br>Complete!<br>
-	${is4chan ? '<a href="#" @click.prevent="tools.addCreatedToQR">Post</a> - ' : ''}
-	<a href="#" @click.prevent="tools.addCreatedToPlayer">Add</a> -
-	<a href="${Player.tools._createdImageURL}" download="${Player.tools._createdImage.name}" title="${Player.tools._createdImage.name}">Download</a>
-</span>`
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/create.tpl":
-/*!***************************************************!*\
-  !*** ./src/components/tools/templates/create.tpl ***!
-  \***************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-heading lined">
-	Create Sound Image
-</div>
-<div class="m-2">
-	<div class="${ns}-create-sound-form" @drop.stop.prevent="tools.handleCreateSoundDrop">
-		<div class="${ns}-row mb-4">
-			${Player.display.ifNotDismissed('createSoundDetails', 'Show Help',
-			`<div class="${ns}-col" data-dismiss-id="createSoundDetails">
-				Select an image and sound to combine as a sound image.
-				The sound will be uploaded to the selected file host and the url will be added to the image filename.<br/>
-				<br/>
-				Multiple sound files, or a comma-separated list of sound URLs, can be given for a single image.
-				If you do have multiple sounds the name will also be a considered comma-separated list.<br/>
-				<a href="#" @click.prevent='display.dismiss("createSoundDetails")'>Dismiss</a>
-			</div>`)}
-		</div>
-
-		<div class="${ns}-row">
-			<span>Host - <a @click.prevent='settings.toggle("Hosts")' href="#">Config</a></span>
-		</div>
-		<div class="${ns}-row">
-			<div class="${ns}-col ${ns}-create-hosts-container">
-				${Player.tools.createHostsTemplate()}
-			</div>
-		</div>
-
-		<div class="${ns}-row mt-2">
-			Data
-		</div>
-		<div class="${ns}-row">
-			<div class="${ns}-col">
-				<input type="text" class="${ns}-create-sound-name w-100" placeholder="Name/s">
-			</div>
-		</div>
-
-		<div class="${ns}-row">
-			<div class="${ns}-col">
-				<div class="${ns}-file-input placeholder">
-					<div class="${ns}-file-overlay w-100">
-						<span class="placeholder-text">Select/Drop Image</span>
-						<span class="text"></span>
-						<input
-							class="${ns}-create-sound-img"
-							@change='tools.handleImageSelect;tools.handleFileSelect($event.target)'
-							type="file"
-							accept="image/*,.webm,.mp4"
-						/>
-					</div>
-				</div>
-			</div>
-
-			<div class="${ns}-col">
-				<div class="${ns}-file-input placeholder" ${Player.tools.useSoundURL ? 'display: none;' : ''}>
-					<div class="${ns}-file-overlay w-100">
-						<span class="placeholder-text">Select/Drop Sound/s</span>
-						<span class="text"></span>
-						<div class="overfile ${ns}-input-append">
-							<a href="#" @click.prevent='tools.toggleSoundInput("url")' title="Enter a URL of a previously uploaded file.">
-								${Icons.link}
-							</a>
-						</div>
-						<input
-							type="file"
-							class="${ns}-create-sound-snd"
-							@change='tools.handleFileSelect($event.target)'
-							accept="audio/*,video/*"
-							multiple
-						/>
-					</div>
-					<div class="${ns}-file-list"></div>
-				</div>
-				<div class="${ns}-row ${ns}-align-center" style="position: relative; ${Player.tools.useSoundURL ? '' : 'display: none;'}">
-					<a href="#" class="${ns}-input-append" @click.prevent='tools.toggleSoundInput("file")' title="Select a file to upload.">
-						${Icons.fileEarmarkMusic}
-					</a>
-					<input
-						type="text"
-						class="${ns}-create-sound-snd-url w-100"
-						placeholder="Sound URL/s"
-					/>
-				</div>
-			</div>
-		</div>
-
-		<div class="${ns}-row mt-4">
-			<div class="${ns}-col-auto">
-				<button class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
-			</div>
-		</div>
-	</div>
-
-	<div class="${ns}-create-sound-status" ${Player.tools._createdImage ? '' : 'style="display: none"'}>
-		${Player.tools._createdImage ? Player.tools.createCompleteTemplate() : ''}
-	</div>
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/download-progress.tpl":
-/*!**************************************************************!*\
-  !*** ./src/components/tools/templates/download-progress.tpl ***!
-  \**************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="mb-2">
-	<div>
-		<a class="${ns}-cancel-download pointer">${Icons.close}</a>
-		<span class="${ns}-current-status"></span>
-	</div>
-	<div class="${ns}-row ${ns}-align-center" ${data.includeImages ? '' : 'style="display: none;"'}>
-		<div class="${ns}-col-auto mr-4">${Icons.image}</div>
-		<div class="${ns}-col"><div class="${ns}-full-bar"><div class="${ns}-image-bar"></div></div></div>
-	</div>
-	<div class="${ns}-row ${ns}-align-center" ${data.includeSounds ? '' : 'style="display: none;"'}>
-		<div class="${ns}-col-auto mr-4">${Icons.soundwave}</div>
-		<div class="${ns}-col"><div class="${ns}-full-bar"><div class="${ns}-sound-bar"></div></div></div>
-	</div>
-</div>`
-
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/download.tpl":
-/*!*****************************************************!*\
-  !*** ./src/components/tools/templates/download.tpl ***!
-  \*****************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
-module.exports = (data = {}) => `<div class="${ns}-heading lined mt-5">Download All</div>
-<div class="m-2">
-	<div class="${ns}-row" style="white-space: nowrap">
-		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
-			<input type="checkbox" class="download-all-images m-0 mr-2" checked>
-			Images
-		</label>
-		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
-			<input type="checkbox" class="download-all-audio m-0 mr-2" checked>
-			Audio
-		</label>
-		<label class="${ns}-col-auto m-0 mr-3 ${ns}-ignore-downloaded" style="height: 1.5rem;">
-			<input type="checkbox" class="download-all-ignore-downloaded m-0 mr-2" checked>
-			<span>
-				Skip Downloaded <i class="${ns}-info-circle ${ns}-popover" data-content="Skip sounds you've already downloaded.">${Icons.infoCircle}</i>
-			</span>
-		</label>
-		<div class="${ns}-row ${ns}-align-center">
-			<div class="${ns}-col mr-2">Download Concurrency</div>
-			<div class="${ns}-col"><input type="number" class="download-all-concurrency" min="1" value="1" style="width: 3rem;"></div>
-		</div>
-		<div class="${ns}-row ${ns}-align-center">
-			<div class="${ns}-col mr-2">
-				Compression Level
-				<i class="${ns}-info-circle ${ns}-popover" data-content="0 (none/fastest) to 9 (best/slowest). It's unlikely to achieve significant compression however.">${Icons.infoCircle}</i>
-			</div>
-			<div class="${ns}-col"><input type="number" class="download-all-compression" min="0" max="9" value="0" style="width: 3rem;"></div>
-		</div>
-		<div class="${ns}-row ${ns}-align-center">
-			<div class="${ns}-col mr-2">
-				Max Sounds
-				<i class="${ns}-info-circle ${ns}-popover" data-content="Maximum number of sounds to download in one zip. 0 for unlimited. Useful for batching downloads to avoid memory contraints.">${Icons.infoCircle}</i>
-			</div>
-			<div class="${ns}-col"><input type="number" class="download-all-max-sounds" min="0" value="0" style="width: 3rem;"></div>
-		</div>
-	</div>
-	<div class="${ns}-download-all-status" style="display: none;"></div>
-	<div class="${ns}-row mt-4 ${ns}-align-center">
-		<button @click.prevent="tools._handleDownload" class="${ns}-download-all-start">Download</button>
-		<button @click.prevent="tools._handleDownloadCancel" class="${ns}-download-all-cancel">Cancel</button>
-		<button @click.prevent="tools.saveThreadDownload" class="${ns}-download-all-save ml-2 ${ns}-popover" @click="tools.saveThreadDownload" data-content="Save the last download.">Save</button>
-		<div class="${ns}-download-all-clear ml-2">
-			<a href="#" @click.prevent="tools.clearDownloadBlob">Clear</a><i class="${ns}-info-circle ${ns}-popover ml-1" data-content="Clear the last download to free memory.">${Icons.infoCircle}</i>
-		</div>
-	</div>
-</div>`
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/hosts-select.tpl":
-/*!*********************************************************!*\
-  !*** ./src/components/tools/templates/hosts-select.tpl ***!
-  \*********************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `<select class="${ns}-create-sound-host">
-	${Object.keys(Player.config.uploadHosts).map((hostId, i) =>
-		Player.config.uploadHosts[hostId] && !Player.config.uploadHosts[hostId].invalid
-			? `<option value="${hostId}" ${Player.config.defaultUploadHost === hostId ? 'selected' : ''}>${hostId}</option>`
-			: ''
-	).join('')}
-</select>`
-
-/***/ }),
-
-/***/ "./src/components/tools/templates/tools.tpl":
-/*!**************************************************!*\
-  !*** ./src/components/tools/templates/tools.tpl ***!
-  \**************************************************/
-/***/ ((module) => {
-
-module.exports = (data = {}) => `${Player.tools.createTemplate()}
-${Player.tools.downloadTemplate()}
-
-<div class="${ns}-heading lined mt-5">Encode / Decode URL</div>
-<div class="m-2">
-	<div class="${ns}-row">
-		<input type="text" class="${ns}-col ${ns}-decoded-input" @keyup="tools.handleDecoded" placeholder="https://">
-		<input type="text" class="${ns}-col ${ns}-encoded-input" @keyup="tools.handleEncoded" placeholder="https%3A%2F%2F">
-	</div>
-</div>`
-
-/***/ }),
-
-/***/ "./src/scss/4chan-x-polyfill.scss":
+/***/ "./src/scss/4chan-x-polyfill.scss"
 /*!****************************************!*\
   !*** ./src/scss/4chan-x-polyfill.scss ***!
   \****************************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = (data = {}) => `.dialog {
   background: var(--fcsp-background);
@@ -7995,13 +8241,13 @@ module.exports = (data = {}) => `.dialog {
   display: none;
 }`
 
-/***/ }),
+/***/ },
 
-/***/ "./src/scss/root.scss":
+/***/ "./src/scss/root.scss"
 /*!****************************!*\
   !*** ./src/scss/root.scss ***!
   \****************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = (data = {}) => `:root {
   --fcsp-text: ${Player.config.colors.text};
@@ -8020,13 +8266,13 @@ module.exports = (data = {}) => `:root {
   --fcsp-max-pip-size: ${Player.config.maxPIPWidth};
 }`
 
-/***/ }),
+/***/ },
 
-/***/ "./src/scss/style.scss":
+/***/ "./src/scss/style.scss"
 /*!*****************************!*\
   !*** ./src/scss/style.scss ***!
   \*****************************/
-/***/ ((module) => {
+(module) {
 
 module.exports = (data = {}) => `.${ns}-colorpicker {
   position: fixed;
@@ -8985,253 +9231,13 @@ pre.option {
   z-index: 2;
 }`
 
-/***/ }),
+/***/ },
 
-/***/ "./src/migrations.js":
-/*!***************************!*\
-  !*** ./src/migrations.js ***!
-  \***************************/
-/***/ ((module) => {
-
-// Migrations must return { [prop]: [ previous, updated ], ... }
-module.exports = [
-	{
-		version: '3.0.0',
-		name: 'hosts-filename-length',
-		async run() {
-			const defaultHosts = Player.settings.findDefault('uploadHosts').default;
-			Object.keys(defaultHosts).forEach(host => {
-				Player.config.uploadHosts[host].filenameLength = defaultHosts[host].filenameLength;
-			});
-			return {};
-		}
-	},
-	{
-		version: '3.3.0',
-		name: 'sound-name-title-swap',
-		async run() {
-			const config = Player.config;
-			const changes = {};
-			const templates = [ 'headerTemplate', 'rowTemplate', 'footerTemplate', 'chanXTemplate', 'customCSS' ];
-			templates.forEach(prop => {
-				/sound-name/.test(config[prop]) && (changes[prop] = [
-					config[prop],
-					config[prop] = config[prop].replace(/sound-name/g, 'sound-title')
-				]);
-			});
-			return changes;
-		}
-	},
-	{
-		version: '3.4.0',
-		name: 'disable-inline-player-for-existing-users',
-		async run() {
-			Player.config.playExpandedImages = false;
-			Player.config.playHoveredImages = false;
-			return {
-				playExpandedImages: [ true, false ],
-				playHoveredImages: [ true, false ]
-			};
-		}
-	},
-	{
-		version: '3.4.7',
-		name: 'zz-ht-to-zz-fo',
-		async run() {
-			const original = [ ...Player.config.allow ];
-			Player.config.allow.push('zz.fo');
-			return {
-				allow: [ original, Player.config.allow ]
-			}
-		}
-	}
-];
-
-
-/***/ }),
-
-/***/ "./src/player.js":
-/*!***********************!*\
-  !*** ./src/player.js ***!
-  \***********************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
-const components = {
-	// Settings must be first.
-	settings: __webpack_require__(/*! ./components/settings */ "./src/components/settings/index.js"),
-	events: __webpack_require__(/*! ./components/events */ "./src/components/events/index.js"),
-	actions: __webpack_require__(/*! ./components/actions */ "./src/components/actions/index.js"),
-	colorpicker: __webpack_require__(/*! ./components/settings/colorpicker */ "./src/components/settings/colorpicker.js"),
-	controls: __webpack_require__(/*! ./components/controls */ "./src/components/controls/index.js"),
-	display: __webpack_require__(/*! ./components/display */ "./src/components/display/index.js"),
-	footer: __webpack_require__(/*! ./components/footer */ "./src/components/footer/index.js"),
-	header: __webpack_require__(/*! ./components/header */ "./src/components/header/index.js"),
-	hotkeys: __webpack_require__(/*! ./components/hotkeys */ "./src/components/hotkeys/index.js"),
-	inline: __webpack_require__(/*! ./components/inline */ "./src/components/inline/index.js"),
-	minimised: __webpack_require__(/*! ./components/minimised */ "./src/components/minimised/index.js"),
-	playlist: __webpack_require__(/*! ./components/playlist */ "./src/components/playlist/index.js"),
-	position: __webpack_require__(/*! ./components/position */ "./src/components/position/index.js"),
-	posts: __webpack_require__(/*! ./components/posts */ "./src/components/posts/index.js"),
-	theme: __webpack_require__(/*! ./components/theme */ "./src/components/theme/index.js"),
-	threads: __webpack_require__(/*! ./components/threads */ "./src/components/threads/index.js"),
-	tools: __webpack_require__(/*! ./components/tools */ "./src/components/tools/index.js"),
-	userTemplate: __webpack_require__(/*! ./components/user-template */ "./src/components/user-template/index.js")
-};
-
-// Create a global ref to the player.
-const Player = window.Player = module.exports = {
-	ns,
-
-	// Store a ref to the components so they can be iterated.
-	components,
-
-	audio: new Audio(),
-	sounds: [],
-	filteredSounds: [],
-	isHidden: true,
-	container: null,
-	ui: {},
-	_public: [],
-
-	// Build the config from the default
-	config: {},
-
-	// Helper function to query elements in the player.
-	$: (...args) => Player.container && Player.container.querySelector(...args),
-	$all: (...args) => Player.container && Player.container.querySelectorAll(...args),
-
-	/**
-	 * Set up the player.
-	 */
-	async initialize() {
-		if (Player.initialized) {
-			return;
-		}
-		Player.initialized = true;
-		try {
-			Player.audio.dataset.id = 'main';
-			Player.sounds = [ ];
-			// Run the initialisation for each component.
-			for (let name in components) {
-				components[name].initialize && await components[name].initialize();
-			}
-
-			// Show a button to open the player.
-			Player.display.createPlayerButton();
-
-			// Render the player, but not neccessarily show it.
-			await Player.display.render();
-
-			// Expose some functionality via PlayerEvent custom events.
-			document.addEventListener('PlayerEvent', e => {
-				if (e.detail.action && ( true || 0)) {
-					return _.get(Player, e.detail.action).apply(window, e.detail.arguments);
-				}
-			});
-		} catch (err) {
-			Player.logError('There was an error initializing the sound player. Please check the console for details.', err);
-			// Can't recover so throw this error.
-			throw err;
-		}
-	},
-
-	/**
-	 * Returns the function of Player referenced by name or a given handler function.
-	 * @param {String|Function} handler Name to function on Player or a handler function.
-	 */
-	getHandler(handler) {
-		return typeof handler === 'string' ? _.get(Player, handler) : handler;
-	},
-
-	/**
-	 * Compare two ids for sorting.
-	 */
-	compareIds(a, b) {
-		const [ aPID, aSID ] = a.split(':');
-		const [ bPID, bSID ] = b.split(':');
-		const postDiff = aPID - bPID;
-		return postDiff !== 0 ? postDiff : aSID - bSID;
-	},
-
-	/**
-	 * Check whether a sound src and image are allowed and not filtered.
-	 */
-	disallowedSound({ src, imageMD5 }) {
-		try {
-			const link = new URL(src);
-			src = src.replace(/^(https?:)?\/\//, '');
-			const host = link.hostname.toLowerCase();
-			const result = { };
-			result.host = !Player.config.allow.find(h => host === h || host.endsWith('.' + h)) && host;
-			for (let filter of Player.config.filters) {
-				result.image = result.image || filter === imageMD5 && imageMD5;
-				result.sound = result.sound || filter.replace(/^(https?:)?\/\//, '') === src && src;
-				if (result.image && result.sound) {
-					break;
-				}
-			}
-			return result.host || result.image || result.sound
-				? result
-				: false;
-		} catch (err) {
-			return { invalid: true };
-		}
-	},
-
-	/**
-	 * Listen for changes
-	 */
-	syncTab: (property, callback) => typeof GM_addValueChangeListener !== 'undefined' && GM_addValueChangeListener(property, (_prop, oldValue, newValue, remote) => {
-		remote && callback(newValue, oldValue);
-	}),
-
-	/**
-	 * Log errors and show an error notification.
-	 */
-	logError(message, error, type) {
-		console.error('[4chan sounds player]', message, error);
-		if (error instanceof PlayerError) {
-			error.error && console.error('[4chan sound player]', error.error);
-			message = error.reason;
-			type = error.type || type;
-		}
-		Player.alert(message, type || 'error', 5);
-	},
-
-	/**
-	 * Show a notification using 4chan X or the native extention.
-	 */
-	alert(content, type = 'info', lifetime = 5) {
-		if (isChanX) {
-			content = _.element(`<span>${content}</span`);
-			document.dispatchEvent(new CustomEvent('CreateNotification', {
-				bubbles: true,
-				detail: { content, type, lifetime }
-			}));
-		} else if (typeof Feedback !== 'undefined') {
-			Feedback.showMessage(content, type === 'info' ? 'notify' : 'error', lifetime * 1000);
-		}
-	}
-};
-
-// Add each of the components to the player.
-for (let name in components) {
-	Player[name] = components[name];
-	(Player[name].atRoot || []).forEach(k => Player[k] = Player[name][k]);
-	(Player[name].public || []).forEach(k => {
-		Player._public.push((Player[name].atRoot || []).includes(k) ? k : `${name}.${k}`);
-	});
-}
-
-
-/***/ }),
-
-/***/ "./src/selectors.js":
+/***/ "./src/selectors.js"
 /*!**************************!*\
   !*** ./src/selectors.js ***!
   \**************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+(module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
 module.exports = {
@@ -9302,14 +9308,15 @@ module.exports = {
 }[Site];
 
 
-/***/ }),
+/***/ },
 
-/***/ "./src/xhr-replace.js":
+/***/ "./src/xhr-replace.js"
 /*!****************************!*\
   !*** ./src/xhr-replace.js ***!
   \****************************/
-/***/ ((module) => {
+(module) {
 
+/* eslint-disable no-global-assign */
 function toGM() {
 	XMLHttpRequest = xhrGM;
 };
@@ -9361,7 +9368,7 @@ module.exports.native = xhrNative;
 module.exports.toGM = toGM;
 module.exports.toNative = toNative;
 
-/***/ })
+/***/ }
 
 /******/ 	});
 /************************************************************************/
@@ -9374,6 +9381,12 @@ module.exports.toNative = toNative;
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
 /******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Check if module exists (development only)
+/******/ 		if (__webpack_modules__[moduleId] === undefined) {
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
@@ -9420,7 +9433,7 @@ module.exports.toNative = toNative;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 (() => {
 "use strict";
 /*!*********************!*\
