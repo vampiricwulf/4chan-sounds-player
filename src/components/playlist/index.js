@@ -1,40 +1,40 @@
-const { postIdPrefix } = require("../../selectors");
-const xhrReplacer = require("../../xhr-replace");
+const { postIdPrefix } = require('../../selectors');
+const xhrReplacer = require('../../xhr-replace');
 
-const itemMenuTemplate = require("./templates/item_menu.tpl");
+const itemMenuTemplate = require('./templates/item_menu.tpl');
 
 module.exports = {
-  atRoot: ["add", "remove"],
-  public: ["search"],
+  atRoot: ['add', 'remove'],
+  public: ['search'],
 
   tagLoadTO: {},
 
-  template: require("./templates/player.tpl"),
-  listTemplate: require("./templates/list.tpl"),
-  tagsDialogTemplate: require("./templates/tags_dialog.tpl"),
+  template: require('./templates/player.tpl'),
+  listTemplate: require('./templates/list.tpl'),
+  tagsDialogTemplate: require('./templates/tags_dialog.tpl'),
 
   initialize() {
     // Keep track of the last view style so we can return to it.
     Player.playlist._lastView =
-      Player.config.viewStyle === "playlist" ||
-      Player.config.viewStyle === "image"
+      Player.config.viewStyle === 'playlist' ||
+      Player.config.viewStyle === 'image'
         ? Player.config.viewStyle
-        : "playlist";
+        : 'playlist';
 
-    Player.on("view", (style) => {
+    Player.on('view', (style) => {
       // Focus the playing song when switching to the playlist.
-      style === "playlist" && Player.playlist.scrollToPlaying();
+      style === 'playlist' && Player.playlist.scrollToPlaying();
       // Track state.
-      if (style === "playlist" || style === "image") {
+      if (style === 'playlist' || style === 'image') {
         Player.playlist._lastView = style;
       }
     });
 
     // Keey track of the hover image element.
-    Player.on("rendered", Player.playlist.afterRender);
+    Player.on('rendered', Player.playlist.afterRender);
 
     // Various things to do when a new sound plays.
-    Player.on("playsound", (sound) => {
+    Player.on('playsound', (sound) => {
       // Update the image/video.
       Player.playlist.showImage(sound);
       // Update the previously and the new playing rows.
@@ -44,51 +44,51 @@ module.exports = {
         const newItem = Player.playlist.listTemplate({
           sounds: [Player.sounds.find((s) => s.id === el.dataset.id)],
         });
-        _.element(newItem, el, "beforebegin");
+        _.element(newItem, el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
       // If the player isn't fullscreen scroll to the playing item.
-      Player.config.viewStyle !== "fullscreen" &&
-        Player.playlist.scrollToPlaying("nearest");
+      Player.config.viewStyle !== 'fullscreen' &&
+        Player.playlist.scrollToPlaying('nearest');
       // Scroll the thread to the playing post.
       Player.config.autoScrollThread &&
         sound.post &&
         (location.href =
-          location.href.split("#")[0] + "#" + postIdPrefix + sound.post);
+          location.href.split('#')[0] + '#' + postIdPrefix + sound.post);
       // Load tags from the audio file.
       Player.playlist.loadTags(Player.playing.id);
     });
 
     // Reset to the placeholder image when the player is stopped.
-    Player.on("stop", () => {
+    Player.on('stop', () => {
       Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
-        el.classList.remove("playing"),
+        el.classList.remove('playing'),
       );
       const container = Player.$(`.${ns}-image-link`);
-      container.href = "#";
-      Player.$(`.${ns}-background-image`).src = Player.video.src = "";
+      container.href = '#';
+      Player.$(`.${ns}-background-image`).src = Player.video.src = '';
       Player.$(`.${ns}-image`).src =
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
       container.classList.remove(`${ns}-show-video`);
     });
 
     // Reapply filters when they change
-    Player.on("config:filters", Player.playlist.applyFilters);
-    Player.on("config:allow", Player.playlist.applyFilters);
+    Player.on('config:filters', Player.playlist.applyFilters);
+    Player.on('config:allow', Player.playlist.applyFilters);
 
     // Listen to anything that can affect the display of hover images
-    Player.on("config:hoverImages", Player.playlist.setHoverImageVisibility);
-    Player.on("menu-open", Player.playlist.setHoverImageVisibility);
-    Player.on("menu-close", Player.playlist.setHoverImageVisibility);
+    Player.on('config:hoverImages', Player.playlist.setHoverImageVisibility);
+    Player.on('menu-open', Player.playlist.setHoverImageVisibility);
+    Player.on('menu-close', Player.playlist.setHoverImageVisibility);
 
     // Listen to the search display being toggled
-    Player.on("config:showPlaylistSearch", Player.playlist.toggleSearch);
+    Player.on('config:showPlaylistSearch', Player.playlist.toggleSearch);
 
     // Listen for the playlist being shuffled/ordered.
-    Player.on("config:shuffle", Player.playlist._handleShuffle);
+    Player.on('config:shuffle', Player.playlist._handleShuffle);
 
     // Update an open tags info dialog when tags are loaded for a sound.
-    Player.on("tags-loaded", (sound) => {
+    Player.on('tags-loaded', (sound) => {
       const dialog = Player.$(`.tags-dialog[data-sound-id="${sound.id}"]`);
       dialog &&
         _.elementHTML(dialog, Player.playlist.tagsDialogTemplate(sound));
@@ -96,12 +96,12 @@ module.exports = {
 
     // Resize the image when the config is changed (from other tabs)
     Player.on(
-      "config:imageHeight",
-      (height) => (Player.$(`.${ns}-image-link`).style.height = height + "px"),
+      'config:imageHeight',
+      (height) => (Player.$(`.${ns}-image-link`).style.height = height + 'px'),
     );
 
     // Preload the next audio.
-    Player.on(["playsound", "order"], () => {
+    Player.on(['playsound', 'order'], () => {
       const next =
         Player.sounds[
           (Player.sounds.indexOf(Player.playing) + 1) % Player.sounds.length
@@ -110,7 +110,7 @@ module.exports = {
     });
 
     // Maintain changes to the user templates it's dependent values
-    Player.userTemplate.maintain(Player.playlist, "rowTemplate", ["shuffle"]);
+    Player.userTemplate.maintain(Player.playlist, 'rowTemplate', ['shuffle']);
 
     // Resize observer to handle transparent images
     Player.playlist.imageResizeObserver = new ResizeObserver(
@@ -144,7 +144,7 @@ module.exports = {
    * Restore the last playlist or image view.
    */
   restore() {
-    Player.display.setViewStyle(Player.playlist._lastView || "playlist");
+    Player.display.setViewStyle(Player.playlist._lastView || 'playlist');
   },
 
   /**
@@ -154,13 +154,13 @@ module.exports = {
     const container = document.querySelector(`.${ns}-image-link`);
     const img = container.querySelector(`.${ns}-image`);
     const background = container.querySelector(`.${ns}-background-image`);
-    img.src = background.src = "";
+    img.src = background.src = '';
     img.src = background.src = sound.imageOrThumb;
     Player.isVideo && (Player.video.src = sound.image);
-    if (Player.config.viewStyle !== "fullscreen") {
+    if (Player.config.viewStyle !== 'fullscreen') {
       container.href = sound.image;
     }
-    container.classList[Player.isVideo ? "add" : "remove"](ns + "-show-video");
+    container.classList[Player.isVideo ? 'add' : 'remove'](ns + '-show-video');
   },
 
   /**
@@ -173,9 +173,9 @@ module.exports = {
       Player.playlist.image.naturalWidth / Player.playlist.image.naturalHeight;
     const bgEl = Player.playlist.transparentImageBG;
     bgEl.style.width =
-      Math.min((imageSizeRatio / contentBoxRatio) * 100, 100) + "%";
+      Math.min((imageSizeRatio / contentBoxRatio) * 100, 100) + '%';
     bgEl.style.height =
-      Math.min((contentBoxRatio / imageSizeRatio) * 100, 100) + "%";
+      Math.min((contentBoxRatio / imageSizeRatio) * 100, 100) + '%';
   },
 
   /**
@@ -184,10 +184,10 @@ module.exports = {
   toggleView(e) {
     e && e.preventDefault();
     let style =
-      Player.config.viewStyle === "playlist"
-        ? "image"
-        : Player.config.viewStyle === "image"
-          ? "playlist"
+      Player.config.viewStyle === 'playlist'
+        ? 'image'
+        : Player.config.viewStyle === 'image'
+          ? 'playlist'
           : Player.playlist._lastView;
     Player.display.setViewStyle(style);
   },
@@ -239,11 +239,11 @@ module.exports = {
         ) {
           Player.show();
         }
-        Player.trigger("add", sound);
+        Player.trigger('add', sound);
       }
     } catch (err) {
       Player.logError(
-        "There was an error adding to the sound player. Please check the console for details.",
+        'There was an error adding to the sound player. Please check the console for details.',
         err,
       );
     }
@@ -278,9 +278,9 @@ module.exports = {
     // Check each of the files for sounds.
     [...files].forEach((file) => {
       if (
-        !file.type.startsWith("image") &&
-        file.type !== "video/webm" &&
-        file.type !== "video/mp4"
+        !file.type.startsWith('image') &&
+        file.type !== 'video/webm' &&
+        file.type !== 'video/mp4'
       ) {
         return;
       }
@@ -289,15 +289,15 @@ module.exports = {
       let thumbSrc = imageSrc;
 
       // If it's not a webm just use the full image as the thumbnail
-      if (file.type !== "video/webm" && file.type !== "video/mp4") {
+      if (file.type !== 'video/webm' && file.type !== 'video/mp4') {
         return _continue();
       }
 
       // If it's a webm grab the first frame as the thumbnail
-      const canvas = document.createElement("canvas");
-      const video = document.createElement("video");
-      const context = canvas.getContext("2d");
-      video.addEventListener("seeked", function () {
+      const canvas = document.createElement('canvas');
+      const video = document.createElement('video');
+      const context = canvas.getContext('2d');
+      video.addEventListener('seeked', function () {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
@@ -330,8 +330,8 @@ module.exports = {
    */
   remove(sound) {
     // Accept the sound object or id
-    if (typeof sound !== "object") {
-      sound = Player.sounds.find((s) => s.id === "" + sound);
+    if (typeof sound !== 'object') {
+      sound = Player.sounds.find((s) => s.id === '' + sound);
     }
     const index = Player.sounds.indexOf(sound);
 
@@ -345,17 +345,17 @@ module.exports = {
     // Remove the item from the list.
     const item = sound && Player.$(`.${ns}-list-item[data-id="${sound.id}"]`);
     item && Player.$(`.${ns}-list-container`).removeChild(item);
-    sound && Player.trigger("remove", sound);
+    sound && Player.trigger('remove', sound);
   },
 
   toggleRepeat() {
-    const values = ["all", "one", "none"];
+    const values = ['all', 'one', 'none'];
     const current = values.indexOf(Player.config.repeat);
-    Player.set("repeat", values[(current + 4) % 3]);
+    Player.set('repeat', values[(current + 4) % 3]);
   },
 
   toggleShuffle() {
-    Player.set("shuffle", !Player.config.shuffle);
+    Player.set('shuffle', !Player.config.shuffle);
   },
 
   _handleShuffle() {
@@ -369,7 +369,7 @@ module.exports = {
         [sounds[i], sounds[j]] = [sounds[j], sounds[i]];
       }
     }
-    Player.trigger("order");
+    Player.trigger('order');
   },
 
   /**
@@ -377,10 +377,10 @@ module.exports = {
    */
   handleSelect(e) {
     // Ignore if a link was clicked.
-    if (e.target.nodeName === "A" || e.target.closest("a")) {
+    if (e.target.nodeName === 'A' || e.target.closest('a')) {
       return;
     }
-    const id = e.currentTarget.getAttribute("data-id");
+    const id = e.currentTarget.getAttribute('data-id');
     const sound = id && Player.sounds.find((sound) => sound.id === id);
     sound && Player.play(sound);
   },
@@ -411,7 +411,7 @@ module.exports = {
    */
   toggleHoverImages(e) {
     e && e.preventDefault();
-    Player.set("hoverImages", !Player.config.hoverImages);
+    Player.set('hoverImages', !Player.config.hoverImages);
   },
 
   /**
@@ -423,17 +423,17 @@ module.exports = {
       !Player.config.hoverImages ||
       Player.playlist._dragging ||
       container.querySelector(`.${ns}-menu`);
-    container.classList[hideImage ? "add" : "remove"](`${ns}-hide-hover-image`);
+    container.classList[hideImage ? 'add' : 'remove'](`${ns}-hide-hover-image`);
   },
 
   /**
    * Set the displayed hover image and reposition.
    */
   updateHoverImage(e) {
-    const id = e.currentTarget.getAttribute("data-id");
+    const id = e.currentTarget.getAttribute('data-id');
     const sound = Player.sounds.find((sound) => sound.id === id);
-    Player.playlist.hoverImage.style.display = "block";
-    Player.playlist.hoverImage.setAttribute("src", sound.thumb);
+    Player.playlist.hoverImage.style.display = 'block';
+    Player.playlist.hoverImage.setAttribute('src', sound.thumb);
     Player.playlist.positionHoverImage(e);
   },
 
@@ -445,15 +445,15 @@ module.exports = {
       Player.playlist.hoverImage.getBoundingClientRect();
     const maxX = document.documentElement.clientWidth - width - 5;
     Player.playlist.hoverImage.style.left =
-      Math.min(e.clientX, maxX) + 5 + "px";
-    Player.playlist.hoverImage.style.top = e.clientY - height - 10 + "px";
+      Math.min(e.clientX, maxX) + 5 + 'px';
+    Player.playlist.hoverImage.style.top = e.clientY - height - 10 + 'px';
   },
 
   /**
    * Hide the hover image when nothing is being hovered over.
    */
   removeHoverImage() {
-    Player.playlist.hoverImage.style.display = "none";
+    Player.playlist.hoverImage.style.display = 'none';
   },
 
   /**
@@ -463,15 +463,15 @@ module.exports = {
     Player.playlist._dragging = e.currentTarget;
     Player.playlist.setHoverImageVisibility();
     e.currentTarget.classList.add(`${ns}-dragging`);
-    const img = document.createElement("img");
+    const img = document.createElement('img');
     img.src =
-      "data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
+      'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=';
     img.opacity = 0;
     e.dataTransfer.setDragImage(img, 0, 0);
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.dropEffect = 'move';
     e.dataTransfer.setData(
-      "text/plain",
-      e.currentTarget.getAttribute("data-id"),
+      'text/plain',
+      e.currentTarget.getAttribute('data-id'),
     );
   },
 
@@ -483,7 +483,7 @@ module.exports = {
       return;
     }
     const moving = Player.playlist._dragging;
-    const id = moving.getAttribute("data-id");
+    const id = moving.getAttribute('data-id');
     let before = e.target.closest && e.target.closest(`.${ns}-list-item`);
     if (!before || moving === before) {
       return;
@@ -500,7 +500,7 @@ module.exports = {
     // Move the element and sound.
     // If there's nothing to go before then append.
     if (before) {
-      const beforeId = before.getAttribute("data-id");
+      const beforeId = before.getAttribute('data-id');
       const beforeIdx = Player.sounds.findIndex((s) => s.id === beforeId);
       const insertIdx = movingIdx < beforeIdx ? beforeIdx - 1 : beforeIdx;
       list.insertBefore(moving, before);
@@ -509,7 +509,7 @@ module.exports = {
       Player.sounds.push(Player.sounds.splice(movingIdx, 1)[0]);
       list.appendChild(moving);
     }
-    Player.trigger("order");
+    Player.trigger('order');
   },
 
   /**
@@ -527,7 +527,7 @@ module.exports = {
   /**
    * Scroll to the playing item, unless there is an open menu in the playlist.
    */
-  scrollToPlaying(type = "center") {
+  scrollToPlaying(type = 'center') {
     if (Player.$(`.${ns}-list-container .${ns}-menu`)) {
       return;
     }
@@ -557,12 +557,12 @@ module.exports = {
         Player.posts.updateButtons(sound.post);
       }
     });
-    Player.trigger("filters-applied");
+    Player.trigger('filters-applied');
   },
 
   // Add a filter.
   addFilter(filter) {
-    filter && Player.set("filters", Player.config.filters.concat(filter));
+    filter && Player.set('filters', Player.config.filters.concat(filter));
   },
 
   /**
@@ -594,7 +594,7 @@ module.exports = {
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
-    input.style.display = show ? null : "none";
+    input.style.display = show ? null : 'none';
     show && input.focus();
   },
 
@@ -626,10 +626,10 @@ module.exports = {
       sound.tags =
         data &&
         Object.entries(data.tags || {}).reduce((tags, [name, value]) => {
-          typeof value === "string" && (tags[name] = value);
+          typeof value === 'string' && (tags[name] = value);
           return tags;
         }, {});
-      Player.trigger("tags-loaded", sound);
+      Player.trigger('tags-loaded', sound);
     }
   },
 
@@ -649,9 +649,9 @@ module.exports = {
     if (
       e.button === 0 &&
       !Player.isHidden &&
-      Player.config.viewStyle === "playlist"
+      Player.config.viewStyle === 'playlist'
     ) {
-      Player.$(`.${ns}-image-link`).style.cursor = "ns-resize";
+      Player.$(`.${ns}-image-link`).style.cursor = 'ns-resize';
       Player._imageResizeStartY = ((e.touches && e.touches[0]) || e).clientY;
       Player._imageResizeStartHeight = Player.config.imageHeight;
       Player._imageResized = false;
@@ -665,13 +665,13 @@ module.exports = {
    * Resize the playlist image.
    */
   expandImage(e) {
-    if (!Player.isHidden && Player.config.viewStyle === "playlist") {
+    if (!Player.isHidden && Player.config.viewStyle === 'playlist') {
       Player._imageResized = true;
       const clientY = ((e.touches && e.touches[0]) || e).clientY;
       const height =
         Player._imageResizeStartHeight + clientY - Player._imageResizeStartY;
       Player.$(`.${ns}-image-link`).style.height =
-        Math.min(Math.max(125, height), Player._imageReizeMaxHeight) + "px";
+        Math.min(Math.max(125, height), Player._imageReizeMaxHeight) + 'px';
     }
   },
 
@@ -679,7 +679,7 @@ module.exports = {
    * Keep the image within the player.
    */
   setImageHeight() {
-    if (!Player.isHidden && Player.config.viewStyle === "playlist") {
+    if (!Player.isHidden && Player.config.viewStyle === 'playlist') {
       Player.$(`.${ns}-image-link`).style.cursor = null;
       const imageLink = Player.$(`.${ns}-image-link`);
       const height = parseInt(imageLink.style.height);
@@ -687,8 +687,8 @@ module.exports = {
         Player.$(`.${ns}-player`).getBoundingClientRect().height -
         Player.$(`.${ns}-controls`).getBoundingClientRect().height;
       const finalHeight = Math.max(125, Math.min(height, maxHeight));
-      imageLink.style.height = finalHeight + "px";
-      Player.set("imageHeight", finalHeight);
+      imageLink.style.height = finalHeight + 'px';
+      Player.set('imageHeight', finalHeight);
     }
   },
 
@@ -697,7 +697,7 @@ module.exports = {
    */
   expandImageClick(e) {
     !Player.isHidden &&
-      Player.config.viewStyle === "playlist" &&
+      Player.config.viewStyle === 'playlist' &&
       Player._imageResized &&
       e.preventDefault();
   },
@@ -714,8 +714,8 @@ module.exports = {
       !sound.standaloneVideo &&
         new Promise((resolve) => {
           const audio = new Audio();
-          audio.addEventListener("canplaythrough", resolve);
-          audio.addEventListener("error", resolve);
+          audio.addEventListener('canplaythrough', resolve);
+          audio.addEventListener('error', resolve);
           audio.src = sound.src;
         }),
     ]);

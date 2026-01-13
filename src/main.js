@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 let initialized = false;
 
@@ -15,11 +15,11 @@ async function doInit() {
   }
 
   // Require globals now that we know it's safe.
-  require("./globals");
-  const _ = require("./_");
+  require('./globals');
+  const _ = require('./_');
 
   // Require these here so every other require is sure of the 4chan X state.
-  const Player = require("./player");
+  const Player = require('./player');
 
   await Player.initialize();
 
@@ -33,7 +33,7 @@ async function doInit() {
 
   const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
-      if (mutation.type === "childList") {
+      if (mutation.type === 'childList') {
         mutation.addedNodes.forEach(function (node) {
           if (node.nodeType === Node.ELEMENT_NODE) {
             pendingNodes.push(node);
@@ -54,15 +54,15 @@ async function doInit() {
   initialized = true;
 }
 
-document.addEventListener("4chanXInitFinished", doInit);
+document.addEventListener('4chanXInitFinished', doInit);
 
 // The timeout makes sure 4chan X will have added it's classes and be identified.
 setTimeout(function () {
   if (!initialized) {
-    if (document.readyState !== "loading") {
+    if (document.readyState !== 'loading') {
       doInit();
     } else {
-      document.addEventListener("DOMContentLoaded", doInit);
+      document.addEventListener('DOMContentLoaded', doInit);
     }
   }
 }, 1000);

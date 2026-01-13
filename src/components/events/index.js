@@ -1,5 +1,5 @@
 module.exports = {
-  atRoot: ["on", "off", "trigger"],
+  atRoot: ['on', 'off', 'trigger'],
 
   // Holder of event handlers.
   _events: {},
@@ -13,13 +13,13 @@ module.exports = {
     }
 
     // Clear mousedown listeners when the mouse/touch is released.
-    document.body.addEventListener("pointerup", Player.events.clearMousedown);
+    document.body.addEventListener('pointerup', Player.events.clearMousedown);
     document.body.addEventListener(
-      "pointercancel",
+      'pointercancel',
       Player.events.clearMousedown,
     );
 
-    Player.on("rendered", function () {
+    Player.on('rendered', function () {
       // Wire up audio events.
       for (let eventList of audio) {
         for (let evt in eventList) {
@@ -70,7 +70,7 @@ module.exports = {
 
   set(el, attr, action) {
     action = action.trim();
-    const [evt, ...modsArr] = attr.split(".");
+    const [evt, ...modsArr] = attr.split('.');
     const mods = modsArr.reduce((m, n) => {
       m[n] = true;
       return m;
@@ -87,14 +87,14 @@ module.exports = {
         function ($event) {
           try {
             const func = new Function(
-              "Player",
-              "$event",
+              'Player',
+              '$event',
               `with (Player) { ${action} }`,
             );
             handler = func.bind(null, Player);
             handler($event);
           } catch (err) {
-            console.error("Error creating event handler:", err, action);
+            console.error('Error creating event handler:', err, action);
           }
         });
     const listener = function (evt) {
@@ -104,15 +104,15 @@ module.exports = {
       if (mods.stop) {
         evt.stopPropagation();
       }
-      if (mods.disabled && evt.currentTarget.classList.contains("disabled")) {
-        evt.currentTarget.classList.contains("disabled");
+      if (mods.disabled && evt.currentTarget.classList.contains('disabled')) {
+        evt.currentTarget.classList.contains('disabled');
       }
 
       return handler && handler.call(this, evt, Player);
     };
 
     // Point drag is a special case to handle pointer dragging.
-    if (evt === "pointdrag") {
+    if (evt === 'pointdrag') {
       const downListener = (e) => {
         // No idea why but this seems to fire twice. So avoid that.
         if (!e._dragInit) {
@@ -126,20 +126,20 @@ module.exports = {
               ? document.documentElement
               : el;
             Player._mousedownMoveEl.addEventListener(
-              "pointermove",
+              'pointermove',
               listener,
               mods,
             );
-            el.addEventListener("pointerleave", listener, mods);
+            el.addEventListener('pointerleave', listener, mods);
             mods.boxed &&
-              el.addEventListener("pointerleave", Player.events.clearMousedown);
+              el.addEventListener('pointerleave', Player.events.clearMousedown);
             !mods.move && listener(e);
           }
         }
       };
-      el.addEventListener("pointerdown", downListener);
+      el.addEventListener('pointerdown', downListener);
       listeners.pointerdown = downListener;
-    } else if (evt === "pointdragstart" || evt === "pointdragend") {
+    } else if (evt === 'pointdragstart' || evt === 'pointdragend') {
       listeners[evt] = listener;
     } else {
       el.addEventListener(evt, listener, mods);
@@ -192,11 +192,11 @@ module.exports = {
     if (Player._mousedown) {
       Player._mousedown.releasePointerCapture(e.pointerId);
       Player._mousedownMoveEl.removeEventListener(
-        "pointermove",
+        'pointermove',
         Player._mousedownListener,
       );
       Player._mousedown.removeEventListener(
-        "pointerleave",
+        'pointerleave',
         Player._mousedownListener,
       );
       Player._mousedown._eventListeners.pointdragend &&

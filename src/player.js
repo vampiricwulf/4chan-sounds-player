@@ -1,23 +1,23 @@
 const components = {
   // Settings must be first.
-  settings: require("./components/settings"),
-  events: require("./components/events"),
-  actions: require("./components/actions"),
-  colorpicker: require("./components/settings/colorpicker"),
-  controls: require("./components/controls"),
-  display: require("./components/display"),
-  footer: require("./components/footer"),
-  header: require("./components/header"),
-  hotkeys: require("./components/hotkeys"),
-  inline: require("./components/inline"),
-  minimised: require("./components/minimised"),
-  playlist: require("./components/playlist"),
-  position: require("./components/position"),
-  posts: require("./components/posts"),
-  theme: require("./components/theme"),
-  threads: require("./components/threads"),
-  tools: require("./components/tools"),
-  userTemplate: require("./components/user-template"),
+  settings: require('./components/settings'),
+  events: require('./components/events'),
+  actions: require('./components/actions'),
+  colorpicker: require('./components/settings/colorpicker'),
+  controls: require('./components/controls'),
+  display: require('./components/display'),
+  footer: require('./components/footer'),
+  header: require('./components/header'),
+  hotkeys: require('./components/hotkeys'),
+  inline: require('./components/inline'),
+  minimised: require('./components/minimised'),
+  playlist: require('./components/playlist'),
+  position: require('./components/position'),
+  posts: require('./components/posts'),
+  theme: require('./components/theme'),
+  threads: require('./components/threads'),
+  tools: require('./components/tools'),
+  userTemplate: require('./components/user-template'),
 };
 
 // Create a global ref to the player.
@@ -56,7 +56,7 @@ const Player =
         }
         Player.initialized = true;
         try {
-          Player.audio.dataset.id = "main";
+          Player.audio.dataset.id = 'main';
           Player.sounds = [];
           // Run the initialisation for each component.
           // Settings must be first.
@@ -65,7 +65,7 @@ const Player =
           }
           const initPromises = Object.keys(components)
             .filter(
-              (name) => name !== "settings" && components[name].initialize,
+              (name) => name !== 'settings' && components[name].initialize,
             )
             .map((name) => components[name].initialize());
           await Promise.all(initPromises);
@@ -77,10 +77,10 @@ const Player =
           await Player.display.render();
 
           // Expose some functionality via PlayerEvent custom events.
-          document.addEventListener("PlayerEvent", (e) => {
+          document.addEventListener('PlayerEvent', (e) => {
             if (
               e.detail.action &&
-              (MODE === "development" ||
+              (MODE === 'development' ||
                 Player._public.includes(e.detail.action))
             ) {
               return _.get(Player, e.detail.action).apply(
@@ -91,7 +91,7 @@ const Player =
           });
         } catch (err) {
           Player.logError(
-            "There was an error initializing the sound player. Please check the console for details.",
+            'There was an error initializing the sound player. Please check the console for details.',
             err,
           );
           // Can't recover so throw this error.
@@ -104,15 +104,15 @@ const Player =
        * @param {String|Function} handler Name to function on Player or a handler function.
        */
       getHandler(handler) {
-        return typeof handler === "string" ? _.get(Player, handler) : handler;
+        return typeof handler === 'string' ? _.get(Player, handler) : handler;
       },
 
       /**
        * Compare two ids for sorting.
        */
       compareIds(a, b) {
-        const [aPID, aSID] = a.split(":");
-        const [bPID, bSID] = b.split(":");
+        const [aPID, aSID] = a.split(':');
+        const [bPID, bSID] = b.split(':');
         const postDiff = aPID - bPID;
         return postDiff !== 0 ? postDiff : aSID - bSID;
       },
@@ -123,18 +123,18 @@ const Player =
       disallowedSound({ src, imageMD5 }) {
         try {
           const link = new URL(src);
-          src = src.replace(/^(https?:)?\/\//, "");
+          src = src.replace(/^(https?:)?\/\//, '');
           const host = link.hostname.toLowerCase();
           const result = {};
           result.host =
             !Player.config.allow.find(
-              (h) => host === h || host.endsWith("." + h),
+              (h) => host === h || host.endsWith('.' + h),
             ) && host;
           for (let filter of Player.config.filters) {
             result.image = result.image || (filter === imageMD5 && imageMD5);
             result.sound =
               result.sound ||
-              (filter.replace(/^(https?:)?\/\//, "") === src && src);
+              (filter.replace(/^(https?:)?\/\//, '') === src && src);
             if (result.image && result.sound) {
               break;
             }
@@ -149,7 +149,7 @@ const Player =
        * Listen for changes
        */
       syncTab: (property, callback) =>
-        typeof GM_addValueChangeListener !== "undefined" &&
+        typeof GM_addValueChangeListener !== 'undefined' &&
         GM_addValueChangeListener(
           property,
           (_prop, oldValue, newValue, remote) => {
@@ -161,31 +161,31 @@ const Player =
        * Log errors and show an error notification.
        */
       logError(message, error, type) {
-        console.error("[4chan sounds player]", message, error);
+        console.error('[4chan sounds player]', message, error);
         if (error instanceof PlayerError) {
-          error.error && console.error("[4chan sound player]", error.error);
+          error.error && console.error('[4chan sound player]', error.error);
           message = error.reason;
           type = error.type || type;
         }
-        Player.alert(message, type || "error", 5);
+        Player.alert(message, type || 'error', 5);
       },
 
       /**
        * Show a notification using 4chan X or the native extention.
        */
-      alert(content, type = "info", lifetime = 5) {
+      alert(content, type = 'info', lifetime = 5) {
         if (isChanX) {
           content = _.element(`<span>${content}</span`);
           document.dispatchEvent(
-            new CustomEvent("CreateNotification", {
+            new CustomEvent('CreateNotification', {
               bubbles: true,
               detail: { content, type, lifetime },
             }),
           );
-        } else if (typeof Feedback !== "undefined") {
+        } else if (typeof Feedback !== 'undefined') {
           Feedback.showMessage(
             content,
-            type === "info" ? "notify" : "error",
+            type === 'info' ? 'notify' : 'error',
             lifetime * 1000,
           );
         }

@@ -1,7 +1,7 @@
 const _ = module.exports;
 
 module.exports.set = function set(object, path, value) {
-  const props = path.split(".");
+  const props = path.split('.');
   const lastProp = props.pop();
   const setOn = props.reduce((obj, k) => obj[k] || (obj[k] = {}), object);
   setOn && (setOn[lastProp] = value);
@@ -9,13 +9,13 @@ module.exports.set = function set(object, path, value) {
 };
 
 module.exports.get = function get(object, path, dflt) {
-  if (typeof path !== "string") {
+  if (typeof path !== 'string') {
     return dflt;
   }
-  if (path === "") {
+  if (path === '') {
     return object;
   }
-  const props = path.split(".");
+  const props = path.split('.');
   const lastProp = props.pop();
   const parent = props.reduce((obj, k) => obj && obj[k], object);
   return parent && lastProp in parent ? parent[lastProp] : dflt;
@@ -36,7 +36,7 @@ module.exports.isEqual = function isEqual(a, b, strict = true) {
       a.length === b.length && a.every((_a, i) => isEqual(_a, b[i], strict))
     );
   }
-  if (typeof a === "object") {
+  if (typeof a === 'object') {
     const keysA = Object.keys(a);
     const keysB = Object.keys(b);
     if (keysA.length !== keysB.length) {
@@ -54,9 +54,9 @@ module.exports.isEqual = function isEqual(a, b, strict = true) {
 module.exports.toDuration = function toDuration(number) {
   number = Math.floor(number || 0);
   let [seconds, minutes, hours] = _duration(0, number);
-  seconds < 10 && (seconds = "0" + seconds);
-  hours && minutes < 10 && (minutes = "0" + minutes);
-  return (hours ? hours + ":" : "") + minutes + ":" + seconds;
+  seconds < 10 && (seconds = '0' + seconds);
+  hours && minutes < 10 && (minutes = '0' + minutes);
+  return (hours ? hours + ':' : '') + minutes + ':' + seconds;
 };
 
 module.exports.timeAgo = function timeAgo(date) {
@@ -65,14 +65,14 @@ module.exports.timeAgo = function timeAgo(date) {
     Math.floor(Date.now() / 1000),
   );
   return weeks > 1
-    ? weeks + " weeks ago"
+    ? weeks + ' weeks ago'
     : days > 0
-      ? days + (days === 1 ? " day" : " days") + " ago"
+      ? days + (days === 1 ? ' day' : ' days') + ' ago'
       : hours > 0
-        ? hours + (hours === 1 ? " hour" : " hours") + " ago"
+        ? hours + (hours === 1 ? ' hour' : ' hours') + ' ago'
         : minutes > 0
-          ? minutes + (minutes === 1 ? " minute" : " minutes") + " ago"
-          : seconds + (seconds === 1 ? " second" : " seconds") + " ago";
+          ? minutes + (minutes === 1 ? ' minute' : ' minutes') + ' ago'
+          : seconds + (seconds === 1 ? ' second' : ' seconds') + ' ago';
 };
 
 function _duration(from, to) {
@@ -110,13 +110,13 @@ module.exports.waitFor = async function waitFor(selector, timeout = 3000) {
 module.exports.element = function element(
   html,
   parent,
-  position = "beforeend",
+  position = 'beforeend',
 ) {
   let el;
   if (html instanceof Node) {
     el = html;
   } else {
-    const container = document.createElement("div");
+    const container = document.createElement('div');
     container.innerHTML = html;
     el = container.children[0];
   }
@@ -133,19 +133,19 @@ module.exports.elementHTML = function elementHTML(el, content) {
 module.exports.elementHandler = function elementHandler(el) {
   // Wire up resize elements.
   el.querySelectorAll(`.${ns}-expander`).forEach((el) => {
-    el.classList.add("no-touch-action");
-    Player.events.set(el, "pointdragstart", "position.initResize");
-    Player.events.set(el, "pointdrag.unbound", "position.doResize");
-    Player.events.set(el, "pointdragend", "position.stopResize");
+    el.classList.add('no-touch-action');
+    Player.events.set(el, 'pointdragstart', 'position.initResize');
+    Player.events.set(el, 'pointdrag.unbound', 'position.doResize');
+    Player.events.set(el, 'pointdragend', 'position.stopResize');
   });
   // Wire up popovers.
   const popovers = Array.from(el.querySelectorAll(`.${ns}-popover`));
   el.classList.contains(`${ns}-popover`) && popovers.push(el);
   popovers.forEach((popover) => {
-    popover.addEventListener("mouseenter", Player.display._popoverMouseEnter);
-    popover.addEventListener("mouseleave", Player.display._popoverMouseLeave);
-    popover.nodeName !== "A" &&
-      popover.addEventListener("click", Player.display._popoverClick);
+    popover.addEventListener('mouseenter', Player.display._popoverMouseEnter);
+    popover.addEventListener('mouseleave', Player.display._popoverMouseLeave);
+    popover.nodeName !== 'A' &&
+      popover.addEventListener('click', Player.display._popoverClick);
   });
   // Wire up events from attributes.
   Player.events.apply(el);
@@ -153,8 +153,8 @@ module.exports.elementHandler = function elementHandler(el) {
 
 module.exports.escAttr = function (str, escapeDoubleQuote) {
   return str
-    .replace(";", "&#59;")
-    .replace(/'/g, "&#39;")
-    .replace(/"/g, escapeDoubleQuote ? "\\&#34;" : "&#34;")
-    .replace(/\n/g, "\\n");
+    .replace(';', '&#59;')
+    .replace(/'/g, '&#39;')
+    .replace(/"/g, escapeDoubleQuote ? '\\&#34;' : '&#34;')
+    .replace(/\n/g, '\\n');
 };
