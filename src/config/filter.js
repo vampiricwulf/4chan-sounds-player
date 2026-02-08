@@ -12,12 +12,20 @@ module.exports = [
     }
   },
   {
+    property: 'fatboxRerouter',
+    title: 'Fatbox Rerouter',
+    description: 'Use fatbox instead of catbox. (Make sure to add fatbox to allowed hosts if missing!)',
+    default: false,
+    displayGroup: 'Filter'
+  },
+  {
     property: 'allow',
     title: 'Allowed Hosts',
     description: 'Which domains sounds are allowed to be loaded from.',
     default: [
       '4cdn.org',
       'catbox.moe',
+      'fatbox.moe',
       'dmca.gripe',
       'lewd.se',
       'pomf.cat',

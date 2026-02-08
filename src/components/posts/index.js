@@ -7,6 +7,22 @@ const filenameRE = new RegExp('(.*?)[[({](' + Object.keys(hosts).join('|') + ')[
 let localCounter = 0;
 
 module.exports = {
+  initialize() {
+    Player.on('config:fatboxRerouter', enable => {
+      [ Player.sounds, Player.filteredSounds ].forEach(sounds => sounds.forEach(sound => {
+        if (enable) {
+          if (sound.src.includes('catbox.moe')) {
+            sound.src = sound.src.replace('catbox.moe', 'fatbox.moe');
+          }
+        } else {
+          if (sound.src.includes('fatbox.moe')) {
+            sound.src = sound.src.replace('fatbox.moe', 'catbox.moe');
+          }
+        }
+      }));
+    });
+  },
+
   addPosts(target, postRender) {
     let addedSounds = false;
     let posts = target.classList.contains('post')
@@ -120,6 +136,10 @@ module.exports = {
           }
         } else {
           src = (location.protocol + hosts[host].filepath + src);
+        }
+
+        if (Player.config.fatboxRerouter && src.includes('catbox.moe')) {
+          src = src.replace('catbox.moe', 'fatbox.moe');
         }
       } catch (error) {
         return { sounds, filtered };
