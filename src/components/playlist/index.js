@@ -122,6 +122,9 @@ module.exports = {
    * Render the playlist.
    */
   render() {
+    if (!Player.container) {
+      return;
+    }
     _.elementHTML(
       Player.$(`.${ns}-list-container`),
       Player.playlist.listTemplate(),
@@ -204,9 +207,14 @@ module.exports = {
       }
 
       // Add the sound with the location based on the shuffle settings.
+      // Shuffle: a uniform insertion point in [0, length] (operator precedence made the
+      // old `* length - 1` yield [-1, length-1), skewing the distribution and never
+      // targeting the last slot). Sorted: the first sound that should sort AFTER the new
+      // one — `> 0`, not `> 1` (compareIds returns the raw signed diff, so same-post
+      // sounds whose SIDs differ by exactly 1 were inserted one position out of order).
       let index = Player.config.shuffle
-        ? Math.floor(Math.random() * Player.sounds.length - 1)
-        : Player.sounds.findIndex((s) => Player.compareIds(s.id, id) > 1);
+        ? Math.floor(Math.random() * (Player.sounds.length + 1))
+        : Player.sounds.findIndex((s) => Player.compareIds(s.id, id) > 0);
       index < 0 && (index = Player.sounds.length);
       Player.sounds.splice(index, 0, sound);
 
@@ -217,13 +225,24 @@ module.exports = {
           let rowContainer = _.element(
             `<div>${Player.playlist.listTemplate({ sounds: [sound] })}</div>`,
           );
-          if (index < Player.sounds.length - 1) {
-            const before = Player.$(
-              `.${ns}-list-item[data-id="${Player.sounds[index + 1].id}"]`,
+          // listTemplate filters by the current search; if the new sound doesn't
+          // match, rowContainer.children[0] is undefined. The sound stays in
+          // Player.sounds (so search re-matching surfaces it) but has no DOM
+          // row until the next full render. Skip the DOM insert; the 'add'
+          // event still needs to fire below so count templates update.
+          const newRow = rowContainer.children[0];
+          if (newRow) {
+            // The data-id selector falls back to appendChild when the next sound
+            // is also search-filtered (its row isn't in DOM so `before` is null).
+            const nextSound = Player.sounds[index + 1];
+            const before = nextSound && Player.$(
+              `.${ns}-list-item[data-id="${nextSound.id}"]`,
             );
-            list.insertBefore(rowContainer.children[0], before);
-          } else {
-            list.appendChild(rowContainer.children[0]);
+            if (before) {
+              list.insertBefore(newRow, before);
+            } else {
+              list.appendChild(newRow);
+            }
           }
         }
 
@@ -232,7 +251,10 @@ module.exports = {
           Player.playlist.showImage(sound);
         }
         // Auto show if enabled, we're on a thread, and this is the first non-standlone item.
+        // Skip during applyFilters so a rerouter toggle / allow-list change doesn't pop a
+        // hidden player open unexpectedly.
         if (
+          !Player._applyingFilters &&
           Player.config.autoshow &&
           /\/thread\//.test(location.href) &&
           Player.sounds.filter((s) => !s.standaloneVideo).length === 1
@@ -460,6 +482,12 @@ module.exports = {
    * Start dragging a playlist item.
    */
   handleDragStart(e) {
+    // Reordering while a search is active would splice Player.sounds at positions
+    // derived from the full array, but only the matching rows are in the DOM — so the
+    // array order would diverge from what the user sees. Disable reorder during search.
+    if (Player.playlist._lastSearch) {
+      return;
+    }
     Player.playlist._dragging = e.currentTarget;
     Player.playlist.setHoverImageVisibility();
     e.currentTarget.classList.add(`${ns}-dragging`);
@@ -539,25 +567,63 @@ module.exports = {
    * Remove any user filtered items from the playlist.
    */
   applyFilters() {
-    // Check for added sounds that are now filtered.
-    Player.sounds.forEach((sound) => {
-      sound.disallow = Player.disallowedSound(sound);
-      if (sound.disallow) {
+    const wasApplyingFilters = Player._applyingFilters;
+    Player._applyingFilters = true;
+    try {
+      // Snapshot filteredSounds BEFORE Phase A pushes to it, so Phase B doesn't re-check
+      // sounds Phase A just decided as disallowed.
+      const filteredSnapshot = Array.from(Player.filteredSounds);
+
+      // Phase A: partition Player.sounds into kept / newly-filtered.
+      const newlyFiltered = [];
+      Player.sounds.forEach((sound) => {
+        sound.disallow = Player.disallowedSound(sound);
+        if (sound.disallow) {
+          newlyFiltered.push(sound);
+        }
+      });
+
+      // Phase B: partition the pre-Phase-A filteredSounds into stillFiltered / newlyAllowed.
+      const stillFiltered = [];
+      const newlyAllowed = [];
+      filteredSnapshot.forEach((sound) => {
+        sound.disallow = Player.disallowedSound(sound);
+        if (sound.disallow) {
+          stillFiltered.push(sound);
+        } else {
+          newlyAllowed.push(sound);
+        }
+      });
+
+      // Apply Phase A: remove newlyFiltered from Player.sounds (the DOM + Player.next
+      // bookkeeping lives in playlist.remove). Don't call updateButtons yet —
+      // getFilters reads Player.filteredSounds which won't include these sounds until
+      // the rebuild below.
+      newlyFiltered.forEach((sound) => {
         Player.playlist.remove(sound);
-        Player.filteredSounds.push(sound);
-        Player.posts.updateButtons(sound.post);
-      }
-    });
-    // Check for filtered sounds that are now accepted.
-    Player.filteredSounds.forEach((sound, idx) => {
-      sound.disallow = Player.disallowedSound(sound);
-      if (!sound.disallow) {
-        Player.filteredSounds.splice(idx, 1);
+      });
+
+      // Apply Phase B: add newlyAllowed back to Player.sounds.
+      newlyAllowed.forEach((sound) => {
         Player.playlist.add(sound);
-        Player.posts.updateButtons(sound.post);
-      }
-    });
-    Player.trigger('filters-applied');
+      });
+
+      // Rebuild Player.filteredSounds = stillFiltered ∪ newlyFiltered (preserve array
+      // identity in case anything holds a reference). Iterative push to avoid the
+      // engine-limited spread argument count on extreme inputs.
+      Player.filteredSounds.length = 0;
+      for (const s of stillFiltered) Player.filteredSounds.push(s);
+      for (const s of newlyFiltered) Player.filteredSounds.push(s);
+
+      // Now that filteredSounds is correct, refresh per-post UI for every sound that
+      // changed buckets (so getFilters() reflects the post-move state).
+      newlyFiltered.forEach((sound) => Player.posts.updateButtons(sound.post));
+      newlyAllowed.forEach((sound) => Player.posts.updateButtons(sound.post));
+
+      Player.trigger('filters-applied');
+    } finally {
+      Player._applyingFilters = wasApplyingFilters;
+    }
   },
 
   // Add a filter.
@@ -583,12 +649,47 @@ module.exports = {
 
   matchesSearch(sound) {
     const v = Player.playlist._lastSearch;
-    return (
-      !v ||
-      sound.title.toLowerCase().includes(v) ||
-      (sound.post && String(sound.post.toLowerCase()).includes(v)) ||
-      String(sound.src.toLowerCase()).includes(v)
-    );
+    if (!v) return true;
+    // Always include the currently-playing sound so its row stays in the DOM
+    // (the .playing highlight + the playsound row-replace would otherwise have
+    // nothing to target when search hides the row).
+    if (sound === Player.playing) return true;
+    // Cache the lowercased searchable text on the sound; the cache key is
+    // sound.src so the rerouter mutation auto-invalidates. Saves an N×4
+    // toLowerCase allocation per keystroke for large threads.
+    let tokens = sound._searchTokens;
+    if (!tokens || tokens._src !== sound.src) {
+      tokens = sound._searchTokens = {
+        _src: sound.src,
+        title: (sound.title || '').toLowerCase(),
+        post: (sound.post || '').toLowerCase(),
+        src: (sound.src || '').toLowerCase(),
+        origSrc: (typeof sound._origSrc === 'string' && sound._origSrc !== sound.src)
+          ? sound._origSrc.toLowerCase()
+          : null
+      };
+    }
+    return tokens.title.includes(v)
+      || (tokens.post && tokens.post.includes(v))
+      || tokens.src.includes(v)
+      || (tokens.origSrc && tokens.origSrc.includes(v));
+  },
+
+  /**
+   * Re-render a single playlist row in place — e.g. after its dead-link mark
+   * (sound.error) is set or cleared. No-op if the player isn't open or the row isn't
+   * currently rendered (e.g. filtered out by an active search).
+   */
+  refreshRow(sound) {
+    if (!sound || !Player.container) {
+      return;
+    }
+    const el = Player.$(`.${ns}-list-item[data-id="${sound.id}"]`);
+    const newItem = el && Player.playlist.listTemplate({ sounds: [ sound ] });
+    if (el && newItem && newItem.trim()) {
+      _.element(newItem, el, 'beforebegin');
+      el.parentNode.removeChild(el);
+    }
   },
 
   toggleSearch(show) {
@@ -608,7 +709,10 @@ module.exports = {
     if (sound.tags) {
       return;
     }
-    // Wait a bit before fetching to ignore the mouse going across.
+    // Wait a bit before fetching to ignore the mouse going across. Clear any pending
+    // timer for this id first so rapid re-hover doesn't orphan an unclearable handle
+    // (which would still fire a redundant fetch).
+    clearTimeout(Player.playlist.tagLoadTO[id]);
     Player.playlist.tagLoadTO[id] = setTimeout(() => {
       const reader = new jsmediatags.Reader(sound.src);
       // Replace XMLHttpRequest to avoid cors.

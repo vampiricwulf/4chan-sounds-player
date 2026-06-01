@@ -30,7 +30,8 @@ module.exports = {
         [ 'nexttrack', () => Player.next() ],
         [ 'seekbackward', evt => Player.audio.currentTime -= evt.seekOffset || 10 ],
         [ 'seekforward', evt => Player.audio.currentTime += evt.seekOffset || 10 ],
-        [ 'seekto', evt => Player.audio.currentTime += evt.seekTime ]
+        // `seekto` carries an ABSOLUTE time per spec — assignment, not +=.
+        [ 'seekto', evt => Player.audio.currentTime = evt.seekTime ]
       ];
       for (let [ type, handler ] of actions) {
         try {
@@ -52,6 +53,11 @@ module.exports = {
 
   async setMediaMetadata() {
     const sound = Player.playing;
+    // The deferred img.onload below re-invokes this; playback may have stopped in the
+    // meantime (Player.playing === null), so bail rather than deref a null sound.
+    if (!sound) {
+      return;
+    }
     const tags = sound.tags || {};
     navigator.mediaSession.playbackState = 'playing';
     const metadata = {
@@ -135,7 +141,7 @@ module.exports = {
     if (Player.isHidden && (Player.config.hotkeys !== 'always' || !Player.sounds.length)) {
       return;
     }
-    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA', 'INPUT' ].includes(e.target.nodeName);
+    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA' ].includes(e.target.nodeName);
     const k = e.key.toLowerCase();
     const bindings = Player.config.hotkey_bindings || {};
 

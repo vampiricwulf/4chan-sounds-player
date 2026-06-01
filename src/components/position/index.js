@@ -9,10 +9,20 @@ module.exports = {
 
     // Apply the last position/size, and post width limiting, when the player is shown.
     Player.on('show', async function () {
-      const [ top, left ] = (await GM.getValue('position') || '').split(':');
+      // NB: persisted format is "left:top" (see stopResize/stopMove) so we destructure
+      // in that order. Previous code labelled them `top, left` then passed them to
+      // `move(top, left)` which happens to call move(x, y) where x=savedLeft,
+      // y=savedTop — accidentally correct via mirrored mislabelling.
+      const [ left, top ] = (await GM.getValue('position') || '').split(':');
       const [ width, height ] = (await GM.getValue('size') || '').split(':');
+      // Use isFinite + non-empty check so a saved corner like '0:0' (player
+      // pinned to top-left) restores correctly instead of being skipped via the
+      // falsy-zero short-circuit. size has no '0' case (a 0px window is junk).
       +width && +height && Player.position.resize(width, height, true);
-      +top && +left && Player.position.move(top, left);
+      if (left !== undefined && left !== '' && top !== undefined && top !== ''
+          && isFinite(+left) && isFinite(+top)) {
+        Player.position.move(+left, +top);
+      }
 
       if (Player.config.limitPostWidths) {
         Player.position.setPostWidths();
@@ -48,9 +58,18 @@ module.exports = {
       subtree: true
     });
 
-    // Listen for changes from other tabs
-    Player.syncTab('position', value => Player.position.move(...value.split(':').concat(true)));
-    Player.syncTab('size', value => Player.position.resize(...value.split(':')));
+    // Listen for changes from other tabs. Validate the remote string the same way the
+    // `show` restore does, so a malformed/empty/deleted value can't set "NaNpx".
+    Player.syncTab('position', value => {
+      const [ left, top ] = (value || '').split(':');
+      if (isFinite(+left) && left !== '' && isFinite(+top) && top !== '') {
+        Player.position.move(+left, +top, true);
+      }
+    });
+    Player.syncTab('size', value => {
+      const [ width, height ] = (value || '').split(':');
+      +width && +height && Player.position.resize(width, height, true);
+    });
   },
 
   /**
@@ -62,11 +81,19 @@ module.exports = {
     const startY = Player.container.offsetTop;
     const endY = Player.container.getBoundingClientRect().height + startY;
 
+    const minWidth = Player.config.minPostWidth;
+    // Coerce a bare number/numeric-string to a px value; pass through any string that
+    // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
+    // numbers as raw CSS which browsers reject.
+    const minWidthCss = minWidth == null || minWidth === ''
+      ? null
+      : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+
     document.querySelectorAll(selectors.limitWidthOf).forEach(post => {
       const rect = enabled && post.getBoundingClientRect();
       const limitWidth = enabled && rect.top + rect.height > startY && rect.top < endY;
       post.style.maxWidth = limitWidth ? `calc(100% - ${offset}px)` : null;
-      post.style.minWidth = limitWidth && Player.config.minPostWidth ? `${Player.config.minPostWidth}` : null;
+      post.style.minWidth = limitWidth && minWidthCss ? minWidthCss : null;
     });
   },
 

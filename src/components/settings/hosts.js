@@ -1,6 +1,8 @@
 function validURL(value) {
   try {
-    new URL(value.replace(/%s/, 'sound').replace(/^(https?\/\/)?/, 'https://'));
+    // Regex was missing the `:` so it never matched a real protocol — it would
+    // double-prefix every URL with https:// and the URL constructor would throw.
+    new URL(value.replace(/%s/, 'sound').replace(/^(https?:\/\/)?/, 'https://'));
     return true;
   } catch (err) {
     return false;

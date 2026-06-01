@@ -61,7 +61,14 @@ module.exports = {
 
   inputRGBA(e) {
     const colorpicker = e.currentTarget.closest(`.${ns}-colorpicker`);
-    colorpicker._colorpicker.rgb[+e.currentTarget.getAttribute('data-color')] = e.currentTarget.value;
+    const channel = +e.currentTarget.getAttribute('data-color');
+    // RGB channels (0-2) are 0-255 integers; alpha (3) is 0-1 float. Coerce and clamp
+    // so downstream hsv conversion math doesn't operate on strings/NaN.
+    const raw = parseFloat(e.currentTarget.value);
+    if (Number.isNaN(raw)) return;
+    colorpicker._colorpicker.rgb[channel] = channel === 3
+      ? Math.min(1, Math.max(0, raw))
+      : Math.min(255, Math.max(0, Math.round(raw)));
     Player.colorpicker.updateOutput(colorpicker);
   },
 

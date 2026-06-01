@@ -79,9 +79,11 @@ module.exports = {
         const list = Player.$(`.${ns}-thread-list`);
         list.innerHTML = '';
         for (let board in Player.threads.displayThreads) {
-          // Create a board title
+          // Create a board title — board/title come from the official 4chan API
+          // (boards.json) but escape for defense in depth. Text-node context so
+          // escHTML (no `;`/`\`/quote handling needed).
           const boardConf = Player.threads.boardList.find(boardConf => boardConf.board === board);
-          const boardTitle = `/${boardConf.board}/ - ${boardConf.title}`;
+          const boardTitle = `/${_.escHTML(boardConf.board)}/ - ${_.escHTML(boardConf.title)}`;
           _.element(`<div class="boardBanner"><div class="boardTitle">${boardTitle}</div></div>`, list);
 
           // Add each thread for the board
@@ -95,9 +97,11 @@ module.exports = {
         }
       } catch (err) {
         Player.logError('Unable to display the threads board view.', err, 'warning');
-        // If there was an error fall back to the table view.
+        // If there was an error fall back to the table view. Previous code called
+        // `Player.renderThreads()` which doesn't exist (not exported at root) —
+        // crashing the fallback too.
         Player.set('threadsViewStyle', 'table');
-        Player.renderThreads();
+        Player.threads.renderThreads();
       }
     }
   },
@@ -204,7 +208,12 @@ module.exports = {
       return;
     }
     Player.threads.displayThreads = Player.threads.soundThreads.reduce((threadsByBoard, thread) => {
-      if (!search || thread.sub && thread.sub.toLowerCase().includes(search) || thread.com && thread.com.toLowerCase().includes(search)) {
+      // Show every thread when search is empty; otherwise match against sub OR com.
+      // Original `search || ...` made any non-empty search match every thread.
+      const matches = !search
+        || (thread.sub && thread.sub.toLowerCase().includes(search))
+        || (thread.com && thread.com.toLowerCase().includes(search));
+      if (matches) {
         threadsByBoard[thread.board] || (threadsByBoard[thread.board] = []);
         threadsByBoard[thread.board].push(thread);
       }

@@ -46,6 +46,12 @@
 	&.#{$ns}-dragging {
 		background: var(--fcsp-dragging);
 	}
+
+	// Dead link: failed to load and skipped during playback. Still clickable to retry.
+	&.#{$ns}-dead {
+		opacity: 0.5;
+		text-decoration: line-through;
+	}
 }
 
 .dialog .tags-dialog .entry {

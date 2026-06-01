@@ -14,7 +14,7 @@ module.exports = [
   {
     property: 'fatboxRerouter',
     title: 'Fatbox Rerouter',
-    description: 'Use fatbox instead of catbox. (Make sure to add fatbox to allowed hosts if missing!)',
+    description: 'Reroute all catbox.moe sounds through the fatbox.moe mirror.',
     default: false,
     displayGroup: 'Filter'
   },
@@ -37,7 +37,9 @@ module.exports = [
     displayMethod: 'textarea',
     attrs: 'rows=10',
     format: v => v.join('\n'),
-    parse: v => v.split('\n')
+    // Accept CRLF and trim whitespace so Windows/import paths don't leave a
+    // trailing \r on every entry (which would silently never match).
+    parse: v => v.split(/\r?\n/).map(s => s.trim()).filter(Boolean)
   },
   {
     property: 'filters',
@@ -49,6 +51,8 @@ module.exports = [
     displayMethod: 'textarea',
     attrs: 'rows=10',
     format: v => v.join('\n'),
-    parse: v => v.split('\n')
+    // Accept CRLF and drop empty lines, but preserve comment lines (#-prefixed)
+    // verbatim since the textarea documents that as the comment syntax.
+    parse: v => v.split(/\r?\n/).map(s => s.replace(/\r$/, '')).filter(s => s.length > 0)
   }
 ];

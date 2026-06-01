@@ -37,6 +37,9 @@ const createTool = module.exports = {
   async handleImageSelect(e) {
     const input = e && e.currentTarget || Player.tools.imgInput;
     const image = input.files[0];
+    if (!image) {
+      return;
+    }
     let placeholder = image.name.replace(/\.[^/.]+$/, '');
 
     if (await Player.tools.hasAudio(image)) {
@@ -61,7 +64,7 @@ const createTool = module.exports = {
       : files[0] && files[0].name || '';
     fileList && (_.elementHTML(fileList, files.length < 2 ? '' : files.map((file, i) =>
       `<div class="${ns}-row">
-				<div class="${ns}-col ${ns}-truncate-text">${file.name}</div>
+				<div class="${ns}-col ${ns}-truncate-text">${_.escHTML(file.name)}</div>
 				<a class="${ns}-col-auto" @click.prevent="tools.handleFileRemove" href="#" data-idx="${i}">${Icons.close}</a>
 			</div>`
     ).join('')));
@@ -221,7 +224,9 @@ const createTool = module.exports = {
       for (let i = 0; i < soundURLs.length; i++) {
         filename += (names[i] || '') + '[sound=' + encodeURIComponent(soundURLs[i].replace(/^(https?:)?\/\//, '')) + ']';
       }
-      const ext = image.name.match(/\.([^/.]+)$/)[1];
+      // Match-then-[1] would throw on extension-less filenames; fall back gracefully.
+      const extMatch = image.name.match(/\.([^/.]+)$/);
+      const ext = extMatch ? extMatch[1] : (image.type.split('/')[1] || 'bin');
 
       // Keep track of the create image and a url to it.
       Player.tools._createdImage = new File([image], filename + '.' + ext, { type: image.type });
@@ -247,7 +252,11 @@ const createTool = module.exports = {
         URL.revokeObjectURL(url);
         resolve(video.mozHasAudio || !!video.webkitAudioDecodedByteCount);
       });
-      video.addEventListener('error', reject);
+      video.addEventListener('error', e => {
+        // Revoke on the error path too so a probe failure doesn't leak the object URL.
+        URL.revokeObjectURL(url);
+        reject(e);
+      });
       video.src = url;
     });
   },
@@ -269,7 +278,7 @@ const createTool = module.exports = {
       }
     });
 
-    createTool.status.innerHTML += `<br><span class="${ns}-upload-status-${idx}">Uploading ${file.name}</span>`;
+    createTool.status.innerHTML += `<br><span class="${ns}-upload-status-${idx}">Uploading ${_.escHTML(file.name)}</span>`;
 
     return new Promise((resolve, reject) => {
       GM.xmlHttpRequest({
@@ -288,13 +297,17 @@ const createTool = module.exports = {
               ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
               : response.responseText;
           const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : responseVal).trim();
-          Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploaded ${file.name} to <a href="${uploadedUrl}" target="_blank">${uploadedUrl}</a>`;
+          // uploadedUrl comes from the upload host's response — escape so a host
+          // that returns HTML can't inject scripts into the status panel.
+          // escAttr is used for the href attribute; escHTML for the visible text.
+          const escUrl = _.escAttr(uploadedUrl);
+          Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploaded ${_.escHTML(file.name)} to <a href="${escUrl}" target="_blank">${_.escHTML(uploadedUrl)}</a>`;
           resolve(uploadedUrl);
         },
         upload: {
           onprogress: response => {
             const total = response.total > 0 ? response.total : file.size;
-            Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploading ${file.name} - ${Math.floor(response.loaded / total * 100)}%`;
+            Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploading ${_.escHTML(file.name)} - ${Math.floor(response.loaded / total * 100)}%`;
           }
         },
         onerror: reject

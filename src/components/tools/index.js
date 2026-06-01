@@ -12,12 +12,6 @@ module.exports = {
     downloadTool.initialize();
   },
 
-  render() {
-    _.elementHTML(Player.$(`.${ns}-tools`).innerHTML, Player.tools.template());
-    createTool.afterRender();
-    downloadTool.afterRender();
-  },
-
   toggle() {
     if (Player.config.viewStyle === 'tools') {
       Player.playlist.restore();

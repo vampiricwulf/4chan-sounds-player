@@ -187,8 +187,10 @@ module.exports = {
     const i = order.indexOf(name);
     if (i + dir >= 0 && i + dir < order.length) {
       [ order[i], order[i + dir] ] = [ order[i + dir], order[i] ];
-      Player.$(`[data-theme="${name}"]`).style.order = i + dir;
-      Player.$(`[data-theme="${order[i]}"]`).style.order = i;
+      // CSS.escape the theme name — a name containing a quote would otherwise break
+      // the attribute selector (SyntaxError) or match unintended rows.
+      Player.$(`[data-theme="${CSS.escape(name)}"]`).style.order = i + dir;
+      Player.$(`[data-theme="${CSS.escape(order[i])}"]`).style.order = i;
       Player.settings.set('savedThemes', Player.config.savedThemes, { bypassValidation: true, bypassRender: true });
     }
   },
@@ -211,10 +213,15 @@ module.exports = {
     // Remove the row
     row.parentNode.removeChild(row);
     Player.settings.set('savedThemes', themes, { bypassValidation: true, bypassRender: true });
-    // Remove hotkey binding
-    const bindingIndex = Player.config.hotkey_bindings.switchTheme.find(def => def.themeName === name);
-    if (bindingIndex) {
-      Player.set('hotkey_bindings.switchTheme', Player.config.hotkey_bindings.switchTheme.splice(bindingIndex, 1), { bypassValidation: true });
+    // Remove hotkey binding. The previous code used `.find()` (which returns the
+    // matching object) but then passed it as the index to `.splice()` — splice
+    // coerces an object to NaN→0 and splice itself returns the REMOVED items, so
+    // the original call removed binding[0] and persisted only the removed binding.
+    const bindings = Player.config.hotkey_bindings.switchTheme;
+    const bindingIndex = bindings.findIndex(def => def.themeName === name);
+    if (bindingIndex !== -1) {
+      const updated = bindings.slice(0, bindingIndex).concat(bindings.slice(bindingIndex + 1));
+      Player.set('hotkey_bindings.switchTheme', updated, { bypassValidation: true });
     }
   },
 

@@ -112,7 +112,7 @@ module.exports = [
     icon: Icons.chatRightQuote,
     showIf: data => data.sound.post,
     attrs: data => [
-      `href=${'#' + postIdPrefix + data.sound.post}`,
+      `href="${_.escAttr('#' + postIdPrefix + data.sound.post)}"`,
       'title="Jump to the post for the current sound"'
     ]
   },
@@ -121,7 +121,7 @@ module.exports = [
     requireSound: true,
     icon: Icons.image,
     attrs: data => [
-      `href=${data.sound.image}`,
+      `href="${_.escAttr(data.sound.image)}"`,
       'title="Open the image in a new tab"',
       'target="_blank"'
     ]
@@ -131,7 +131,7 @@ module.exports = [
     requireSound: true,
     icon: Icons.soundwave,
     attrs: data => [
-      `href=${data.sound.src}`,
+      `href="${_.escAttr(data.sound.src)}"`,
       'title="Open the sound in a new tab"',
       'target="_blank"'
     ]
@@ -155,7 +155,19 @@ module.exports = [
   {
     tplName: /filter-(image|sound)/,
     requireSound: true,
-    action: data => `playlist.addFilter("${data.tplNameMatch[1] === 'image' ? data.sound.imageMD5 : data.sound.src.replace(/^(https?:)?\/\//, '')}")`,
+    // Filter against _origSrc so the filter stays matched after the rerouter is toggled
+    // (sound.src would otherwise persist the rerouted host into the user's filter list).
+    // _.escAttr(..., true) — value lands inside a JS string literal that itself
+    // lives inside an @click='...' attribute. The sound URL is parsed from
+    // user-controlled post filenames and CAN contain quote / angle-bracket chars
+    // (especially after decodeURIComponent in getSounds unwraps %27 / %3C); plain
+    // interpolation would break out of the attribute and inject markup.
+    action: data => {
+      const filterVal = data.tplNameMatch[1] === 'image'
+        ? data.sound.imageMD5
+        : (data.sound._origSrc || data.sound.src).replace(/^(https?:)?\/\//, '');
+      return `playlist.addFilter("${_.escAttr(filterVal, true)}")`;
+    },
     actionMods: '.prevent',
     icon: Icons.filter,
     showIf: data => data.tplNameMatch[1] === 'sound' || data.sound.imageMD5,

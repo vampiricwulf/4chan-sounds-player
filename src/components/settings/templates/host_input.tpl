@@ -1,5 +1,5 @@
 Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
-	<div class="${ns}-row ${ns}-col ${ns}-host-input ${host.invalid ? 'invalid' : ''}" data-host-name="${name}">
+	<div class="${ns}-row ${ns}-col ${ns}-host-input ${host.invalid ? 'invalid' : ''}" data-host-name="${_.escAttr(name)}">
 		<div class="${ns}-row ${ns}-host-controls">
 			<div class="${ns}-col-auto">
 				<label>
@@ -23,9 +23,9 @@ Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
 					<input
 						type="text"
 						data-property="uploadHosts"
-						name="${field}"
-						value="${(field === 'name' ? name : host[field]) || ''}"
-						placeholder="${title}"
+						name="${_.escAttr(field)}"
+						value="${_.escAttr((field === 'name' ? name : host[field]) || '')}"
+						placeholder="${_.escAttr(title)}"
 					/>
 				</div>
 			`).join('')}
@@ -33,14 +33,14 @@ Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
 		<div class="${ns}-row">
 			<div class="${ns}-col">
 				<textarea data-property="uploadHosts" name="data" placeholder="Data (JSON)">${
-					JSON.stringify(host.data, null, 4)
+					_.escHTML(JSON.stringify(host.data, null, 4))
 				}</textarea>
 			</div>
 		</div>
 		<div class="${ns}-row">
 			<div class="${ns}-col">
 				<textarea data-property="uploadHosts" name="headers" placeholder="Headers (JSON)">${
-					host.headers ? JSON.stringify(host.headers, null, 4) : ''
+					_.escHTML(host.headers ? JSON.stringify(host.headers, null, 4) : '')
 				}</textarea>
 			</div>
 		</div>

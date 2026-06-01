@@ -3,6 +3,10 @@ module.exports = {
     filepath: '//files.catbox.moe/',
     decode: false
   },
+  'fatbox': {
+    filepath: '//files.fatbox.moe/',
+    decode: false
+  },
   'audio': {
     decode: true
   },

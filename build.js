@@ -21,6 +21,9 @@ webpack(config, (err, stats) => {
   }));
 
   if (err || stats.hasErrors()) {
+    // Surface the failure to the shell so `npm run build` / CI chains don't treat a
+    // broken compile as success and publish a stale or missing artifact.
+    process.exitCode = 1;
     return;
   }
 

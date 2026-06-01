@@ -207,7 +207,7 @@ module.exports = [
         property: 'colors.controls_empty_bar',
         default: '#131314',
         title: 'Volume/Seek Bar Background',
-        decscription: 'The background of the volume and seek bars.',
+        description: 'The background of the volume and seek bars.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.controls_empty_bar")', mods: '.prevent' } ],
       },
       {

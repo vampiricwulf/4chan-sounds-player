@@ -104,8 +104,10 @@ module.exports = {
       if (mods.stop) {
         evt.stopPropagation();
       }
+      // The `.disabled` modifier skips the handler when the element has the
+      // disabled class (e.g. a greyed-out next/prev button).
       if (mods.disabled && evt.currentTarget.classList.contains('disabled')) {
-        evt.currentTarget.classList.contains('disabled');
+        return;
       }
 
       return handler && handler.call(this, evt, Player);

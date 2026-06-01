@@ -13,7 +13,7 @@
 		type="text"
 		class="${ns}-threads-filter"
 		@keyup='threads.filter($event.target.value)'
-		value="${Player.threads.filterValue || ''}"
+		value="${_.escAttr(Player.threads.filterValue || '')}"
 	/>
 
 	<div class="${ns}-heading">
@@ -47,7 +47,7 @@
 					<th>Replies/Images</th>
 					<th>Started</th>
 					<th>Updated</th>
-				<tr>
+				</tr>
 				<tbody class="${ns}-threads-body"></tbody>
 			</table>`
 		: `<div class="${ns}-thread-list"></div>`

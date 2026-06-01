@@ -1,8 +1,15 @@
 const buttons = require('./buttons');
 
-// Regex for replacements
+// Regex for replacements. Each /g regex below is used for both .replace() (which
+// needs /g for global) AND for .test() in findDependencies. Calling .test() on a
+// /g regex advances lastIndex, leaking state across calls — when the same regex
+// is .test()'d on different inputs it can return false (and `.exec` can skip
+// matches) because it resumes from a stale offset. To keep both call shapes
+// safe, every .test()/.exec() site below resets lastIndex to 0 explicitly.
 const playingRE = /p: ?{([^}]*)}/g;
 const hoverRE = /h: ?{([^}]*)}/g;
+// Render the inner content only when at least one sound is dead (failed to load).
+const deadRE = /d: ?{([^}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -12,6 +19,7 @@ const soundIndexRE = /sound-index/g;
 const soundCountRE = /sound-count/g;
 const soundPropRE = /sound-(src|id|name|post|imageOrThumb|image|thumb|filename|imageMD5)(-esc)?/g;
 const soundFilterCountRE = /filtered-count/g;
+const deadCountRE = /dead-count/g;
 const configRE = /\$config\[([^\]]+)\]/g;
 
 // Hold information on which config values components templates depend on.
@@ -23,7 +31,15 @@ module.exports = {
   initialize() {
     Player.on('config', Player.userTemplate._handleConfig);
     Player.on('playsound', () => Player.userTemplate._handleEvent('playsound'));
-    [ 'add', 'remove', 'order', 'show', 'hide', 'stop' ].forEach(evt => {
+    // 'filters-applied' fires once at the end of playlist.applyFilters and is
+    // the one event hasCount/hasSoundProp/hasIndex/hasPlaying templates rely on
+    // to refresh after a bulk apply (the per-sound 'add'/'remove'/'playsound'
+    // cascade is suppressed by _handleEvent while _applyingFilters is set). It
+    // MUST be subscribed here or the corresponding events.push('filters-applied')
+    // entries in findDependencies become dead code.
+    // 'dead-change' fires when a sound is marked dead (failed to load) or recovers, so
+    // sound-count templates refresh their playable total / "(+ N dead)" suffix.
+    [ 'add', 'remove', 'order', 'show', 'hide', 'stop', 'filters-applied', 'dead-change' ].forEach(evt => {
       Player.on(evt, Player.userTemplate._handleEvent.bind(null, evt));
     });
   },
@@ -42,6 +58,10 @@ module.exports = {
     let html = data.template.replace(configRE, (...args) => _.get(Player.config, args[1]));
     !data.ignoreDisplayBlocks && (html = html
       .replace(playingRE, Player.playing && Player.playing === data.sound ? '$1' : '')
+      // Lazy replacer (not an eager ternary like the blocks above): the dead scan only
+      // runs when a template actually contains a d:{ } block, so the per-sound row
+      // template — built once per sound — doesn't pay an O(n) scan on every render.
+      .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
       .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
@@ -65,13 +85,45 @@ module.exports = {
       // Replace spaces with non breaking spaces in user text to prevent collapsing.
       return `<a ${attrs.join(' ')}>${text && text.replace(/ /g, ' ') || _confFuncOrText(buttonConf.icon) || _confFuncOrText(buttonConf.text)}</a>`;
     }));
+    // Escape the sound name — it comes from the filename regex in posts.getSounds
+    // (and the [futari no christmas] hardcoded match) and can contain arbitrary
+    // characters from archived posts. Compute lazily: most playlist templates
+    // don't include sound-title at all, so the per-row escAttr cost is wasted.
+    let escName, escLocation;
+    const getEscName = () => escName !== undefined ? escName : (escName = name ? _.escAttr(name) : '');
+    const getEscLocation = () => escLocation !== undefined ? escLocation : (escLocation = _.escAttr(data.location || ''));
     !data.ignoreSoundName && (html = html
-      .replace(soundTitleMarqueeRE, name ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem; text-overflow: clip;"><span title="${name}" class="${ns}-title-marquee" data-location="${data.location || ''}">${name}</span></div>` : '')
-      .replace(soundTitleRE, name ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem"><span title="${name}">${name}</span></div>` : ''));
+      .replace(soundTitleMarqueeRE, () => name
+        ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem; text-overflow: clip;"><span title="${getEscName()}" class="${ns}-title-marquee" data-location="${getEscLocation()}">${getEscName()}</span></div>`
+        : '')
+      .replace(soundTitleRE, () => name
+        ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem"><span title="${getEscName()}">${getEscName()}</span></div>`
+        : ''));
     !data.ignoreSoundProperties && (html = html
-      .replace(soundPropRE, (...args) => data.sound ? (args[2] ? _.escAttr(data.sound[args[1]], true) : data.sound[args[1]]) : '')
-      .replace(soundIndexRE, data.sound ? Player.sounds.indexOf(data.sound) + 1 : 0)
-      .replace(soundCountRE, Player.sounds.length)
+      // Always escape sound props when interpolated into the rendered HTML. The
+      // `-esc` suffix is the OPT-IN for JS-string-safe escaping (used inside
+      // event-handler attributes that wrap the value in a JS string literal);
+      // plain tokens get HTML-attr escaping which is correct for href/value/etc.
+      .replace(soundPropRE, (...args) => data.sound ? _.escAttr(data.sound[args[1]], !!args[2]) : '')
+      // Position among PLAYABLE sounds. Dead sounds are excluded from sound-count, so
+      // exclude them from the index too — otherwise "sound-index / sound-count" can read
+      // e.g. 3 / 2 when the playing sound sits after a dead one. Lazy function so builds
+      // without the token skip the O(n) walk (the old eager indexOf ran on every build).
+      .replace(soundIndexRE, () => {
+        if (!data.sound) return 0;
+        let idx = 0;
+        for (const s of Player.sounds) {
+          !s.error && idx++;
+          if (s === data.sound) return idx;
+        }
+        return 0;
+      })
+      // sound-count reports the PLAYABLE total — dead (failed-to-load) sounds are
+      // excluded. The dead total is exposed separately via the `dead-count` token and
+      // the `d:{ }` block (shown only when something is dead). Computed lazily so
+      // templates without the token (e.g. the per-sound row template) skip the scan.
+      .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
+      .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
     !data.ignoreVersion && (html = html.replace(/%v/g, VERSION));
 
@@ -106,6 +158,20 @@ module.exports = {
     // Figure out what events should trigger a render.
     const events = [];
 
+    // /g regexes carry lastIndex across calls — reset before each .test()/.exec()
+    // so a prior call (or another module sharing the regex) can't make us skip
+    // the prefix of `template` or miss a match entirely.
+    soundCountRE.lastIndex = 0;
+    soundTitleRE.lastIndex = 0;
+    soundPropRE.lastIndex = 0;
+    soundIndexRE.lastIndex = 0;
+    playingRE.lastIndex = 0;
+    soundFilterCountRE.lastIndex = 0;
+    deadCountRE.lastIndex = 0;
+    deadRE.lastIndex = 0;
+    buttonRE.lastIndex = 0;
+    configRE.lastIndex = 0;
+
     // add/remove should render templates showing the count.
     // playsound/stop should render templates either showing properties of the playing sound or dependent on something playing.
     // order should render templates showing a sounds index.
@@ -114,11 +180,25 @@ module.exports = {
     const hasIndex = soundIndexRE.test(template);
     const hasPlaying = playingRE.test(template);
     const hasFilterCount = soundFilterCountRE.test(template);
-    hasCount && events.push('add', 'remove');
+    // dead-count token / d:{ } block depend on the dead total, which changes when a
+    // sound is marked dead/recovers ('dead-change') or is added/removed/refiltered.
+    const hasDead = deadCountRE.test(template) || deadRE.test(template);
+    // hasCount templates re-render on add/remove for the live count, AND on
+    // 'filters-applied' so bulk applyFilters operations (where _handleEvent
+    // suppresses the per-sound 'add'/'remove' cascade) still refresh the count
+    // exactly once at the end.
+    hasCount && events.push('add', 'remove', 'filters-applied', 'dead-change');
     // The row template handles this itself to avoid a full playlist render.
-    property !== 'rowTemplate' && (hasSoundProp || hasIndex || hasPlaying) && events.push('playsound', 'stop');
-    hasIndex && events.push('order');
+    // hasSoundProp/hasIndex/hasPlaying also subscribe to 'filters-applied' so
+    // bulk applyFilters refreshes the dependent template even when its
+    // 'playsound' cascade is suppressed (see _handleEvent below).
+    property !== 'rowTemplate' && (hasSoundProp || hasIndex || hasPlaying)
+      && events.push('playsound', 'stop', 'filters-applied');
+    // sound-index now also depends on the dead total (dead sounds before the playing
+    // one shift the playable position), so refresh on 'dead-change' as well as 'order'.
+    hasIndex && events.push('order', 'dead-change');
     hasFilterCount && events.push('filters-applied');
+    hasDead && events.push('add', 'remove', 'filters-applied', 'dead-change');
 
     // Find which buttons the template includes that are dependent on config values.
     const config = [];
@@ -163,6 +243,14 @@ module.exports = {
 	 * When a player event is triggered check if any component dependencies are affected.
 	 */
   _handleEvent(type) {
+    // Suppress per-sound 'add'/'remove'/'playsound' renders during a bulk
+    // applyFilters operation: Phase A removal of the playing sound cascades into
+    // Player.next → Player.play → 'playsound' against intermediate state (sounds
+    // is mid-mutation, filteredSounds awaiting rebuild). The 'filters-applied'
+    // event at the end of applyFilters drives one consistent re-render instead.
+    if (Player._applyingFilters && (type === 'add' || type === 'remove' || type === 'playsound')) {
+      return;
+    }
     // Check if any components are dependent on the updated property.
     componentDeps.forEach(depInfo => {
       if (depInfo.alwaysRenderEvents.includes(type) || depInfo.events.includes(type)) {

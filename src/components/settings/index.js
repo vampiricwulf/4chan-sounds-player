@@ -4,7 +4,6 @@ const migrations = require('../../migrations');
 const hosts = require('./hosts');
 
 module.exports = {
-  asdf: 'asdf',
   atRoot: [ 'set' ],
   public: [ 'set', 'export', 'import', 'reset', 'load' ],
   hosts,
@@ -118,8 +117,18 @@ module.exports = {
 	 */
   async load(settings, opts = {}) {
     if (typeof settings === 'string') {
-      settings = JSON.parse(settings);
+      try {
+        settings = JSON.parse(settings);
+      } catch (err) {
+        // A corrupt stored blob (truncated write, bad import, manual edit) must not
+        // brick init — fall back to defaults rather than throwing out of load().
+        Player.logError('Saved settings were corrupt and could not be parsed; falling back to defaults.', err, 'warning');
+        settings = {};
+      }
     }
+    // Guard the rest of the function against a null/undefined config (e.g. a failed
+    // import that still calls load()) so `settings.VERSION` / _.get don't throw.
+    settings = settings || {};
     const changes = {};
     settingsConfig.forEach(function _handleSetting(setting) {
       if (setting.settings) {
@@ -190,8 +199,11 @@ module.exports = {
       settings.viewStyle = Player.playlist._lastView;
       // Store the player version with the settings.
       settings.VERSION = VERSION;
-      // Save the settings.
-      return GM.setValue('settings', JSON.stringify(settings));
+      // Save the settings. The surrounding try/catch only covers synchronous
+      // serialization errors, so attach a .catch for an async write rejection too.
+      return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
+        Player.logError('There was an error saving the sound player settings.', err);
+      });
     } catch (err) {
       Player.logError('There was an error saving the sound player settings.', err);
     }
@@ -210,8 +222,12 @@ module.exports = {
       let mig = migrations[i];
       if (Player.settings.compareVersions(fromVersion, mig.version) < 0) {
         try {
-          Object.entries(await mig.run()).forEach(([ prop, [ current, previous ] ]) => {
-            changes[prop] = [ current, changes[prop] ? changes[prop][1] : previous ];
+          // Migrations return [ previous, updated ] (see migrations.js). When several
+          // migrations touch the same prop (e.g. `allow` in 3.4.7 and 3.6.3) keep the
+          // ORIGINAL previous (changes[prop][0]) and the latest updated value so the
+          // emitted config event reflects the full before/after, not an intermediate.
+          Object.entries(await mig.run()).forEach(([ prop, [ previous, current ] ]) => {
+            changes[prop] = [ changes[prop] ? changes[prop][0] : previous, current ];
           });
         } catch (err) {					console.error(err);
         }
@@ -221,22 +237,58 @@ module.exports = {
   },
 
   /**
-	 * Compare two semver strings.
+	 * Compare two semver strings. Returns -1 / 0 / 1.
+	 * Per semver, a prerelease tag sorts BEFORE the unsuffixed release of the same base
+	 * (3.6.4-beta < 3.6.4), so migrations keyed at "3.6.4" still run for a beta upgrader.
 	 */
   compareVersions(a, b) {
-    const [ aVer, aHash ] = a.split('-');
-    const [ bVer, bHash ] = b.split('-');
+    // Use indexOf rather than split('-') so a multi-segment prerelease ('beta.2'
+    // / 'rc-1') is preserved intact instead of being silently truncated to its
+    // first identifier (which made e.g. 'rc.1' and 'rc.2' compare equal).
+    const aDash = a.indexOf('-');
+    const bDash = b.indexOf('-');
+    const aVer = aDash === -1 ? a : a.slice(0, aDash);
+    const bVer = bDash === -1 ? b : b.slice(0, bDash);
+    const aHash = aDash === -1 ? '' : a.slice(aDash + 1);
+    const bHash = bDash === -1 ? '' : b.slice(bDash + 1);
     const aParts = aVer.split('.');
     const bParts = bVer.split('.');
     for (let i = 0; i < 3; i++) {
-      if (+aParts[i] > +bParts[i]) {
-        return 1;
-      }
-      if (+aParts[i] < +bParts[i]) {
-        return -1;
+      // Missing segments coerce to NaN via +undefined; treat them as 0 so '3.6' vs
+      // '3.6.0' compare equal and '3.6' vs '3.6.4' returns -1 (migration eligible).
+      const aP = +aParts[i] || 0;
+      const bP = +bParts[i] || 0;
+      if (aP > bP) return 1;
+      if (aP < bP) return -1;
+    }
+    if (aHash === bHash) return 0;
+    // Empty prerelease (= release version) sorts AFTER any prerelease tag.
+    if (!aHash) return 1;
+    if (!bHash) return -1;
+    // Per-identifier compare so 'rc.10' > 'rc.9' (numeric, not lex). Identifiers
+    // composed solely of digits compare numerically; otherwise lex. Shorter
+    // identifier list sorts first when the prefix matches.
+    const aIds = aHash.split('.');
+    const bIds = bHash.split('.');
+    const max = Math.max(aIds.length, bIds.length);
+    for (let i = 0; i < max; i++) {
+      const aId = aIds[i];
+      const bId = bIds[i];
+      if (aId === undefined) return -1;
+      if (bId === undefined) return 1;
+      const aIsNum = /^\d+$/.test(aId);
+      const bIsNum = /^\d+$/.test(bId);
+      if (aIsNum && bIsNum) {
+        const an = +aId, bn = +bId;
+        if (an !== bn) return an < bn ? -1 : 1;
+      } else if (aIsNum !== bIsNum) {
+        // Numeric identifiers always sort before non-numeric (semver §11.4.3).
+        return aIsNum ? -1 : 1;
+      } else if (aId !== bId) {
+        return aId < bId ? -1 : 1;
       }
     }
-    return aHash !== bHash;
+    return 0;
   },
 
   /**

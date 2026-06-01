@@ -118,23 +118,52 @@ const Player =
       },
 
       /**
-       * Check whether a sound src and image are allowed and not filtered.
+       * Invoke a callback for every sound in both Player.sounds and Player.filteredSounds.
+       * Takes a JOINT snapshot before iterating either array — so a callback that moves
+       * a sound from sounds → filteredSounds (or vice versa) doesn't see it twice.
        */
-      disallowedSound({ src, imageMD5 }) {
+      allSounds(fn) {
+        const snapshot = Player.sounds.concat(Player.filteredSounds);
+        snapshot.forEach(fn);
+      },
+
+      /**
+       * Check whether a sound src and image are allowed and not filtered.
+       * Filters are matched against BOTH the live src and the original pre-reroute src
+       * (_origSrc), so a filter added while the rerouter was on stays effective when it's
+       * off, and vice versa.
+       */
+      disallowedSound({ src, imageMD5, _origSrc }) {
         try {
           const link = new URL(src);
-          src = src.replace(/^(https?:)?\/\//, '');
+          const stripped = src.replace(/^(https?:)?\/\//, '');
+          const origStripped = (typeof _origSrc === 'string' && _origSrc !== src)
+            ? _origSrc.replace(/^(https?:)?\/\//, '')
+            : null;
           const host = link.hostname.toLowerCase();
           const result = {};
           result.host =
             !Player.config.allow.find(
-              (h) => host === h || host.endsWith('.' + h),
+              // Hostnames are case-insensitive; `host` is already lowercased, so
+              // lowercase the allow entry too or a user-typed `Catbox.moe` never matches.
+              // Skip non-string entries (a corrupt config / cross-tab write) rather than
+              // throwing inside .find and invalidating the sound on the first bad entry.
+              (h) => {
+                if (typeof h !== 'string') return false;
+                const hl = h.toLowerCase();
+                return host === hl || host.endsWith('.' + hl);
+              },
             ) && host;
           for (let filter of Player.config.filters) {
+            // Parity with the allow loop above: skip a non-string entry (corrupt config
+            // / cross-tab write) rather than throwing on filter.replace and invalidating
+            // the sound.
+            if (typeof filter !== 'string') continue;
             result.image = result.image || (filter === imageMD5 && imageMD5);
-            result.sound =
-              result.sound ||
-              (filter.replace(/^(https?:)?\/\//, '') === src && src);
+            const filterStripped = filter.replace(/^(https?:)?\/\//, '');
+            result.sound = result.sound
+              || (filterStripped === stripped && stripped)
+              || (origStripped && filterStripped === origStripped && origStripped);
             if (result.image && result.sound) {
               break;
             }
@@ -175,7 +204,7 @@ const Player =
        */
       alert(content, type = 'info', lifetime = 5) {
         if (isChanX) {
-          content = _.element(`<span>${content}</span`);
+          content = _.element(`<span>${content}</span>`);
           document.dispatchEvent(
             new CustomEvent('CreateNotification', {
               bubbles: true,

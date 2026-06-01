@@ -4,10 +4,10 @@
 		<label>
 			<input
 				type="checkbox"
-				@change='threads.toggleBoard("${board.board}", $event.currentTarget.checked)'
-				value="${board.board}"
+				@change='threads.toggleBoard("${_.escAttr(board.board, true)}", $event.currentTarget.checked)'
+				value="${_.escAttr(board.board)}"
 				${checked ? 'checked' : ''}
 			/>
-			/${board.board}/
+			/${_.escHTML(board.board)}/
 		</label>`
 }).join('')

@@ -9,7 +9,7 @@ module.exports = {
     waiting: 'controls.handleMediaEvent',
     ratechange: 'controls.handleMediaEvent',
     timeupdate: 'controls.updateDuration',
-    loadedmetadata: [ 'controls.updateDuration', 'controls.preventWrapping' ],
+    loadedmetadata: [ 'controls.updateDuration', 'controls.preventWrapping', 'controls.clearPlayingError' ],
     durationchange: 'controls.updateDuration',
     volumechange: 'controls.updateVolume',
     loadstart: 'controls.pollForLoading',
@@ -28,7 +28,11 @@ module.exports = {
 
   async initialize() {
     // Apply the previous volume
-    GM.getValue('volume').then(volume => volume >= 0 && volume <= 1 && (Player.audio.volume = volume));
+    GM.getValue('volume').then(volume => volume >= 0 && volume <= 1 && (Player.audio.volume = volume)).catch(() => { /* never set */ });
+
+    // Cancel a pending error auto-advance once any sound starts playing (covers
+    // manual navigation and a recovered source within the 3s window).
+    Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
     // Only poll for the loaded data when the player is open.
     Player.on('show', () => Player._hiddenWhilePolling && Player.controls.pollForLoading());
@@ -49,8 +53,10 @@ module.exports = {
       Player.controls.updateVolume({ currentTarget: Player.audio });
       Player.controls.preventWrapping();
     });
-    // Show all the controls when wrapping prevention is disabled.
-    Player.on('config:preventControlsWrapping', newValue => !newValue && Player.controls.showAllControls());
+    // Show all the controls when wrapping prevention is disabled. (Listener name
+    // previously mismatched the config property — config uses singular
+    // `preventControlWrapping` so the listener had to match for the toggle to fire.)
+    Player.on('config:preventControlWrapping', newValue => !newValue && Player.controls.showAllControls());
     // Reset the hidden controls when the hide order is changed.
     Player.on('config:controlsHideOrder', () => {
       Player.controls.setHideOrder();
@@ -65,13 +71,41 @@ module.exports = {
   },
 
   /**
-	 * Handle audio errors
+	 * Handle audio errors. During a rerouter swap the rerouter's own onError handler
+	 * reverts to the pre-swap URL, so skip the 3s auto-advance.
 	 */
   handleAudioError(err) {
+    // Clear any in-flight auto-advance first so repeated/duplicate error events
+    // don't stack independent 3s timers (which would skip past several tracks).
+    clearTimeout(Player._errorAdvanceTO);
+    if (Player.audio && Player.audio._rerouteInProgress) {
+      return;
+    }
     if (Player.playing) {
       Player.logError(`Failed to play ${Player.playing.title}. Please check the console for details.`, err, 'warning');
       Player.playing.error = err;
-      setTimeout(() => Player.next({ paused: true }), 3000);
+      // Mark the row dead so it's visible and skipped during playlist traversal, and
+      // refresh count templates (sound-count drops it; dead-count / d:{ } surface it).
+      Player.playlist.refreshRow(Player.playing);
+      Player.trigger('dead-change');
+      // Preserve play state across the skip: if playback was running when the source
+      // failed, keep playing the next sound; only stay paused if we were already paused.
+      // Captured now (not at timer-fire) so it reflects the state at the moment of error.
+      const wasPlaying = !!Player.audio && !Player.audio.paused;
+      Player._errorAdvanceTO = setTimeout(() => Player.next({ paused: !wasPlaying }), 3000);
+    }
+  },
+
+  /**
+	 * A successful metadata load proves the source is reachable, so clear any dead-link
+	 * mark (set by handleAudioError) and refresh the row to drop the visual indicator.
+	 * This lets a manual retry or a rerouter fix un-mark a previously-dead sound.
+	 */
+  clearPlayingError() {
+    if (Player.playing && Player.playing.error) {
+      delete Player.playing.error;
+      Player.playlist.refreshRow(Player.playing);
+      Player.trigger('dead-change');
     }
   },
 

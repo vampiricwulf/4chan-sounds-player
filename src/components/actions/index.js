@@ -52,6 +52,9 @@ module.exports = {
         }
         sound.playing = true;
         Player.playing = sound;
+        // Cancel any pending rerouter swap on the audio element so its onLoad/
+        // onError listeners can't fire against the new src and revert it.
+        Player.audio._pendingReroute && Player.audio._pendingReroute();
         Player.audio.src = sound.src;
         Player.isVideo = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
         Player.isStandalone = sound.standaloneVideo;
@@ -70,7 +73,12 @@ module.exports = {
           Player.video.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
           Player.audio.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
         } else {
-          Player.audio.play();
+          // play() returns a promise that rejects asynchronously (so the try/catch
+          // can't catch it): AbortError when a newer load/pause supersedes this call
+          // — common during the rapid re-renders a shuffle/fullscreen toggle triggers —
+          // or NotAllowedError when autoplay is blocked. Real media failures surface via
+          // the element's 'error' event (handleAudioError), so swallow these.
+          Player.audio.play().catch(() => { /* superseded play / autoplay blocked */ });
         }
       }
     } catch (err) {
@@ -86,8 +94,10 @@ module.exports = {
       e.currentTarget.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       e.currentTarget._linked.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       e.currentTarget._inlinePlayer && e.currentTarget._inlinePlayer.pendingControls && e.currentTarget._inlinePlayer.pendingControls();
-      e.currentTarget._linked.play();
-      e.currentTarget.play();
+      // As in play(): these reject benignly when superseded by a newer load/pause or
+      // when autoplay is blocked; the 'error' event handles real failures.
+      e.currentTarget._linked.play().catch(() => {});
+      e.currentTarget.play().catch(() => {});
     } else {
       !e.currentTarget.paused && e.currentTarget.pause();
       !e.currentTarget._linked.paused && e.currentTarget._linked.pause();
@@ -107,7 +117,16 @@ module.exports = {
 	 * Stop playback.
 	 */
   stop() {
-    Player.audio.src = null;
+    // Cancel any pending rerouter swap so its listeners don't fire after the stop.
+    Player.audio._pendingReroute && Player.audio._pendingReroute();
+    Player.audio.pause();
+    // removeAttribute + load() unsets the source per the HTML5 load algorithm
+    // without producing an error event. Even if a browser fires one anyway, the
+    // Player.playing = null below short-circuits handleAudioError before the
+    // queued error task can run (Player.playing is set synchronously here while
+    // the error event is queued as a microtask).
+    Player.audio.removeAttribute('src');
+    Player.audio.load();
     Player.playing = null;
     Player.isVideo = false;
     Player.isStandalone = false;
@@ -150,16 +169,26 @@ module.exports = {
       nextSound = Player.sounds[currentIndex];
     } else {
       let newIndex = currentIndex;
-      // Get the next index wrapping round if repeat all is selected
-      // Keep going if it's group move, there's still more sounds to check, and the next sound is still in the same group.
+      // Advance to the next index (wrapping when repeat-all). Keep skipping while either:
+      //  - it's a group move and the candidate is still in the same group, or
+      //  - the candidate is a known-dead sound (failed to load) — so traversal lands on a
+      //    playable one. The `newIndex !== currentIndex` guard bounds it to one full pass;
+      //    if everything is dead/same-group we fall back to the (dead) current and the
+      //    play guard below refuses to replay it (no infinite 3s error loop).
       do {
         newIndex = Player.config.repeat === 'all'
           ? ((newIndex + direction) + Player.sounds.length) % Player.sounds.length
           : newIndex + direction;
         nextSound = Player.sounds[newIndex];
-      } while (group && nextSound && newIndex !== currentIndex && (!nextSound.post || nextSound.post === Player.playing.post));
+      } while (
+        nextSound && newIndex !== currentIndex
+        && ((group && (!nextSound.post || nextSound.post === Player.playing.post)) || nextSound.error)
+      );
     }
-    nextSound && Player.play(nextSound, { paused });
+    // Don't auto-play a dead sound: when the skip loop wrapped back to a dead current
+    // (every other sound is dead too) stop rather than looping on the error. Manual
+    // selection (handleSelect) bypasses this and still retries a dead link.
+    nextSound && !nextSound.error && Player.play(nextSound, { paused });
   },
 
   /**

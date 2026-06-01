@@ -38,6 +38,32 @@ module.exports = {
   },
 
   /**
+	 * Swap the src of any currently-playing inline audio element when sound.src has been
+	 * mutated (e.g. by the rerouter toggle). Called from the posts handler after sound.src
+	 * is re-derived so that comparing to currentSound.src reflects the new URL.
+	 *
+	 * For sound-webms (audio+video sync pair) the linked video is paused before the swap
+	 * and re-seeked on metadata load so audio and video stay in sync across the reroute.
+	 */
+  _reloadActiveAudio() {
+    Object.values(Player.inline.audio).forEach(audio => {
+      const data = audio._inlinePlayer;
+      if (!data) return;
+      const currentSound = data.sounds[data.index];
+      if (!currentSound || !audio.src || audio.src === currentSound.src) return;
+      // If the current sound is now disallowed for ANY reason (host, sound URL
+      // matches a user filter, image MD5 filter), don't swap to the disallowed URL.
+      // Skip only on `.invalid` since that's a synthetic flag set by getSounds for
+      // sounds that fail decoding, not a user-driven block.
+      if (currentSound.disallow && !currentSound.disallow.invalid) return;
+      _.swapAudioSrc(audio, currentSound.src, {
+        master: data.master || audio,
+        getVideo: () => data.isVideo ? data.video : null,
+      });
+    });
+  },
+
+  /**
 	 * Start/stop observing for hover images when a dependent conf is changed.
 	 */
   _handleConfChange() {
@@ -138,7 +164,9 @@ module.exports = {
           audio.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
         } else {
           showPlayerControls && addControls();
-          audio.play();
+          // play() rejects benignly when superseded by a newer load/pause or when
+          // autoplay is blocked; real failures surface via the 'error' event.
+          audio.play().catch(() => {});
         }
 
         function addControls() {
@@ -200,6 +228,9 @@ module.exports = {
       controls.parentNode.classList.remove(`${ns}-has-controls`);
       controls.parentNode.removeChild(controls);
     }
+    // Cancel any pending rerouter reload so its loadedmetadata/error listeners don't
+    // outlive the audio element they were attached to.
+    node._inlineAudio._pendingReroute && node._inlineAudio._pendingReroute();
     // Stop the audio and cleanup the data.
     node._inlineAudio.pause();
     delete Player.inline.audio[node._inlineAudio.dataset.id];
@@ -276,6 +307,9 @@ module.exports = {
     const repeat = Player.config.expandedRepeat;
     if (data && (repeat !== 'none' || data.index + dir >= 0 && data.index + dir < count)) {
       data.index = (data.index + dir + count) % count;
+      // Cancel any pending rerouter swap so its onLoad/onError listeners can't
+      // fire against the navigated src and revert to the previous sound.
+      audio._pendingReroute && audio._pendingReroute();
       audio.src = data.sounds[data.index].src;
       if (data.controls) {
         const prev = data.controls.querySelector(`.${ns}-previous-button`);
@@ -292,7 +326,8 @@ module.exports = {
         audio.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
       } else {
         data.master.currentTime = 0;
-        data.master.play();
+        // Reject benignly when superseded / autoplay-blocked; 'error' handles real failures.
+        data.master.play().catch(() => {});
       }
     }
   },

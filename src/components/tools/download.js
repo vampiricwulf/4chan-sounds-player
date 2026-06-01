@@ -20,7 +20,9 @@ const get = (src, opts) => {
   if (opts && opts.catch) {
     p = p.catch(opts.catch);
   }
-  p.abort = xhr.abort;
+  // Wrap rather than assign the bare reference: invoked as `dl.abort()`, an unbound
+  // xhr.abort would run with `this` = the promise, breaking managers whose abort uses `this`.
+  p.abort = () => xhr.abort();
   return p;
 };
 
@@ -152,7 +154,9 @@ const downloadTool = module.exports = {
         }
         if (!err.aborted && !Player.tools._downloadAllCanceled) {
           console.error('[4chan sounds player] Download failed', err);
-          status && _.element(`<p>Failed to download ${sound.title} ${type}!</p>`, elementsArr[0].el, 'beforebegin');
+          // Escape title — it's parsed from arbitrary post filenames. Text-node
+          // context, so escHTML (no `;`/`\`/quote handling needed).
+          status && _.element(`<p>Failed to download ${_.escHTML(sound.title)} ${type}!</p>`, elementsArr[0].el, 'beforebegin');
         }
       }
     });
@@ -171,23 +175,29 @@ const downloadTool = module.exports = {
         data.image.style.width = data.sound.style.width = '0';
       }
 
-      // Create a folder per post if images and sounds are being downloaded.
-      const prefix = includeImages && includeSounds ? sound.post + '/' : '';
+      // Snapshot the src once so the GET and the zip entry key agree even if the
+      // user toggles the rerouter mid-download.
+      const soundSrc = sound.src;
+      // Folder per post whenever images are downloaded: sound.filename is NOT unique
+      // across posts, so a flat layout would silently overwrite same-named images from
+      // different posts (data loss). Sounds keep a unique encoded-src key, so a
+      // sounds-only download stays flat.
+      const prefix = includeImages && sound.post ? sound.post + '/' : '';
       // Download image and sound as selected.
       const [ imageRsp, soundRsp ] = await Promise.all([
         data.dlRef[0] = includeImages && get(sound.image, getArgs(data, sound, 'image')),
-        data.dlRef[1] = includeSounds && get(sound.src, getArgs(data, sound, 'sound'))
+        data.dlRef[1] = includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
       ]);
 
       // No post-handling if the whole download was canceled.
       if (!Player.tools._downloadAllCanceled) {
         if (imageRsp === 'aborted' || soundRsp === 'aborted') {
           // Show which sounds were individually aborted.
-          status && _.element(`<p>Skipped ${sound.title}.</p>`, elementsArr[0].el, 'beforebegin');
+          status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, elementsArr[0].el, 'beforebegin');
         } else {
           // Add the downloaded files to the zip.
           imageRsp && zip.file(`${prefix}${sound.filename}`, imageRsp);
-          soundRsp && zip.file(`${prefix}${encodeURIComponent(sound.src)}`, soundRsp);
+          soundRsp && zip.file(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
           // Flag the sound as downloaded.
           sound.downloaded = true;
         }

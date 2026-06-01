@@ -98,10 +98,12 @@ module.exports = {
     try {
       if (Player.container) {
         document.body.removeChild(Player.container);
-        document.head.removeChild(Player.stylesheet);
+        // Don't detach the stylesheet — we just rewrite its innerHTML below.
+        // Detaching it here without re-attachment leaves the page un-styled on
+        // any subsequent render() call (the `||` below preserves the detached node).
       }
 
-      // Create the main stylesheet.
+      // Create the main stylesheet on the first render; reuse it on subsequent ones.
       Player.stylesheet = Player.stylesheet || _.element('<style id="sound-player-css"></style>', document.head);
       Player.stylesheet.innerHTML = (!isChanX ? '/* 4chanX Polyfill */\n\n' + css4chanXPolyfillTemplate() : '')
 				+ '\n\n/* Sounds Player CSS */\n\n' + cssTemplate();
@@ -243,6 +245,12 @@ module.exports = {
         document.querySelector(`.${ns}-image-link`).href = Player.playing.image;
       }
       Player.playlist.restore();
+      // Exiting fullscreen via Esc / browser UI never calls toggleFullScreen, so tear
+      // down the cursor-hiding pointermove listener and timer here too — otherwise it
+      // leaks onto document.body and keeps toggling cursor-inactive across the page.
+      document.body.removeEventListener('pointermove', Player.display._fullscreenMouseMove);
+      clearTimeout(Player.display.fullscreenCursorTO);
+      Player.container && Player.container.classList.remove('cursor-inactive');
     }
     Player.controls.preventWrapping();
   },
@@ -340,6 +348,11 @@ module.exports = {
 
   async runTitleMarquee() {
     Player.display._marqueeTO = setTimeout(Player.display.runTitleMarquee, 1000);
+    // Skip the per-tick layout reads while the player is hidden — the marquee has
+    // nothing visible to scroll. The timer stays alive so it resumes when shown.
+    if (Player.isHidden) {
+      return;
+    }
     document.querySelectorAll(`.${ns}-title-marquee`).forEach(title => {
       const offset = title.parentNode.getBoundingClientRect().width - (title.scrollWidth + 1);
       const location = title.getAttribute('data-location');
@@ -419,9 +432,15 @@ module.exports = {
     if (Player.untzing) {
       const overlay = Player.$('.image-color-overlay');
       let rotate = 0;
-      overlay.style.filter = `brightness(1.5); hue-rotate(${rotate}deg)`;
+      // Space-separate filter functions (`;` is a declaration terminator, not a
+      // filter separator — it would break the whole value).
+      overlay.style.filter = `brightness(1.5) hue-rotate(${rotate}deg)`;
       (function color() {
-        overlay.style.filter = `hue-rotate(${rotate = 360 - rotate}deg)`;
+        // Progressive rotation so the hue actually shifts. The previous `360 - rotate`
+        // oscillated between 0 and 360, both equivalent to no rotation. Also keep the
+        // brightness boost — setting filter to just hue-rotate would drop it.
+        rotate = (rotate + 30) % 360;
+        overlay.style.filter = `brightness(1.5) hue-rotate(${rotate}deg)`;
         Player.untzColorTO = setTimeout(color, 500);
       }());
       (function bounce() {
