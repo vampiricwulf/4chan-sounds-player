@@ -25,12 +25,22 @@ assert.ok(still.includes('-tune') && still[still.indexOf('-tune') + 1] === 'stil
 assert.strictEqual(still[still.indexOf('-t') + 1], '12.5');
 assert.strictEqual(still[still.length - 1], 'out.mp4');
 assert.ok(still.includes(u.EVEN_SCALE));
+assert.strictEqual(still[still.indexOf('-preset') + 1], 'veryfast', 'default preset');
+assert.strictEqual(
+  u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'o', dur: 1, fps: 2, audioBitrate: '192k', preset: 'ultrafast' })[
+    u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'o', dur: 1, fps: 2, audioBitrate: '192k', preset: 'ultrafast' }).indexOf('-preset') + 1
+  ], 'ultrafast', 'ultrafast preset applied');
 
 const loop = u.loopEncodeArgs({ visual: 'v.webm', out: 'loop.mp4', isGif: false });
 assert.ok(loop.includes('-an'), 'loop encode drops audio');
 assert.ok(loop.join(' ').includes('open-gop=0'), 'closed GOP');
 assert.ok(loop.join(' ').includes('scenecut=0'));
 assert.ok(!loop.includes('-ignore_loop'), 'non-gif has no ignore_loop');
+assert.strictEqual(loop[loop.indexOf('-preset') + 1], 'veryfast', 'loop default preset');
+assert.strictEqual(
+  u.loopEncodeArgs({ visual: 'v.webm', out: 'l', isGif: false, preset: 'ultrafast' })[
+    u.loopEncodeArgs({ visual: 'v.webm', out: 'l', isGif: false, preset: 'ultrafast' }).indexOf('-preset') + 1
+  ], 'ultrafast', 'loop ultrafast preset applied');
 
 const gifLoop = u.loopEncodeArgs({ visual: 'v.gif', out: 'loop.mp4', isGif: true });
 assert.deepStrictEqual(gifLoop.slice(0, 2), ['-ignore_loop', '1'], 'gif is read exactly once (not infinitely)');

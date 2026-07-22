@@ -28,12 +28,12 @@ function muxFileName(title, fallback) {
 }
 
 // Still image + audio -> mp4 of exactly `dur` seconds (one held frame).
-function stillArgs({ image, audio, out, dur, fps, audioBitrate }) {
+function stillArgs({ image, audio, out, dur, fps, audioBitrate, preset }) {
   return [
     '-loop', '1', '-i', image,
     '-i', audio,
     '-t', String(dur),
-    '-c:v', 'libx264', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
+    '-c:v', 'libx264', '-preset', preset || 'veryfast', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
     '-r', String(fps), '-vf', EVEN_SCALE,
     '-c:a', 'aac', '-b:a', audioBitrate,
     '-movflags', '+faststart',
@@ -43,7 +43,7 @@ function stillArgs({ image, audio, out, dur, fps, audioBitrate }) {
 
 // Encode exactly ONE loop of an animated visual to a closed-GOP, IDR-led mp4 so the
 // repeats can be stream-looped with -c copy seamlessly. Audio is dropped here.
-function loopEncodeArgs({ visual, out, isGif }) {
+function loopEncodeArgs({ visual, out, isGif, preset }) {
   const args = [];
   if (isGif) {
     // ignore_loop=1 (the default) makes the demuxer read the gif exactly ONCE.
@@ -54,7 +54,7 @@ function loopEncodeArgs({ visual, out, isGif }) {
   args.push(
     '-i', visual,
     '-an',
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
+    '-c:v', 'libx264', '-preset', preset || 'veryfast', '-crf', '20',
     '-pix_fmt', 'yuv420p', '-vf', EVEN_SCALE,
     '-fflags', '+genpts',
     '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0:open-gop=0',

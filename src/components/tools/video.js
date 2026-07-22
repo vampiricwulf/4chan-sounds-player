@@ -223,13 +223,14 @@ const videoTool = module.exports = {
       core.FS.writeFile(visIn, visualBytes); written.push(visIn);
       core.FS.writeFile('audio', audioBytes); written.push('audio');
 
+      const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
       if (kind === 'still') {
         exec(util.stillArgs({
           image: visIn, audio: 'audio', out: 'out.mp4',
-          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE
+          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
-        exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif' }));
+        exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
         written.push('loop.mp4');
         exec(util.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur }));
         written.push('whole.mp4');

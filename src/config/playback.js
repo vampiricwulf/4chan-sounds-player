@@ -39,6 +39,14 @@ module.exports = [
     parse: v => +v >= 0 && +v < Infinity ? +v : 0
   },
   {
+    property: 'videoUltrafast',
+    title: 'Fast Video Encoding',
+    displayGroup: 'Playback',
+    description: 'Use the ffmpeg "ultrafast" preset when downloading combined videos. '
+			+ 'Encodes noticeably faster (shorter freeze) at the cost of a larger file and slightly lower quality.',
+    default: false
+  },
+  {
     title: 'Inline Player',
     displayGroup: 'Playback',
     settings: [
