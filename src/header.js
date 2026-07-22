@@ -40,6 +40,7 @@
 // @connect      zz.ht
 // @connect      too.lewd.se
 // @connect      lewd.se
+// @connect      cdn.jsdelivr.net
 // @connect      *
 // @run-at       document-start
 // @require      https://raw.githubusercontent.com/richtr/NoSleep.js/07fcee254724ab1b79076fbc22f3dd447649a2eb/dist/NoSleep.min.js
