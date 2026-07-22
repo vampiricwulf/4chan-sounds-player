@@ -33,7 +33,7 @@ assert.ok(loop.join(' ').includes('scenecut=0'));
 assert.ok(!loop.includes('-ignore_loop'), 'non-gif has no ignore_loop');
 
 const gifLoop = u.loopEncodeArgs({ visual: 'v.gif', out: 'loop.mp4', isGif: true });
-assert.deepStrictEqual(gifLoop.slice(0, 2), ['-ignore_loop', '0'], 'gif keeps looping through the encode');
+assert.deepStrictEqual(gifLoop.slice(0, 2), ['-ignore_loop', '1'], 'gif is read exactly once (not infinitely)');
 
 const cut = u.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur: 30 });
 assert.deepStrictEqual(cut, ['-stream_loop', '-1', '-i', 'loop.mp4', '-t', '30', '-c', 'copy', 'whole.mp4']);

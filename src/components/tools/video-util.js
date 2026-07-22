@@ -46,7 +46,10 @@ function stillArgs({ image, audio, out, dur, fps, audioBitrate }) {
 function loopEncodeArgs({ visual, out, isGif }) {
   const args = [];
   if (isGif) {
-    args.push('-ignore_loop', '0');
+    // ignore_loop=1 (the default) makes the demuxer read the gif exactly ONCE.
+    // ignore_loop=0 would honor the gif's own loop count (usually infinite) and
+    // this un-bounded encode would then run forever.
+    args.push('-ignore_loop', '1');
   }
   args.push(
     '-i', visual,
