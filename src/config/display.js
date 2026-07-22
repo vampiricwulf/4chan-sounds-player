@@ -51,9 +51,8 @@ module.exports = [
 					+ '<pre class="option">volume</pre> '
 					+ '<pre class="option">volume-button</pre> '
 					+ '<pre class="option">volume-bar</pre> '
-					+ '<pre class="option">download-video</pre> '
 					+ 'and <pre class="option">fullscreen</pre>.',
-        default: [ 'fullscreen', 'download-video', 'duration', 'volume-bar', 'seek-bar', 'time', 'previous' ],
+        default: [ 'fullscreen', 'duration', 'volume-bar', 'seek-bar', 'time', 'previous' ],
         displayMethod: 'textarea',
         inlineTextarea: true,
         format: v => v.join('\n'),

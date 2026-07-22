@@ -47,23 +47,7 @@ const videoTool = module.exports = {
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
 
-  initialize() {
-    Player.on('rendered', videoTool._updateButton);
-    Player.on('playsound', videoTool._updateButton);
-    Player.on('stop', videoTool._updateButton);
-  },
-
-  // Show the current-sound download button only while a muxable sound is playing.
-  _updateButton() {
-    const btn = Player.$(`.${ns}-download-video-button`);
-    if (!btn) {
-      return;
-    }
-    const show = Player.playing && !Player.playing.standaloneVideo;
-    btn.style.display = show ? null : 'none';
-  },
-
-  // Toggle the busy spinner on the current-sound button. Ref-counted so a batch of
+  // Toggle the busy spinner on the download button. Ref-counted so a batch of
   // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
   // animation (compositor thread), so it keeps moving even while a synchronous
   // exec() blocks the main thread.

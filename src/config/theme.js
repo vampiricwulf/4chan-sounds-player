@@ -46,7 +46,7 @@ module.exports = [
 			+ 'p:{\n'
 			+ '		post-link\n'
 			+ '		Open [ image-link sound-link ]\n'
-			+ '		Download [ dl-image-button dl-sound-button ]\n'
+			+ '		Download [ dl-image-button dl-sound-button dl-video-button ]\n'
 			+ '}\n'
 			+ `<div class="${ns}-expander" data-direction="se"></div>\n`,
     displayGroup: 'Theme',

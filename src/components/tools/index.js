@@ -12,7 +12,6 @@ module.exports = {
   initialize() {
     createTool.initialize();
     downloadTool.initialize();
-    videoTool.initialize();
   },
 
   toggle() {

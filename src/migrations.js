@@ -124,16 +124,19 @@ module.exports = [
   },
   {
     version: '3.7.0',
-    name: 'add-download-video-to-hide-order',
+    name: 'add-download-video-to-footer',
     async run() {
-      const order = Player.config.controlsHideOrder;
-      if (!Array.isArray(order) || order.includes('download-video')) {
+      // Insert the combined-video download button into the existing image+sound
+      // download group of the user's footer, wherever that group appears.
+      const tpl = Player.config.footerTemplate;
+      if (typeof tpl !== 'string'
+          || tpl.includes('dl-video-button')
+          || !tpl.includes('dl-image-button dl-sound-button')) {
         return {};
       }
-      const original = [ ...order ];
-      const at = order.indexOf('fullscreen');
-      order.splice(at === -1 ? 0 : at + 1, 0, 'download-video');
-      return { controlsHideOrder: [ original, order ] };
+      const updated = tpl.replace('dl-image-button dl-sound-button', 'dl-image-button dl-sound-button dl-video-button');
+      Player.config.footerTemplate = updated;
+      return { footerTemplate: [ tpl, updated ] };
     }
   }
 ];

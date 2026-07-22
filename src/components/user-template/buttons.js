@@ -153,6 +153,16 @@ module.exports = [
     ]
   },
   {
+    tplName: 'dl-video',
+    requireSound: true,
+    class: `${ns}-download-video-button`,
+    action: data => `tools.downloadVideo("${_.escAttr(data.sound.id, true)}")`,
+    actionMods: '.prevent',
+    showIf: data => !data.sound.standaloneVideo,
+    icon: Icons.fileEarmarkPlay,
+    attrs: [ 'title="Download the image/video combined with the sound as an mp4"' ]
+  },
+  {
     tplName: /filter-(image|sound)/,
     requireSound: true,
     // Filter against _origSrc so the filter stays matched after the rerouter is toggled
