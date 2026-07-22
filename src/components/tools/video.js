@@ -42,6 +42,7 @@ const videoTool = module.exports = {
   _wasmBinary: null,
   _wasmURL: null,
   _progressCb: null,
+  _processingCount: 0,
 
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
@@ -60,6 +61,16 @@ const videoTool = module.exports = {
     }
     const show = Player.playing && !Player.playing.standaloneVideo;
     btn.style.display = show ? null : 'none';
+  },
+
+  // Toggle the busy spinner on the current-sound button. Ref-counted so a batch of
+  // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
+  // animation (compositor thread), so it keeps moving even while a synchronous
+  // exec() blocks the main thread.
+  _setProcessing(on) {
+    videoTool._processingCount = Math.max(0, videoTool._processingCount + (on ? 1 : -1));
+    const btn = Player.$(`.${ns}-download-video-button`);
+    btn && btn.classList[videoTool._processingCount > 0 ? 'add' : 'remove'](`${ns}-processing`);
   },
 
   // Load the single-threaded ffmpeg core ON THE MAIN THREAD (no Web Worker).
@@ -150,10 +161,21 @@ const videoTool = module.exports = {
     return videoTool._muxChain;
   },
 
+  // Wrap a job with the busy-spinner state (set before the async work so it paints
+  // and is compositor-animating before any blocking exec).
+  async _muxJob(sound, opts) {
+    videoTool._setProcessing(true);
+    try {
+      return await videoTool._runMux(sound, opts);
+    } finally {
+      videoTool._setProcessing(false);
+    }
+  },
+
   // Produce a single mp4 Blob: visual looped to the audio length, H.264 + AAC.
   // NOTE: core.exec() runs synchronously on the main thread, so the tab is briefly
   // unresponsive during encoding (bounded by the encode-once loop strategy).
-  async _muxJob(sound, opts) {
+  async _runMux(sound, opts) {
     opts = opts || {};
     await videoTool.loadFFmpeg();
     const core = videoTool._ffmpeg;

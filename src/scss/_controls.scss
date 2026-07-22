@@ -147,3 +147,27 @@
 		margin: 0 .25rem;
 	}
 }
+.#{$ns}-download-video-button.#{$ns}-processing {
+	pointer-events: none;
+
+	& svg {
+		display: none;
+	}
+
+	&::after {
+		content: "";
+		display: block;
+		box-sizing: border-box;
+		width: 1rem;
+		height: 1rem;
+		margin: 0.25rem auto;
+		border: 2px solid currentColor;
+		border-top-color: transparent;
+		border-radius: 50%;
+		animation: #{$ns}-spin 0.7s linear infinite;
+	}
+}
+
+@keyframes #{$ns}-spin {
+	to { transform: rotate(360deg); }
+}
