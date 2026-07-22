@@ -30,6 +30,7 @@ const videoTool = module.exports = {
   _ffmpeg: null,
   _loaded: false,
   _loadingPromise: null,
+  _muxChain: null,
 
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
@@ -106,8 +107,16 @@ const videoTool = module.exports = {
     }
   },
 
+  // Serialize mux jobs — there is a single ffmpeg worker, so overlapping jobs
+  // (e.g. two download surfaces clicked in quick succession) would clash in MEMFS.
+  mux(sound, opts) {
+    const run = () => videoTool._muxJob(sound, opts);
+    videoTool._muxChain = (videoTool._muxChain || Promise.resolve()).then(run, run);
+    return videoTool._muxChain;
+  },
+
   // Produce a single mp4 Blob: visual looped to the audio length, H.264 + AAC.
-  async mux(sound, opts) {
+  async _muxJob(sound, opts) {
     opts = opts || {};
     await videoTool.loadFFmpeg();
     const ff = videoTool._ffmpeg;
