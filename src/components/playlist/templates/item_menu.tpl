@@ -18,7 +18,7 @@
 		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
 			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.image, true)}", "${_.escAttr(data.sound.filename, true)}")'>Image</a>
 			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name, true)}")'>Sound</a>
-			<a class="entry" href="#" @click.prevent='tools.downloadVideo("${_.escAttr(data.sound.id, true)}")'>Video</a>
+			${Player.tools._encoderAvailable() && !data.sound.standaloneVideo ? `<a class="entry" href="#" @click.prevent='tools.downloadVideo("${_.escAttr(data.sound.id, true)}")'>Video</a>` : ''}
 		</div>
 	</div>
 	<div class="entry has-submenu">

@@ -149,19 +149,24 @@
 }
 .#{$ns}-download-video-button.#{$ns}-processing {
 	pointer-events: none;
+	position: relative;
 
-	& svg {
-		display: none;
+	// Keep the icon's box (so the button doesn't resize / shift), just hide the glyph.
+	svg {
+		visibility: hidden;
 	}
 
+	// Spinner overlaid on the button — absolute so it never affects layout; 1em to
+	// match the footer icon size.
 	&::after {
 		content: "";
-		display: block;
+		position: absolute;
+		inset: 0;
+		margin: auto;
 		box-sizing: border-box;
-		width: 1rem;
-		height: 1rem;
-		margin: 0.25rem auto;
-		border: 2px solid currentColor;
+		width: 1em;
+		height: 1em;
+		border: 0.125rem solid currentColor;
 		border-top-color: transparent;
 		border-radius: 50%;
 		animation: #{$ns}-spin 0.7s linear infinite;
