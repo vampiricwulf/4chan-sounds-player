@@ -1,6 +1,10 @@
 const cfg = require('./ffmpeg-config');
 const util = require('./video-util');
 
+// The main-thread core loader eval()s the ffmpeg glue, which needs 'unsafe-eval'.
+// Some archives (e.g. desuarchive) ship a CSP without it, so the feature can't run there.
+const ENCODER_CSP_MSG = 'Combined video download isn\'t available on this site — its security policy (CSP) blocks the video encoder.';
+
 // Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
 // Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
 function fetchBytes(url) {
@@ -43,9 +47,30 @@ const videoTool = module.exports = {
   _wasmURL: null,
   _progressCb: null,
   _processingCount: 0,
+  _evalOk: false,
+  _evalBlocked: false,
 
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
+
+  // Throw a clear PlayerError if this site's CSP blocks eval (which the main-thread
+  // core loader needs). Probed once, cheaply, and cached — so we fail fast with a
+  // visible message instead of downloading ~31MB and dying with a generic error.
+  _assertEncoderAvailable() {
+    if (videoTool._evalBlocked) {
+      throw new PlayerError(ENCODER_CSP_MSG, 'warning');
+    }
+    if (videoTool._evalOk) {
+      return;
+    }
+    try {
+      (0, eval)('1');
+      videoTool._evalOk = true;
+    } catch (e) {
+      videoTool._evalBlocked = true;
+      throw new PlayerError(ENCODER_CSP_MSG, 'warning', e);
+    }
+  },
 
   // Toggle the busy spinner on the download button. Ref-counted so a batch of
   // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
@@ -62,6 +87,8 @@ const videoTool = module.exports = {
   // script-src, which lacks blob:), but allows 'unsafe-eval' — so we eval the core
   // glue and run the wasm inline. The single-thread core spawns no workers itself.
   async loadFFmpeg() {
+    // Bail before the ~31MB download if this site's CSP won't let us run the core.
+    videoTool._assertEncoderAvailable();
     if (videoTool._loaded) {
       return;
     }
@@ -255,8 +282,13 @@ const videoTool = module.exports = {
     } catch (err) {
       // logError pulls the level from a PlayerError's .type; 'error' is the default otherwise.
       Player.logError('Failed to create the video.', err, 'error');
-      // A failed job can leave the wasm heap dirty; reset so the next attempt is clean.
-      videoTool.terminate();
+      if (videoTool._evalBlocked) {
+        // The feature can't run on this site — drop the now-useless button.
+        Player.footer && Player.footer.render();
+      } else {
+        // A failed job can leave the wasm heap dirty; reset so the next attempt is clean.
+        videoTool.terminate();
+      }
     }
   }
 };

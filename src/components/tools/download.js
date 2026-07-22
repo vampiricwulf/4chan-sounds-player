@@ -126,6 +126,15 @@ const downloadTool = module.exports = {
       return status && (status.innerHTML = 'Nothing to download.');
     }
 
+    // Fail fast (before downloading anything) if this site's CSP blocks the encoder.
+    if (combineVideo) {
+      try {
+        Player.tools._assertEncoderAvailable();
+      } catch (err) {
+        return status && (status.innerHTML = _.escHTML(err.reason || 'Combined video download is not available on this site.'));
+      }
+    }
+
     Player.tools._downloading = [];
     status && (status.innerHTML = `Downloading ${count} sound images.<br><br>
 			This may take a while. You can leave it running in the background, but if you background the tab your browser will slow it down.
