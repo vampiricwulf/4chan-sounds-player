@@ -53,22 +53,32 @@ const videoTool = module.exports = {
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
 
-  // Throw a clear PlayerError if this site's CSP blocks eval (which the main-thread
-  // core loader needs). Probed once, cheaply, and cached — so we fail fast with a
-  // visible message instead of downloading ~31MB and dying with a generic error.
-  _assertEncoderAvailable() {
+  // Whether this site's CSP allows the eval the main-thread core loader needs.
+  // Probed once, cheaply, and cached (never throws) — used to hide the button up
+  // front on sites (e.g. desuarchive) that lack 'unsafe-eval', where its @click
+  // handler couldn't even compile via `new Function`.
+  _encoderAvailable() {
     if (videoTool._evalBlocked) {
-      throw new PlayerError(ENCODER_CSP_MSG, 'warning');
+      return false;
     }
     if (videoTool._evalOk) {
-      return;
+      return true;
     }
     try {
       (0, eval)('1');
       videoTool._evalOk = true;
+      return true;
     } catch (e) {
       videoTool._evalBlocked = true;
-      throw new PlayerError(ENCODER_CSP_MSG, 'warning', e);
+      return false;
+    }
+  },
+
+  // Throw a clear PlayerError when the encoder can't run here — so a mux attempt
+  // fails fast with a visible message instead of downloading ~31MB then dying.
+  _assertEncoderAvailable() {
+    if (!videoTool._encoderAvailable()) {
+      throw new PlayerError(ENCODER_CSP_MSG, 'warning');
     }
   },
 

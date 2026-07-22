@@ -158,7 +158,7 @@ module.exports = [
     class: `${ns}-download-video-button`,
     action: data => `tools.downloadVideo("${_.escAttr(data.sound.id, true)}")`,
     actionMods: '.prevent',
-    showIf: data => !data.sound.standaloneVideo && !Player.tools._evalBlocked,
+    showIf: data => !data.sound.standaloneVideo && Player.tools._encoderAvailable(),
     icon: Icons.fileEarmarkPlay,
     attrs: [ 'title="Download the image/video combined with the sound as an mp4"' ]
   },
