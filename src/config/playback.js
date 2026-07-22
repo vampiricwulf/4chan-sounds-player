@@ -43,7 +43,7 @@ module.exports = [
     title: 'Fast Video Encoding',
     displayGroup: 'Playback',
     description: 'Use the ffmpeg "ultrafast" preset when downloading combined videos. '
-			+ 'Encodes noticeably faster (shorter freeze) at the cost of a larger file and slightly lower quality.',
+			+ 'Roughly 2x faster to encode (shorter freeze) but around 3x the file size, and slightly lower quality.',
     default: false
   },
   {
