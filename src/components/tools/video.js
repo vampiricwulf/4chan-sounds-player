@@ -79,14 +79,21 @@ const videoTool = module.exports = {
           fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
           fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`)
         ]);
-        // Indirect eval runs in the global realm; the core's UMD assigns
-        // createFFmpegCore to the global there — exactly what the stock worker
-        // reads after importScripts.
-        (0, eval)(coreText);
-        if (typeof self.createFFmpegCore !== 'function') {
+        // Load the core glue and capture the factory. The UMD is `var createFFmpegCore = …`;
+        // read it back as the eval COMPLETION VALUE (resolved by binding) rather than via
+        // `self`, because the Firefox userscript sandbox doesn't mirror an eval'd global var
+        // onto the `self` object. `new Function` (explicit return) is the fallback.
+        let create;
+        try {
+          create = (0, eval)(coreText + '\n;typeof createFFmpegCore!=="undefined"?createFFmpegCore:void 0;');
+        } catch (e) { /* fall back to new Function below */ }
+        if (typeof create !== 'function') {
+          create = new Function(coreText + '\nreturn typeof createFFmpegCore!=="undefined"?createFFmpegCore:void 0;')();
+        }
+        if (typeof create !== 'function') {
           throw new PlayerError('Video encoder failed to initialize (createFFmpegCore missing).', 'error');
         }
-        videoTool._createCore = self.createFFmpegCore;
+        videoTool._createCore = create;
         videoTool._wasmBinary = wasmBytes.buffer;
         // A fallback wasm URL for the core's own loader; wasmBinary above means it
         // usually never needs to fetch this.
