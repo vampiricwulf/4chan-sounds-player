@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.6.3
+// @version      3.7.0
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -40,6 +40,7 @@
 // @connect      zz.ht
 // @connect      too.lewd.se
 // @connect      lewd.se
+// @connect      cdn.jsdelivr.net
 // @connect      *
 // @run-at       document-start
 // @require      https://raw.githubusercontent.com/richtr/NoSleep.js/07fcee254724ab1b79076fbc22f3dd447649a2eb/dist/NoSleep.min.js
@@ -275,6 +276,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-file-earmark-music\" viewBox=\"0 0 16 16\">\n  <path d=\"M11 6.64a1 1 0 0 0-1.243-.97l-1 .25A1 1 0 0 0 8 6.89v4.306A2.572 2.572 0 0 0 7 11c-.5 0-.974.134-1.338.377-.36.24-.662.628-.662 1.123s.301.883.662 1.123c.364.243.839.377 1.338.377.5 0 .974-.134 1.338-.377.36-.24.662-.628.662-1.123V8.89l2-.5V6.64z\"/>\n  <path d=\"M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z\"/>\n</svg>");
+
+/***/ },
+
+/***/ "./node_modules/bootstrap-icons/icons/file-earmark-play.svg"
+/*!******************************************************************!*\
+  !*** ./node_modules/bootstrap-icons/icons/file-earmark-play.svg ***!
+  \******************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-file-earmark-play\" viewBox=\"0 0 16 16\">\n  <path d=\"M6 6.883v4.234a.5.5 0 0 0 .757.429l3.528-2.117a.5.5 0 0 0 0-.858L6.757 6.454a.5.5 0 0 0-.757.43z\"/>\n  <path d=\"M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z\"/>\n</svg>");
 
 /***/ },
 
@@ -2253,7 +2269,10 @@ module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id=
 /*!****************************************!*\
   !*** ./src/components/events/index.js ***!
   \****************************************/
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+const { compileAction } = __webpack_require__(/*! ./parse-action */ "./src/components/events/parse-action.js");
 
 module.exports = {
   atRoot: ['on', 'off', 'trigger'],
@@ -2337,10 +2356,23 @@ module.exports = {
     const listeners = el._eventListeners || (el._eventListeners = {});
     listeners[evt] && el.removeEventListener(evt, listeners[evt]);
 
-    // If the action is JS lazily create a script element to get the handler. Avoids CSP blocking new Function.
+    // Resolve the handler, cheapest first:
+    //   1. getHandler — a bare method/property path (no eval).
+    //   2. compileAction — parse a simple `method(args)` call and dispatch without
+    //      eval, so arg-bearing handlers work under CSPs lacking 'unsafe-eval'.
+    //   3. new Function — the general fallback (blocked by such CSPs, hence 1 & 2).
     let handler =
       action &&
       (Player.getHandler(action) ||
+        compileAction(action, path => {
+          const fn = _.get(Player, path);
+          if (typeof fn !== 'function') {
+            return null;
+          }
+          const lastDot = path.lastIndexOf('.');
+          const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
+          return { fn, scope };
+        }) ||
         function ($event) {
           try {
             const func = new Function(
@@ -2464,6 +2496,216 @@ module.exports = {
     }
   },
 };
+
+
+/***/ },
+
+/***/ "./src/components/events/parse-action.js"
+/*!***********************************************!*\
+  !*** ./src/components/events/parse-action.js ***!
+  \***********************************************/
+(module) {
+
+// Pure, side-effect-free parser for the player's @-attribute handler strings.
+// Compiles the common `method(args)` shapes into a dispatcher WITHOUT eval /
+// new Function, so those handlers work under CSPs that lack 'unsafe-eval'
+// (e.g. some archives). Returns null for anything it can't safely parse — the
+// caller then falls back to new Function. Kept Player-free so it's unit-testable.
+
+// Split a comma-separated arg list at top level (respecting quotes / brackets /
+// braces / parens). Returns an array of trimmed sources, or null if unbalanced.
+function splitArgs(src) {
+  src = src.trim();
+  if (src === '') {
+    return [];
+  }
+  const out = [];
+  let depth = 0;
+  let quote = null;
+  let cur = '';
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quote) {
+      cur += c;
+      if (c === '\\') {
+        cur += src[++i] || '';
+      } else if (c === quote) {
+        quote = null;
+      }
+    } else if (c === '"' || c === '\'') {
+      quote = c;
+      cur += c;
+    } else if (c === '{' || c === '[' || c === '(') {
+      depth++;
+      cur += c;
+    } else if (c === '}' || c === ']' || c === ')') {
+      depth--;
+      cur += c;
+    } else if (c === ',' && depth === 0) {
+      out.push(cur.trim());
+      cur = '';
+    } else {
+      cur += c;
+    }
+  }
+  if (quote || depth !== 0) {
+    return null;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+// Un-escape a single/double quoted string literal to its value, or null if malformed.
+// Handles exactly what _.escAttr(x, true) + HTML attribute decoding produce: \" \\ \n \r.
+function parseString(src) {
+  const q = src[0];
+  if ((q !== '"' && q !== '\'') || src.length < 2 || src[src.length - 1] !== q) {
+    return null;
+  }
+  let out = '';
+  for (let i = 1; i < src.length - 1; i++) {
+    const c = src[i];
+    if (c === '\\') {
+      const n = src[++i];
+      out += n === 'n' ? '\n' : n === 't' ? '\t' : n === 'r' ? '\r' : n;
+    } else if (c === q) {
+      return null; // unescaped closing quote before the end — not a single literal
+    } else {
+      out += c;
+    }
+  }
+  return out;
+}
+
+// Index of the first top-level colon (object key/value separator), or -1.
+function topColon(src) {
+  let depth = 0;
+  let quote = null;
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quote) {
+      if (c === '\\') {
+        i++;
+      } else if (c === quote) {
+        quote = null;
+      }
+    } else if (c === '"' || c === '\'') {
+      quote = c;
+    } else if (c === '{' || c === '[' || c === '(') {
+      depth++;
+    } else if (c === '}' || c === ']' || c === ')') {
+      depth--;
+    } else if (c === ':' && depth === 0) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// Parse a { key: literal, ... } object of literal values only (no $event), or null.
+function parseObject(src) {
+  const inner = src.slice(1, -1).trim();
+  if (inner === '') {
+    return {};
+  }
+  const parts = splitArgs(inner);
+  if (parts === null) {
+    return null;
+  }
+  const obj = {};
+  for (const part of parts) {
+    const ci = topColon(part);
+    if (ci === -1) {
+      return null;
+    }
+    let key = part.slice(0, ci).trim();
+    const valSrc = part.slice(ci + 1).trim();
+    if (!/^[\w$]+$/.test(key)) {
+      key = parseString(key);
+      if (key === null) {
+        return null;
+      }
+    }
+    if (valSrc.indexOf('$event') !== -1) {
+      return null; // object values must be plain literals
+    }
+    const ev = compileArg(valSrc);
+    if (ev === null) {
+      return null;
+    }
+    obj[key] = ev();
+  }
+  return obj;
+}
+
+// Compile one argument source into ($event) => value, or null if unsupported.
+function compileArg(src) {
+  src = src.trim();
+  if (src === '$event') {
+    return $event => $event;
+  }
+  const chain = src.match(/^\$event((?:\.[\w$]+)+)$/);
+  if (chain) {
+    const props = chain[1].slice(1).split('.');
+    return $event => props.reduce((o, p) => (o == null ? o : o[p]), $event);
+  }
+  if (src[0] === '"' || src[0] === '\'') {
+    const val = parseString(src);
+    return val === null ? null : () => val;
+  }
+  if (/^-?\d+(\.\d+)?$/.test(src)) {
+    const n = +src;
+    return () => n;
+  }
+  if (src === 'true') {
+    return () => true;
+  }
+  if (src === 'false') {
+    return () => false;
+  }
+  if (src === 'null') {
+    return () => null;
+  }
+  if (src === 'undefined') {
+    return () => undefined;
+  }
+  if (src[0] === '{' && src[src.length - 1] === '}') {
+    const tpl = parseObject(src);
+    return tpl === null ? null : () => Object.assign({}, tpl);
+  }
+  return null;
+}
+
+// Compile `path(args)` into an ($event) => result dispatcher, or null if the action
+// isn't a single simple call or uses an arg form we don't support. `resolve(path)`
+// returns { fn, scope } or null (injected so this module stays Player-free).
+function compileAction(action, resolve) {
+  const m = action.trim().match(/^([\w$]+(?:\.[\w$]+)*)\s*\(([\s\S]*)\)$/);
+  if (!m) {
+    return null;
+  }
+  const resolved = resolve(m[1]);
+  if (!resolved || typeof resolved.fn !== 'function') {
+    return null;
+  }
+  const argSrcs = splitArgs(m[2]);
+  if (argSrcs === null) {
+    return null;
+  }
+  const argFns = [];
+  for (const argSrc of argSrcs) {
+    const fn = compileArg(argSrc);
+    if (fn === null) {
+      return null;
+    }
+    argFns.push(fn);
+  }
+  return function ($event) {
+    return resolved.fn.apply(resolved.scope, argFns.map(f => f($event)));
+  };
+}
+
+module.exports = { compileAction, splitArgs, parseString, parseObject, compileArg, topColon };
 
 
 /***/ },
@@ -4046,6 +4288,7 @@ module.exports = (data = {}) => `<div class="${ns}-menu dialog ${ns}-dialog" id=
 		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
 			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.image, true)}", "${_.escAttr(data.sound.filename, true)}")'>Image</a>
 			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name, true)}")'>Sound</a>
+			${Player.tools._encoderAvailable() && !data.sound.standaloneVideo ? `<a class="entry" href="#" @click.prevent='tools.downloadVideo("${_.escAttr(data.sound.id, true)}")'>Video</a>` : ''}
 		</div>
 	</div>
 	<div class="entry has-submenu">
@@ -5130,8 +5373,8 @@ module.exports = {
     });
 
     // Show update notifications.
-    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.6.3") {
-      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.6.3"}</a>.`);
+    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.7.0") {
+      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.0"}</a>.`);
     }
 
     // Listen for the player closing to apply the pause on hide setting.
@@ -5289,7 +5532,7 @@ module.exports = {
       // Show the playlist or image view on load, whichever was last shown.
       settings.viewStyle = Player.playlist._lastView;
       // Store the player version with the settings.
-      settings.VERSION = "3.6.3";
+      settings.VERSION = "3.7.0";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -5305,7 +5548,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.6.3") {
+    if (!fromVersion || fromVersion === "3.7.0") {
       return {};
     }
     const changes = {};
@@ -5782,7 +6025,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.6.3"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.0"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -6914,6 +7157,7 @@ const createTool = module.exports = {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const progressBarsTemplate = __webpack_require__(/*! ./templates/download-progress.tpl */ "./src/components/tools/templates/download-progress.tpl");
+const videoUtil = __webpack_require__(/*! ./video-util */ "./src/components/tools/video-util.js");
 
 const get = (src, opts) => {
   let xhr;
@@ -6974,13 +7218,17 @@ const downloadTool = module.exports = {
     e.currentTarget.style.display = 'none';
     Player.$(`.${ns}-download-all-cancel`).style.display = null;
 
+    const combineVideo = Player.$('.download-all-video').checked;
+
     await Player.tools.downloadThread({
       includeImages: Player.$('.download-all-images').checked,
       includeSounds: Player.$('.download-all-audio').checked,
       ignoreDownloaded: Player.$('.download-all-ignore-downloaded').checked,
       maxSounds: +Player.$('.download-all-max-sounds').value || 0,
-      concurrency: Math.max(1, +Player.$('.download-all-concurrency').value || 1),
+      // One ffmpeg instance muxes serially, so force single concurrency when combining.
+      concurrency: combineVideo ? 1 : Math.max(1, +Player.$('.download-all-concurrency').value || 1),
       compression: Math.max(0, Math.min(+Player.$('.download-all-compression').value || 0, 9)),
+      combineVideo,
       status: Player.$(`.${ns}-download-all-status`)
     }).catch(() => { /* it's logged */ });
 
@@ -7023,7 +7271,7 @@ const downloadTool = module.exports = {
 	 * @param {Boolean} compression Compression level.
 	 * @param {Element} [status] Element in which to display the ongoing status of the download.
 	 */
-  async downloadThread({ includeImages, includeSounds, ignoreDownloaded, maxSounds, concurrency, compression, status }) {
+  async downloadThread({ includeImages, includeSounds, ignoreDownloaded, maxSounds, concurrency, compression, combineVideo, status }) {
     const zip = new JSZip();
 
     !(maxSounds > 0) && (maxSounds = Infinity);
@@ -7032,8 +7280,17 @@ const downloadTool = module.exports = {
 
     status && (status.style.display = 'block');
 
-    if (!count || !includeImages && !includeSounds) {
+    if (!count || (!includeImages && !includeSounds && !combineVideo)) {
       return status && (status.innerHTML = 'Nothing to download.');
+    }
+
+    // Fail fast (before downloading anything) if this site's CSP blocks the encoder.
+    if (combineVideo) {
+      try {
+        Player.tools._assertEncoderAvailable();
+      } catch (err) {
+        return status && (status.innerHTML = _.escHTML(err.reason || 'Combined video download is not available on this site.'));
+      }
     }
 
     Player.tools._downloading = [];
@@ -7043,7 +7300,7 @@ const downloadTool = module.exports = {
 
     const elementsArr = new Array(concurrency).fill(0).map(() => {
       // Show currently downloading files with progress bars.
-      const el = status && _.element(progressBarsTemplate({ includeSounds, includeImages }), status);
+      const el = status && _.element(progressBarsTemplate({ includeSounds: includeSounds || combineVideo, includeImages: includeImages && !combineVideo }), status);
       const dlRef = [];
       Player.tools._downloading.push(dlRef);
       // Allow each download to be canceled individually. In case there's a huge download you don't want to include.
@@ -7100,8 +7357,8 @@ const downloadTool = module.exports = {
       const prefix = includeImages && sound.post ? sound.post + '/' : '';
       // Download image and sound as selected.
       const [ imageRsp, soundRsp ] = await Promise.all([
-        data.dlRef[0] = includeImages && get(sound.image, getArgs(data, sound, 'image')),
-        data.dlRef[1] = includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
+        data.dlRef[0] = !combineVideo && includeImages && get(sound.image, getArgs(data, sound, 'image')),
+        data.dlRef[1] = !combineVideo && includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
       ]);
 
       // No post-handling if the whole download was canceled.
@@ -7109,6 +7366,26 @@ const downloadTool = module.exports = {
         if (imageRsp === 'aborted' || soundRsp === 'aborted') {
           // Show which sounds were individually aborted.
           status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, elementsArr[0].el, 'beforebegin');
+        } else if (combineVideo) {
+          // Mux this sound's visual + audio into a single looping mp4.
+          try {
+            const blob = await Player.tools.mux(sound, {
+              onProgress: data.sound && (p => data.sound.style.width = (p * 100) + '%')
+            });
+            // Always folder combined videos per-post: muxFileName (from the title) is
+            // NOT unique across posts, so a flat layout would silently overwrite
+            // same-named mp4s from different posts.
+            const vidPrefix = sound.post ? sound.post + '/' : '';
+            zip.file(`${vidPrefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
+            sound.downloaded = true;
+          } catch (err) {
+            if (!Player.tools._downloadAllCanceled) {
+              console.error('[4chan sounds player] Mux failed', err);
+              status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, elementsArr[0].el, 'beforebegin');
+              // A failed job can dirty the wasm heap; reset for the next sound.
+              Player.tools.terminate();
+            }
+          }
         } else {
           // Add the downloaded files to the zip.
           imageRsp && zip.file(`${prefix}${sound.filename}`, imageRsp);
@@ -7164,6 +7441,25 @@ const downloadTool = module.exports = {
 
 /***/ },
 
+/***/ "./src/components/tools/ffmpeg-config.js"
+/*!***********************************************!*\
+  !*** ./src/components/tools/ffmpeg-config.js ***!
+  \***********************************************/
+(module) {
+
+// Pinned ffmpeg.wasm asset locations + encode constants.
+// The core (glue + wasm) is lazy-fetched at runtime and run on the MAIN THREAD
+// (no Web Worker — 4chan's CSP blocks blob: workers). Versions verified in the spike.
+module.exports = {
+  // @ffmpeg/core 0.12.10 UMD build (ffmpeg-core.js + ffmpeg-core.wasm).
+  FFMPEG_CORE_BASE: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd',
+  AUDIO_BITRATE: '192k',
+  STILL_FPS: 2
+};
+
+
+/***/ },
+
 /***/ "./src/components/tools/index.js"
 /*!***************************************!*\
   !*** ./src/components/tools/index.js ***!
@@ -7172,12 +7468,14 @@ const downloadTool = module.exports = {
 
 const createTool = __webpack_require__(/*! ./create */ "./src/components/tools/create.js");
 const downloadTool = __webpack_require__(/*! ./download */ "./src/components/tools/download.js");
+const videoTool = __webpack_require__(/*! ./video */ "./src/components/tools/video.js");
 
 module.exports = {
   template: __webpack_require__(/*! ./templates/tools.tpl */ "./src/components/tools/templates/tools.tpl"),
 
   ...createTool,
   ...downloadTool,
+  ...videoTool,
 
   initialize() {
     createTool.initialize();
@@ -7375,6 +7673,12 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined mt-5">Download 
 			<input type="checkbox" class="download-all-audio m-0 mr-2" checked>
 			Audio
 		</label>
+		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
+			<input type="checkbox" class="download-all-video m-0 mr-2">
+			<span>
+				Combine to mp4 <i class="${ns}-info-circle ${ns}-popover" data-content="Mux each sound's image/video with its audio into a single looping mp4. Uses the video encoder (downloads ~31MB once).">${Icons.infoCircle}</i>
+			</span>
+		</label>
 		<label class="${ns}-col-auto m-0 mr-3 ${ns}-ignore-downloaded" style="height: 1.5rem;">
 			<input type="checkbox" class="download-all-ignore-downloaded m-0 mr-2" checked>
 			<span>
@@ -7447,6 +7751,446 @@ ${Player.tools.downloadTemplate()}
 		<input type="text" class="${ns}-col ${ns}-encoded-input" @keyup="tools.handleEncoded" placeholder="https%3A%2F%2F">
 	</div>
 </div>`
+
+/***/ },
+
+/***/ "./src/components/tools/video-util.js"
+/*!********************************************!*\
+  !*** ./src/components/tools/video-util.js ***!
+  \********************************************/
+(module) {
+
+// Pure, side-effect-free helpers for the muxed video download feature.
+// No DOM / GM / Player / ns / _ / Icons usage, so this file is require-able and
+// unit-testable under plain Node (see test/video-util.test.js).
+
+const EVEN_SCALE = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
+
+// Decide how the visual should be encoded, from its URL and optional MIME type.
+function classifyVisual(image, type) {
+  image = image || '';
+  if (/\.(webm|mp4)(\?|$)/i.test(image) || type === 'video/webm' || type === 'video/mp4') {
+    return 'video';
+  }
+  if (/\.gif(\?|$)/i.test(image)) {
+    return 'gif';
+  }
+  return 'still';
+}
+
+// Build a filesystem-safe output name ending in .mp4. Preserves spaces; replaces
+// only characters that are actually illegal in filenames (and control chars).
+function muxFileName(title, fallback) {
+  let base = (title || fallback || 'sound').toString();
+  base = base.replace(/\.[^/.]+$/, '');                 // drop any extension
+  // eslint-disable-next-line no-control-regex
+  base = base.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_');    // FS-illegal -> _
+  base = base.replace(/\s+/g, ' ').trim().slice(0, 200);
+  return (base || 'sound') + '.mp4';
+}
+
+// Still image + audio -> mp4 of exactly `dur` seconds (one held frame).
+function stillArgs({ image, audio, out, dur, fps, audioBitrate, preset }) {
+  return [
+    '-loop', '1', '-i', image,
+    '-i', audio,
+    '-t', String(dur),
+    '-c:v', 'libx264', '-preset', preset || 'veryfast', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
+    '-r', String(fps), '-vf', EVEN_SCALE,
+    '-c:a', 'aac', '-b:a', audioBitrate,
+    '-movflags', '+faststart',
+    out
+  ];
+}
+
+// Encode exactly ONE loop of an animated visual to a closed-GOP, IDR-led mp4 so the
+// repeats can be stream-looped with -c copy seamlessly. Audio is dropped here.
+function loopEncodeArgs({ visual, out, isGif, preset }) {
+  const args = [];
+  if (isGif) {
+    // ignore_loop=1 (the default) makes the demuxer read the gif exactly ONCE.
+    // ignore_loop=0 would honor the gif's own loop count (usually infinite) and
+    // this un-bounded encode would then run forever.
+    args.push('-ignore_loop', '1');
+  }
+  args.push(
+    '-i', visual,
+    '-an',
+    '-c:v', 'libx264', '-preset', preset || 'veryfast', '-crf', '20',
+    '-pix_fmt', 'yuv420p', '-vf', EVEN_SCALE,
+    '-fflags', '+genpts',
+    '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0:open-gop=0',
+    // No -movflags +faststart here: this is an intermediate only ffmpeg re-reads.
+    out
+  );
+  return args;
+}
+
+// Loop the single-loop file, mux in the audio, and cut to exactly `dur` — in ONE pass.
+// Video is copied (repeats never re-encoded); audio is encoded to AAC.
+function loopMuxArgs({ loop, audio, out, dur, audioBitrate }) {
+  return [
+    '-stream_loop', '-1', '-i', loop,
+    '-i', audio,
+    '-map', '0:v:0', '-map', '1:a:0',
+    '-c:v', 'copy', '-c:a', 'aac', '-b:a', audioBitrate,
+    '-t', String(dur),
+    '-movflags', '+faststart',
+    out
+  ];
+}
+
+module.exports = {
+  EVEN_SCALE,
+  classifyVisual,
+  muxFileName,
+  stillArgs,
+  loopEncodeArgs,
+  loopMuxArgs
+};
+
+
+/***/ },
+
+/***/ "./src/components/tools/video.js"
+/*!***************************************!*\
+  !*** ./src/components/tools/video.js ***!
+  \***************************************/
+(module, __unused_webpack_exports, __webpack_require__) {
+
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+const cfg = __webpack_require__(/*! ./ffmpeg-config */ "./src/components/tools/ffmpeg-config.js");
+const util = __webpack_require__(/*! ./video-util */ "./src/components/tools/video-util.js");
+
+// The main-thread core loader eval()s the ffmpeg glue, which needs 'unsafe-eval'.
+// Some archives (e.g. desuarchive) ship a CSP without it, so the feature can't run there.
+const ENCODER_CSP_MSG = 'Combined video download isn\'t available on this site — its security policy (CSP) blocks the video encoder.';
+
+// One shared AudioContext reused for all duration probes (browsers cap the count).
+let _audioCtx = null;
+
+// Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
+// Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
+function fetchBytes(url) {
+  if (/^blob:/.test(url)) {
+    return fetch(url).then(r => r.arrayBuffer()).then(b => new Uint8Array(b));
+  }
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      method: 'GET',
+      url,
+      responseType: 'arraybuffer',
+      onload: r => resolve(new Uint8Array(r.response)),
+      onerror: reject,
+      onabort: () => reject(Object.assign(new Error('aborted'), { aborted: true }))
+    });
+  });
+}
+
+// Fetch a URL as text (GM.xhr).
+function fetchText(url) {
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      method: 'GET',
+      url,
+      responseType: 'text',
+      onload: r => resolve(r.responseText),
+      onerror: reject
+    });
+  });
+}
+
+const videoTool = module.exports = {
+  _ffmpeg: null,
+  _loaded: false,
+  _loadingPromise: null,
+  _muxChain: null,
+  // Cached across a terminate()/reload so a reset doesn't re-download the core.
+  _createCore: null,
+  _wasmBinary: null,
+  _wasmURL: null,
+  _progressCb: null,
+  _processingCount: 0,
+  _evalOk: false,
+  _evalBlocked: false,
+
+  // Expose for other tools-module code / tests.
+  _fetchBytes: fetchBytes,
+
+  // Whether this site's CSP allows the eval the main-thread core loader needs.
+  // Probed once, cheaply, and cached (never throws) — used to hide the button up
+  // front on sites (e.g. desuarchive) that lack 'unsafe-eval', where its @click
+  // handler couldn't even compile via `new Function`.
+  _encoderAvailable() {
+    if (videoTool._evalBlocked) {
+      return false;
+    }
+    if (videoTool._evalOk) {
+      return true;
+    }
+    try {
+      (0, eval)('1');
+      videoTool._evalOk = true;
+      return true;
+    } catch (e) {
+      videoTool._evalBlocked = true;
+      return false;
+    }
+  },
+
+  // Throw a clear PlayerError when the encoder can't run here — so a mux attempt
+  // fails fast with a visible message instead of downloading ~31MB then dying.
+  _assertEncoderAvailable() {
+    if (!videoTool._encoderAvailable()) {
+      throw new PlayerError(ENCODER_CSP_MSG, 'warning');
+    }
+  },
+
+  // Toggle the busy spinner on the download button. Ref-counted so a batch of
+  // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
+  // animation (compositor thread), so it keeps moving even while a synchronous
+  // exec() blocks the main thread.
+  _setProcessing(on) {
+    videoTool._processingCount = Math.max(0, videoTool._processingCount + (on ? 1 : -1));
+    const btn = Player.$(`.${ns}-download-video-button`);
+    btn && btn.classList[videoTool._processingCount > 0 ? 'add' : 'remove'](`${ns}-processing`);
+  },
+
+  // Load the single-threaded ffmpeg core ON THE MAIN THREAD (no Web Worker).
+  // 4chan's CSP blocks blob:/cross-origin workers (worker-src falls back to
+  // script-src, which lacks blob:), but allows 'unsafe-eval' — so we eval the core
+  // glue and run the wasm inline. The single-thread core spawns no workers itself.
+  async loadFFmpeg() {
+    // Bail before the ~31MB download if this site's CSP won't let us run the core.
+    videoTool._assertEncoderAvailable();
+    if (videoTool._loaded) {
+      return;
+    }
+    if (videoTool._loadingPromise) {
+      return videoTool._loadingPromise;
+    }
+    videoTool._loadingPromise = (async () => {
+      if (!videoTool._createCore) {
+        const [ coreText, wasmBytes ] = await Promise.all([
+          fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
+          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`)
+        ]);
+        // Load the core glue and capture the factory. The UMD is `var createFFmpegCore = …`;
+        // read it back as the eval COMPLETION VALUE (resolved by binding) rather than via
+        // `self`, because the Firefox userscript sandbox doesn't mirror an eval'd global var
+        // onto the `self` object. `new Function` (explicit return) is the fallback.
+        let create;
+        try {
+          create = (0, eval)(coreText + '\n;typeof createFFmpegCore!=="undefined"?createFFmpegCore:void 0;');
+        } catch (e) { /* fall back to new Function below */ }
+        if (typeof create !== 'function') {
+          create = new Function(coreText + '\nreturn typeof createFFmpegCore!=="undefined"?createFFmpegCore:void 0;')();
+        }
+        if (typeof create !== 'function') {
+          throw new PlayerError('Video encoder failed to initialize (createFFmpegCore missing).', 'error');
+        }
+        videoTool._createCore = create;
+        videoTool._wasmBinary = wasmBytes.buffer;
+        // A fallback wasm URL for the core's own loader; wasmBinary above means it
+        // usually never needs to fetch this.
+        videoTool._wasmURL = URL.createObjectURL(new Blob([ wasmBytes ], { type: 'application/wasm' }));
+      }
+      const core = await videoTool._createCore({
+        wasmBinary: videoTool._wasmBinary,
+        mainScriptUrlOrBlob: `${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js#${btoa(JSON.stringify({ wasmURL: videoTool._wasmURL, workerURL: '' }))}`
+      });
+      core.setLogger(e => {
+        const msg = e && e.message;
+        videoTool._lastLog = msg;
+        if (videoTool._capturingLog && msg != null) {
+          videoTool._captured.push(msg);
+        }
+      });
+      core.setProgress(e => videoTool._progressCb && videoTool._progressCb(e));
+      videoTool._ffmpeg = core;
+      videoTool._loaded = true;
+    })();
+    try {
+      await videoTool._loadingPromise;
+    } catch (err) {
+      // Allow a later retry after a transient failure.
+      videoTool._loadingPromise = null;
+      throw err;
+    }
+  },
+
+  // Drop the core instance so the next load starts from a fresh heap. The cached
+  // factory + wasm are kept, so this reset doesn't re-download the ~31MB core.
+  terminate() {
+    videoTool._ffmpeg = null;
+    videoTool._loaded = false;
+    videoTool._loadingPromise = null;
+    videoTool._progressCb = null;
+  },
+
+  // Sample-accurate audio duration via WebAudio. decodeAudioData detaches its input,
+  // so pass a copy. One shared context is reused across a batch (browsers cap the
+  // number of AudioContexts). Callers fall back to _probeDurationFFmpeg if this rejects.
+  async audioDuration(bytes) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    _audioCtx = _audioCtx || new AC();
+    const decoded = await _audioCtx.decodeAudioData(bytes.slice().buffer);
+    return decoded.duration;
+  },
+
+  // Fallback: read the duration ffmpeg reports for the already-written 'audio' file —
+  // handles formats WebAudio can't decode (e.g. Ogg/Vorbis on Safari).
+  _probeDurationFFmpeg(core) {
+    videoTool._captured = [];
+    videoTool._capturingLog = true;
+    try {
+      core.exec('-i', 'audio');
+    } catch (e) { /* `-i` with no output errors; we only want the logged Duration */ }
+    videoTool._capturingLog = false;
+    for (const line of videoTool._captured) {
+      const m = line.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+      if (m) {
+        return (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
+      }
+    }
+    return 0;
+  },
+
+  // Serialize mux jobs — there is a single core instance, so overlapping jobs
+  // (e.g. two download surfaces clicked in quick succession) would clash in MEMFS.
+  mux(sound, opts) {
+    const run = () => videoTool._muxJob(sound, opts);
+    videoTool._muxChain = (videoTool._muxChain || Promise.resolve()).then(run, run);
+    return videoTool._muxChain;
+  },
+
+  // Wrap a job with the busy-spinner state (set before the async work so it paints
+  // and is compositor-animating before any blocking exec).
+  async _muxJob(sound, opts) {
+    videoTool._setProcessing(true);
+    try {
+      return await videoTool._runMux(sound, opts);
+    } finally {
+      videoTool._setProcessing(false);
+    }
+  },
+
+  // Produce a single mp4 Blob: visual looped to the audio length, H.264 + AAC.
+  // NOTE: core.exec() runs synchronously on the main thread, so the tab is briefly
+  // unresponsive during encoding (bounded by the encode-once loop strategy).
+  async _runMux(sound, opts) {
+    opts = opts || {};
+    await videoTool.loadFFmpeg();
+    const core = videoTool._ffmpeg;
+    const kind = util.classifyVisual(sound.image, sound.type);
+
+    // Fetch both streams (remote via GM.xhr, local blob: via fetch).
+    let audioBytes;
+    try {
+      audioBytes = await fetchBytes(sound.src);
+    } catch (err) {
+      let host = '';
+      try {
+        host = ' from ' + new URL(sound.src).host;
+      } catch (e) { /* non-URL src */ }
+      throw new PlayerError(`Couldn't fetch the sound${host}.`, 'warning', err);
+    }
+    const visualBytes = await fetchBytes(sound.image);
+
+    videoTool._progressCb = opts.onProgress
+      ? e => opts.onProgress(Math.max(0, Math.min(1, (e && e.progress) || 0)))
+      : null;
+
+    const visIn = kind === 'video' ? 'visual.mp4'
+      : kind === 'gif' ? 'visual.gif'
+        : 'visual.img';
+    const written = [];
+    const exec = args => {
+      core.setTimeout(-1);
+      core.exec(...args);
+    };
+    const cleanup = () => {
+      videoTool._progressCb = null;
+      for (const f of written) {
+        try {
+          core.FS.unlink(f);
+        } catch (err) { /* gone */ }
+      }
+    };
+
+    try {
+      core.FS.writeFile(visIn, visualBytes); written.push(visIn);
+      core.FS.writeFile('audio', audioBytes); written.push('audio');
+
+      // Duration: WebAudio primary, ffmpeg probe fallback (needs 'audio' in MEMFS).
+      let dur = 0;
+      try {
+        dur = await videoTool.audioDuration(audioBytes);
+      } catch (e) { /* fall back to the ffmpeg probe below */ }
+      if (!(dur > 0)) {
+        dur = videoTool._probeDurationFFmpeg(core);
+      }
+      if (!(dur > 0)) {
+        throw new PlayerError('Could not read the audio duration.', 'warning');
+      }
+
+      const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
+      if (kind === 'still') {
+        exec(util.stillArgs({
+          image: visIn, audio: 'audio', out: 'out.mp4',
+          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
+        }));
+      } else {
+        // Encode one loop, then loop+mux+cut to the audio length in a single pass.
+        exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
+        written.push('loop.mp4');
+        exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
+      }
+      written.push('out.mp4');
+      const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array
+      if (!data || !data.length) {
+        throw new PlayerError('The video encoder produced no output.', 'error');
+      }
+      return new Blob([ data ], { type: 'video/mp4' });
+    } finally {
+      cleanup();
+    }
+  },
+
+  // Public entry point for all three UI surfaces.
+  async downloadVideo(soundOrId) {
+    const sound = typeof soundOrId === 'object'
+      ? soundOrId
+      : Player.sounds.find(s => s.id === soundOrId);
+    if (!sound) {
+      return;
+    }
+
+    // Standalone videos ARE the sound — nothing to mux, just download the file.
+    if (sound.standaloneVideo) {
+      return Player.tools.download(sound.image, sound.filename);
+    }
+
+    try {
+      const blob = await videoTool.mux(sound);
+      const url = URL.createObjectURL(blob);
+      const a = _.element(`<a href="${url}" download="${_.escAttr(util.muxFileName(sound.title, sound.filename))}" rel="noopener" target="_blank"></a>`);
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      // logError pulls the level from a PlayerError's .type; 'error' is the default otherwise.
+      Player.logError('Failed to create the video.', err, 'error');
+      if (videoTool._evalBlocked) {
+        // The feature can't run on this site — drop the now-useless button.
+        Player.footer && Player.footer.render();
+      } else {
+        // A failed job can leave the wasm heap dirty; reset so the next attempt is clean.
+        videoTool.terminate();
+      }
+    }
+  }
+};
+
 
 /***/ },
 
@@ -7611,6 +8355,16 @@ module.exports = [
     attrs: data => [
       `title="${data.tplNameMatch[1] === 'image' ? 'Download the image with the original filename' : 'Download the sound'}"`
     ]
+  },
+  {
+    tplName: 'dl-video',
+    requireSound: true,
+    class: `${ns}-download-video-button`,
+    action: data => `tools.downloadVideo("${_.escAttr(data.sound.id, true)}")`,
+    actionMods: '.prevent',
+    showIf: data => !data.sound.standaloneVideo && Player.tools._encoderAvailable(),
+    icon: Icons.fileEarmarkPlay,
+    attrs: [ 'title="Download the image/video combined with the sound as an mp4"' ]
   },
   {
     tplName: /filter-(image|sound)/,
@@ -7812,7 +8566,7 @@ module.exports = {
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.6.3"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.0"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -8626,6 +9380,14 @@ module.exports = [
     parse: v => +v >= 0 && +v < Infinity ? +v : 0
   },
   {
+    property: 'videoUltrafast',
+    title: 'Fast Video Encoding',
+    displayGroup: 'Playback',
+    description: 'Use the ffmpeg "ultrafast" preset when downloading combined videos. '
+			+ 'Roughly 2x faster to encode (shorter freeze) but around 3x the file size, and slightly lower quality.',
+    default: false
+  },
+  {
     title: 'Inline Player',
     displayGroup: 'Playback',
     settings: [
@@ -8739,7 +9501,7 @@ module.exports = [
 			+ 'p:{\n'
 			+ '		post-link\n'
 			+ '		Open [ image-link sound-link ]\n'
-			+ '		Download [ dl-image-button dl-sound-button ]\n'
+			+ '		Download [ dl-image-button dl-sound-button dl-video-button ]\n'
 			+ '}\n'
 			+ `<div class="${ns}-expander" data-direction="se"></div>\n`,
     displayGroup: 'Theme',
@@ -8857,6 +9619,7 @@ module.exports = {
   gear: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/gear.svg */ "./node_modules/bootstrap-icons/icons/gear.svg")["default"]),
   fileEarmarkImage: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-image.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-image.svg")["default"]),
   fileEarmarkMusic: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-music.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-music.svg")["default"]),
+  fileEarmarkPlay: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/file-earmark-play.svg */ "./node_modules/bootstrap-icons/icons/file-earmark-play.svg")["default"]),
   filter: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/filter.svg */ "./node_modules/bootstrap-icons/icons/filter.svg")["default"]),
   fullscreen: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen.svg */ "./node_modules/bootstrap-icons/icons/fullscreen.svg")["default"]),
   fullscreenExit: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/fullscreen-exit.svg */ "./node_modules/bootstrap-icons/icons/fullscreen-exit.svg")["default"]),
@@ -9020,6 +9783,23 @@ module.exports = [
         return { allow: [ original, Player.config.allow ] };
       }
       return {};
+    }
+  },
+  {
+    version: '3.7.0',
+    name: 'add-download-video-to-footer',
+    async run() {
+      // Insert the combined-video download button into the existing image+sound
+      // download group of the user's footer, wherever that group appears.
+      const tpl = Player.config.footerTemplate;
+      if (typeof tpl !== 'string'
+          || tpl.includes('dl-video-button')
+          || !tpl.includes('dl-image-button dl-sound-button')) {
+        return {};
+      }
+      const updated = tpl.replace('dl-image-button dl-sound-button', 'dl-image-button dl-sound-button dl-video-button');
+      Player.config.footerTemplate = updated;
+      return { footerTemplate: [ tpl, updated ] };
     }
   }
 ];
@@ -9537,6 +10317,32 @@ module.exports = (data = {}) => `.${ns}-colorpicker {
   margin: 0 0.25rem;
 }
 
+.${ns}-download-video-button.${ns}-processing {
+  pointer-events: none;
+  position: relative;
+}
+.${ns}-download-video-button.${ns}-processing svg {
+  visibility: hidden;
+}
+.${ns}-download-video-button.${ns}-processing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  width: 1em;
+  height: 1em;
+  border: 0.125rem solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ${ns}-spin 0.7s linear infinite;
+}
+
+@keyframes ${ns}-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 .${ns}-header, .${ns}-footer {
   text-align: center;
   padding: 0.125rem;
