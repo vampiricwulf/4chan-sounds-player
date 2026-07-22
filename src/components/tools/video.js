@@ -1,4 +1,3 @@
-const { FFmpeg } = require('@ffmpeg/ffmpeg');
 const cfg = require('./ffmpeg-config');
 const util = require('./video-util');
 
@@ -20,10 +19,17 @@ function fetchBytes(url) {
   });
 }
 
-// Fetch an asset and wrap it in a same-origin blob: URL for the ffmpeg loader.
-async function toBlobURL(url, mime) {
-  const bytes = await fetchBytes(url);
-  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+// Fetch a URL as text (GM.xhr).
+function fetchText(url) {
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      method: 'GET',
+      url,
+      responseType: 'text',
+      onload: r => resolve(r.responseText),
+      onerror: reject
+    });
+  });
 }
 
 const videoTool = module.exports = {
@@ -31,6 +37,11 @@ const videoTool = module.exports = {
   _loaded: false,
   _loadingPromise: null,
   _muxChain: null,
+  // Cached across a terminate()/reload so a reset doesn't re-download the core.
+  _createCore: null,
+  _wasmBinary: null,
+  _wasmURL: null,
+  _progressCb: null,
 
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
@@ -51,7 +62,10 @@ const videoTool = module.exports = {
     btn.style.display = show ? null : 'none';
   },
 
-  // Lazy-load @ffmpeg/core (single-threaded) once per session.
+  // Load the single-threaded ffmpeg core ON THE MAIN THREAD (no Web Worker).
+  // 4chan's CSP blocks blob:/cross-origin workers (worker-src falls back to
+  // script-src, which lacks blob:), but allows 'unsafe-eval' — so we eval the core
+  // glue and run the wasm inline. The single-thread core spawns no workers itself.
   async loadFFmpeg() {
     if (videoTool._loaded) {
       return;
@@ -60,14 +74,31 @@ const videoTool = module.exports = {
       return videoTool._loadingPromise;
     }
     videoTool._loadingPromise = (async () => {
-      const [ coreURL, wasmURL, classWorkerURL ] = await Promise.all([
-        toBlobURL(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-        toBlobURL(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
-        toBlobURL(cfg.FFMPEG_WRAPPER_WORKER_URL, 'text/javascript')
-      ]);
-      const ff = new FFmpeg();
-      await ff.load({ coreURL, wasmURL, classWorkerURL });
-      videoTool._ffmpeg = ff;
+      if (!videoTool._createCore) {
+        const [ coreText, wasmBytes ] = await Promise.all([
+          fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
+          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`)
+        ]);
+        // Indirect eval runs in the global realm; the core's UMD assigns
+        // createFFmpegCore to the global there — exactly what the stock worker
+        // reads after importScripts.
+        (0, eval)(coreText);
+        if (typeof self.createFFmpegCore !== 'function') {
+          throw new PlayerError('Video encoder failed to initialize (createFFmpegCore missing).', 'error');
+        }
+        videoTool._createCore = self.createFFmpegCore;
+        videoTool._wasmBinary = wasmBytes.buffer;
+        // A fallback wasm URL for the core's own loader; wasmBinary above means it
+        // usually never needs to fetch this.
+        videoTool._wasmURL = URL.createObjectURL(new Blob([ wasmBytes ], { type: 'application/wasm' }));
+      }
+      const core = await videoTool._createCore({
+        wasmBinary: videoTool._wasmBinary,
+        mainScriptUrlOrBlob: `${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js#${btoa(JSON.stringify({ wasmURL: videoTool._wasmURL, workerURL: '' }))}`
+      });
+      core.setLogger(e => { videoTool._lastLog = e && e.message; });
+      core.setProgress(e => videoTool._progressCb && videoTool._progressCb(e));
+      videoTool._ffmpeg = core;
       videoTool._loaded = true;
     })();
     try {
@@ -79,16 +110,13 @@ const videoTool = module.exports = {
     }
   },
 
-  // Tear the worker down — used on cancel and after a failed job to reclaim heap.
+  // Drop the core instance so the next load starts from a fresh heap. The cached
+  // factory + wasm are kept, so this reset doesn't re-download the ~31MB core.
   terminate() {
-    if (videoTool._ffmpeg) {
-      try {
-        videoTool._ffmpeg.terminate();
-      } catch (err) { /* already gone */ }
-    }
     videoTool._ffmpeg = null;
     videoTool._loaded = false;
     videoTool._loadingPromise = null;
+    videoTool._progressCb = null;
   },
 
   // Sample-accurate audio duration via WebAudio; decodeAudioData detaches its input,
@@ -107,7 +135,7 @@ const videoTool = module.exports = {
     }
   },
 
-  // Serialize mux jobs — there is a single ffmpeg worker, so overlapping jobs
+  // Serialize mux jobs — there is a single core instance, so overlapping jobs
   // (e.g. two download surfaces clicked in quick succession) would clash in MEMFS.
   mux(sound, opts) {
     const run = () => videoTool._muxJob(sound, opts);
@@ -116,10 +144,12 @@ const videoTool = module.exports = {
   },
 
   // Produce a single mp4 Blob: visual looped to the audio length, H.264 + AAC.
+  // NOTE: core.exec() runs synchronously on the main thread, so the tab is briefly
+  // unresponsive during encoding (bounded by the encode-once loop strategy).
   async _muxJob(sound, opts) {
     opts = opts || {};
     await videoTool.loadFFmpeg();
-    const ff = videoTool._ffmpeg;
+    const core = videoTool._ffmpeg;
     const kind = util.classifyVisual(sound.image, sound.type);
 
     // Fetch both streams (remote via GM.xhr, local blob: via fetch).
@@ -139,51 +169,52 @@ const videoTool = module.exports = {
       throw new PlayerError('Could not read the audio duration.', 'warning');
     }
 
-    // Wire progress for the duration of this job.
-    const onProgress = opts.onProgress;
-    const progressHandler = onProgress && (e => onProgress(Math.max(0, Math.min(1, e.progress))));
-    progressHandler && ff.on('progress', progressHandler);
-
-    // Abort support.
-    const onAbort = () => videoTool.terminate();
-    opts.signal && opts.signal.addEventListener('abort', onAbort, { once: true });
+    videoTool._progressCb = opts.onProgress
+      ? e => opts.onProgress(Math.max(0, Math.min(1, (e && e.progress) || 0)))
+      : null;
 
     const visIn = kind === 'video' ? 'visual.mp4'
       : kind === 'gif' ? 'visual.gif'
         : 'visual.img';
     const written = [];
-    const cleanup = async () => {
-      progressHandler && ff.off && ff.off('progress', progressHandler);
+    const exec = args => {
+      core.setTimeout(-1);
+      core.exec(...args);
+    };
+    const cleanup = () => {
+      videoTool._progressCb = null;
       for (const f of written) {
         try {
-          await ff.deleteFile(f);
+          core.FS.unlink(f);
         } catch (err) { /* gone */ }
       }
     };
 
     try {
-      await ff.writeFile(visIn, visualBytes); written.push(visIn);
-      await ff.writeFile('audio', audioBytes); written.push('audio');
+      core.FS.writeFile(visIn, visualBytes); written.push(visIn);
+      core.FS.writeFile('audio', audioBytes); written.push('audio');
 
       if (kind === 'still') {
-        await ff.exec(util.stillArgs({
+        exec(util.stillArgs({
           image: visIn, audio: 'audio', out: 'out.mp4',
           dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE
         }));
       } else {
-        await ff.exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif' }));
+        exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif' }));
         written.push('loop.mp4');
-        await ff.exec(util.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur }));
+        exec(util.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur }));
         written.push('whole.mp4');
-        await ff.deleteFile('loop.mp4'); written.splice(written.indexOf('loop.mp4'), 1);
-        await ff.exec(util.muxArgs({ video: 'whole.mp4', audio: 'audio', out: 'out.mp4', audioBitrate: cfg.AUDIO_BITRATE }));
+        core.FS.unlink('loop.mp4'); written.splice(written.indexOf('loop.mp4'), 1);
+        exec(util.muxArgs({ video: 'whole.mp4', audio: 'audio', out: 'out.mp4', audioBitrate: cfg.AUDIO_BITRATE }));
       }
       written.push('out.mp4');
-      const data = await ff.readFile('out.mp4'); // Uint8Array
-      return new Blob([data], { type: 'video/mp4' });
+      const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array
+      if (!data || !data.length) {
+        throw new PlayerError('The video encoder produced no output.', 'error');
+      }
+      return new Blob([ data ], { type: 'video/mp4' });
     } finally {
-      opts.signal && opts.signal.removeEventListener('abort', onAbort);
-      await cleanup();
+      cleanup();
     }
   },
 
