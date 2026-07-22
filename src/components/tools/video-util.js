@@ -58,23 +58,21 @@ function loopEncodeArgs({ visual, out, isGif, preset }) {
     '-pix_fmt', 'yuv420p', '-vf', EVEN_SCALE,
     '-fflags', '+genpts',
     '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0:open-gop=0',
-    '-movflags', '+faststart',
+    // No -movflags +faststart here: this is an intermediate only ffmpeg re-reads.
     out
   );
   return args;
 }
 
-// Loop the single-loop file and cut to exactly `dur` seconds, losslessly (-c copy).
-function streamLoopCutArgs({ loop, out, dur }) {
-  return ['-stream_loop', '-1', '-i', loop, '-t', String(dur), '-c', 'copy', out];
-}
-
-// Mux the (already exactly-`dur`) looped video with the audio, re-encoding audio to AAC.
-function muxArgs({ video, audio, out, audioBitrate }) {
+// Loop the single-loop file, mux in the audio, and cut to exactly `dur` — in ONE pass.
+// Video is copied (repeats never re-encoded); audio is encoded to AAC.
+function loopMuxArgs({ loop, audio, out, dur, audioBitrate }) {
   return [
-    '-i', video, '-i', audio,
+    '-stream_loop', '-1', '-i', loop,
+    '-i', audio,
     '-map', '0:v:0', '-map', '1:a:0',
     '-c:v', 'copy', '-c:a', 'aac', '-b:a', audioBitrate,
+    '-t', String(dur),
     '-movflags', '+faststart',
     out
   ];
@@ -86,6 +84,5 @@ module.exports = {
   muxFileName,
   stillArgs,
   loopEncodeArgs,
-  streamLoopCutArgs,
-  muxArgs
+  loopMuxArgs
 };

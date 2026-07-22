@@ -5,6 +5,9 @@ const util = require('./video-util');
 // Some archives (e.g. desuarchive) ship a CSP without it, so the feature can't run there.
 const ENCODER_CSP_MSG = 'Combined video download isn\'t available on this site — its security policy (CSP) blocks the video encoder.';
 
+// One shared AudioContext reused for all duration probes (browsers cap the count).
+let _audioCtx = null;
+
 // Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
 // Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
 function fetchBytes(url) {
@@ -135,7 +138,13 @@ const videoTool = module.exports = {
         wasmBinary: videoTool._wasmBinary,
         mainScriptUrlOrBlob: `${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js#${btoa(JSON.stringify({ wasmURL: videoTool._wasmURL, workerURL: '' }))}`
       });
-      core.setLogger(e => { videoTool._lastLog = e && e.message; });
+      core.setLogger(e => {
+        const msg = e && e.message;
+        videoTool._lastLog = msg;
+        if (videoTool._capturingLog && msg != null) {
+          videoTool._captured.push(msg);
+        }
+      });
       core.setProgress(e => videoTool._progressCb && videoTool._progressCb(e));
       videoTool._ffmpeg = core;
       videoTool._loaded = true;
@@ -158,20 +167,32 @@ const videoTool = module.exports = {
     videoTool._progressCb = null;
   },
 
-  // Sample-accurate audio duration via WebAudio; decodeAudioData detaches its input,
-  // so pass a copy. Callers fall back to an ffmpeg probe if this rejects.
+  // Sample-accurate audio duration via WebAudio. decodeAudioData detaches its input,
+  // so pass a copy. One shared context is reused across a batch (browsers cap the
+  // number of AudioContexts). Callers fall back to _probeDurationFFmpeg if this rejects.
   async audioDuration(bytes) {
     const AC = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AC();
+    _audioCtx = _audioCtx || new AC();
+    const decoded = await _audioCtx.decodeAudioData(bytes.slice().buffer);
+    return decoded.duration;
+  },
+
+  // Fallback: read the duration ffmpeg reports for the already-written 'audio' file —
+  // handles formats WebAudio can't decode (e.g. Ogg/Vorbis on Safari).
+  _probeDurationFFmpeg(core) {
+    videoTool._captured = [];
+    videoTool._capturingLog = true;
     try {
-      const copy = bytes.slice().buffer;
-      const decoded = await ctx.decodeAudioData(copy);
-      return decoded.duration;
-    } finally {
-      try {
-        await ctx.close();
-      } catch (err) { /* already closed */ }
+      core.exec('-i', 'audio');
+    } catch (e) { /* `-i` with no output errors; we only want the logged Duration */ }
+    videoTool._capturingLog = false;
+    for (const line of videoTool._captured) {
+      const m = line.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
+      if (m) {
+        return (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]);
+      }
     }
+    return 0;
   },
 
   // Serialize mux jobs — there is a single core instance, so overlapping jobs
@@ -214,10 +235,6 @@ const videoTool = module.exports = {
       throw new PlayerError(`Couldn't fetch the sound${host}.`, 'warning', err);
     }
     const visualBytes = await fetchBytes(sound.image);
-    const dur = await videoTool.audioDuration(audioBytes);
-    if (!(dur > 0)) {
-      throw new PlayerError('Could not read the audio duration.', 'warning');
-    }
 
     videoTool._progressCb = opts.onProgress
       ? e => opts.onProgress(Math.max(0, Math.min(1, (e && e.progress) || 0)))
@@ -244,6 +261,18 @@ const videoTool = module.exports = {
       core.FS.writeFile(visIn, visualBytes); written.push(visIn);
       core.FS.writeFile('audio', audioBytes); written.push('audio');
 
+      // Duration: WebAudio primary, ffmpeg probe fallback (needs 'audio' in MEMFS).
+      let dur = 0;
+      try {
+        dur = await videoTool.audioDuration(audioBytes);
+      } catch (e) { /* fall back to the ffmpeg probe below */ }
+      if (!(dur > 0)) {
+        dur = videoTool._probeDurationFFmpeg(core);
+      }
+      if (!(dur > 0)) {
+        throw new PlayerError('Could not read the audio duration.', 'warning');
+      }
+
       const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
       if (kind === 'still') {
         exec(util.stillArgs({
@@ -251,12 +280,10 @@ const videoTool = module.exports = {
           dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
+        // Encode one loop, then loop+mux+cut to the audio length in a single pass.
         exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
         written.push('loop.mp4');
-        exec(util.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur }));
-        written.push('whole.mp4');
-        core.FS.unlink('loop.mp4'); written.splice(written.indexOf('loop.mp4'), 1);
-        exec(util.muxArgs({ video: 'whole.mp4', audio: 'audio', out: 'out.mp4', audioBitrate: cfg.AUDIO_BITRATE }));
+        exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
       }
       written.push('out.mp4');
       const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array

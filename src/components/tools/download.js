@@ -214,7 +214,11 @@ const downloadTool = module.exports = {
             const blob = await Player.tools.mux(sound, {
               onProgress: data.sound && (p => data.sound.style.width = (p * 100) + '%')
             });
-            zip.file(`${prefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
+            // Always folder combined videos per-post: muxFileName (from the title) is
+            // NOT unique across posts, so a flat layout would silently overwrite
+            // same-named mp4s from different posts.
+            const vidPrefix = sound.post ? sound.post + '/' : '';
+            zip.file(`${vidPrefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
             sound.downloaded = true;
           } catch (err) {
             if (!Player.tools._downloadAllCanceled) {

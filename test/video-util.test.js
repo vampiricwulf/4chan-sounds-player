@@ -37,6 +37,7 @@ assert.ok(loop.join(' ').includes('open-gop=0'), 'closed GOP');
 assert.ok(loop.join(' ').includes('scenecut=0'));
 assert.ok(!loop.includes('-ignore_loop'), 'non-gif has no ignore_loop');
 assert.strictEqual(loop[loop.indexOf('-preset') + 1], 'veryfast', 'loop default preset');
+assert.ok(!loop.join(' ').includes('+faststart'), 'no faststart on the intermediate loop');
 assert.strictEqual(
   u.loopEncodeArgs({ visual: 'v.webm', out: 'l', isGif: false, preset: 'ultrafast' })[
     u.loopEncodeArgs({ visual: 'v.webm', out: 'l', isGif: false, preset: 'ultrafast' }).indexOf('-preset') + 1
@@ -45,12 +46,12 @@ assert.strictEqual(
 const gifLoop = u.loopEncodeArgs({ visual: 'v.gif', out: 'loop.mp4', isGif: true });
 assert.deepStrictEqual(gifLoop.slice(0, 2), ['-ignore_loop', '1'], 'gif is read exactly once (not infinitely)');
 
-const cut = u.streamLoopCutArgs({ loop: 'loop.mp4', out: 'whole.mp4', dur: 30 });
-assert.deepStrictEqual(cut, ['-stream_loop', '-1', '-i', 'loop.mp4', '-t', '30', '-c', 'copy', 'whole.mp4']);
-
-const mux = u.muxArgs({ video: 'whole.mp4', audio: 'a', out: 'out.mp4', audioBitrate: '192k' });
-assert.ok(mux.join(' ').includes('-c:v copy'), 'copies looped video');
-assert.ok(mux.join(' ').includes('-c:a aac'), 're-encodes audio to aac');
-assert.strictEqual(mux[mux.length - 1], 'out.mp4');
+// One-pass loop + mux + cut.
+const loopMux = u.loopMuxArgs({ loop: 'loop.mp4', audio: 'a', out: 'out.mp4', dur: 30, audioBitrate: '192k' });
+assert.deepStrictEqual(loopMux.slice(0, 4), ['-stream_loop', '-1', '-i', 'loop.mp4']);
+assert.ok(loopMux.join(' ').includes('-c:v copy'), 'copies looped video (no re-encode)');
+assert.ok(loopMux.join(' ').includes('-c:a aac'), 'encodes audio to aac');
+assert.strictEqual(loopMux[loopMux.indexOf('-t') + 1], '30', 'cut to audio duration');
+assert.strictEqual(loopMux[loopMux.length - 1], 'out.mp4');
 
 console.log('video-util: all assertions passed');
