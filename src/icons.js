@@ -8,6 +8,7 @@ module.exports = {
   arrowUp: require('../node_modules/bootstrap-icons/icons/arrow-up.svg').default,
   boxArrowInLeft: require('../node_modules/bootstrap-icons/icons/box-arrow-in-left.svg').default,
   boxArrowRight: require('../node_modules/bootstrap-icons/icons/box-arrow-right.svg').default,
+  cameraVideo: require('../node_modules/bootstrap-icons/icons/camera-video.svg').default,
   chatRightQuote: require('../node_modules/bootstrap-icons/icons/chat-right-quote.svg').default,
   checkSquare: require('../node_modules/bootstrap-icons/icons/check-square.svg').default,
   chevronDown: require('../node_modules/bootstrap-icons/icons/chevron-down.svg').default,

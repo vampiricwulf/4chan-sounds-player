@@ -121,5 +121,19 @@ module.exports = [
       }
       return {};
     }
+  },
+  {
+    version: '3.7.0',
+    name: 'add-download-video-to-hide-order',
+    async run() {
+      const order = Player.config.controlsHideOrder;
+      if (!Array.isArray(order) || order.includes('download-video')) {
+        return {};
+      }
+      const original = [ ...order ];
+      const at = order.indexOf('fullscreen');
+      order.splice(at === -1 ? 0 : at + 1, 0, 'download-video');
+      return { controlsHideOrder: [ original, order ] };
+    }
   }
 ];

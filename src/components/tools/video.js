@@ -35,7 +35,19 @@ const videoTool = module.exports = {
   _fetchBytes: fetchBytes,
 
   initialize() {
-    // No startup work yet; surface wiring (show/hide) is added in Task 6.
+    Player.on('rendered', videoTool._updateButton);
+    Player.on('playsound', videoTool._updateButton);
+    Player.on('stop', videoTool._updateButton);
+  },
+
+  // Show the current-sound download button only while a muxable sound is playing.
+  _updateButton() {
+    const btn = Player.$(`.${ns}-download-video-button`);
+    if (!btn) {
+      return;
+    }
+    const show = Player.playing && !Player.playing.standaloneVideo;
+    btn.style.display = show ? null : 'none';
   },
 
   // Lazy-load @ffmpeg/core (single-threaded) once per session.

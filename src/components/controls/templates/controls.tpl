@@ -42,6 +42,13 @@
 		</div>
 	</div>
 	${data.inline ? '' : `
+		<div class="${ns}-col-auto" data-hide-id="download-video">
+			<div class="${ns}-media-control ${ns}-download-video-button ${ns}-hover-fill" @click.prevent="tools.downloadVideo(Player.playing)" title="Download as video" style="display: none;">
+				${Icons.cameraVideo}
+			</div>
+		</div>
+	`}
+	${data.inline ? '' : `
 		<div class="${ns}-col-auto" data-hide-id="fullscreen">
 			<div class="${ns}-media-control ${ns}-fullscreen-button" @click='${data.actions.fullscreen}'>
 				${Icons.fullscreen} ${Icons.fullscreenExit}
