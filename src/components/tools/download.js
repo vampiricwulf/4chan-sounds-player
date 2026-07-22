@@ -1,4 +1,5 @@
 const progressBarsTemplate = require('./templates/download-progress.tpl');
+const videoUtil = require('./video-util');
 
 const get = (src, opts) => {
   let xhr;
@@ -59,13 +60,17 @@ const downloadTool = module.exports = {
     e.currentTarget.style.display = 'none';
     Player.$(`.${ns}-download-all-cancel`).style.display = null;
 
+    const combineVideo = Player.$('.download-all-video').checked;
+
     await Player.tools.downloadThread({
       includeImages: Player.$('.download-all-images').checked,
       includeSounds: Player.$('.download-all-audio').checked,
       ignoreDownloaded: Player.$('.download-all-ignore-downloaded').checked,
       maxSounds: +Player.$('.download-all-max-sounds').value || 0,
-      concurrency: Math.max(1, +Player.$('.download-all-concurrency').value || 1),
+      // One ffmpeg instance muxes serially, so force single concurrency when combining.
+      concurrency: combineVideo ? 1 : Math.max(1, +Player.$('.download-all-concurrency').value || 1),
       compression: Math.max(0, Math.min(+Player.$('.download-all-compression').value || 0, 9)),
+      combineVideo,
       status: Player.$(`.${ns}-download-all-status`)
     }).catch(() => { /* it's logged */ });
 
@@ -108,7 +113,7 @@ const downloadTool = module.exports = {
 	 * @param {Boolean} compression Compression level.
 	 * @param {Element} [status] Element in which to display the ongoing status of the download.
 	 */
-  async downloadThread({ includeImages, includeSounds, ignoreDownloaded, maxSounds, concurrency, compression, status }) {
+  async downloadThread({ includeImages, includeSounds, ignoreDownloaded, maxSounds, concurrency, compression, combineVideo, status }) {
     const zip = new JSZip();
 
     !(maxSounds > 0) && (maxSounds = Infinity);
@@ -117,7 +122,7 @@ const downloadTool = module.exports = {
 
     status && (status.style.display = 'block');
 
-    if (!count || !includeImages && !includeSounds) {
+    if (!count || (!includeImages && !includeSounds && !combineVideo)) {
       return status && (status.innerHTML = 'Nothing to download.');
     }
 
@@ -128,7 +133,7 @@ const downloadTool = module.exports = {
 
     const elementsArr = new Array(concurrency).fill(0).map(() => {
       // Show currently downloading files with progress bars.
-      const el = status && _.element(progressBarsTemplate({ includeSounds, includeImages }), status);
+      const el = status && _.element(progressBarsTemplate({ includeSounds: includeSounds || combineVideo, includeImages: includeImages && !combineVideo }), status);
       const dlRef = [];
       Player.tools._downloading.push(dlRef);
       // Allow each download to be canceled individually. In case there's a huge download you don't want to include.
@@ -185,8 +190,8 @@ const downloadTool = module.exports = {
       const prefix = includeImages && sound.post ? sound.post + '/' : '';
       // Download image and sound as selected.
       const [ imageRsp, soundRsp ] = await Promise.all([
-        data.dlRef[0] = includeImages && get(sound.image, getArgs(data, sound, 'image')),
-        data.dlRef[1] = includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
+        data.dlRef[0] = !combineVideo && includeImages && get(sound.image, getArgs(data, sound, 'image')),
+        data.dlRef[1] = !combineVideo && includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
       ]);
 
       // No post-handling if the whole download was canceled.
@@ -194,6 +199,22 @@ const downloadTool = module.exports = {
         if (imageRsp === 'aborted' || soundRsp === 'aborted') {
           // Show which sounds were individually aborted.
           status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, elementsArr[0].el, 'beforebegin');
+        } else if (combineVideo) {
+          // Mux this sound's visual + audio into a single looping mp4.
+          try {
+            const blob = await Player.tools.mux(sound, {
+              onProgress: data.sound && (p => data.sound.style.width = (p * 100) + '%')
+            });
+            zip.file(`${prefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
+            sound.downloaded = true;
+          } catch (err) {
+            if (!Player.tools._downloadAllCanceled) {
+              console.error('[4chan sounds player] Mux failed', err);
+              status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, elementsArr[0].el, 'beforebegin');
+              // A failed job can dirty the wasm heap; reset for the next sound.
+              Player.tools.terminate();
+            }
+          }
         } else {
           // Add the downloaded files to the zip.
           imageRsp && zip.file(`${prefix}${sound.filename}`, imageRsp);

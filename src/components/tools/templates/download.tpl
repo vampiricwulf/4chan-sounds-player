@@ -9,6 +9,12 @@
 			<input type="checkbox" class="download-all-audio m-0 mr-2" checked>
 			Audio
 		</label>
+		<label class="${ns}-col-auto m-0 mr-3" style="height: 1.5rem;">
+			<input type="checkbox" class="download-all-video m-0 mr-2">
+			<span>
+				Combine to mp4 <i class="${ns}-info-circle ${ns}-popover" data-content="Mux each sound's image/video with its audio into a single looping mp4. Uses the video encoder (downloads ~31MB once).">${Icons.infoCircle}</i>
+			</span>
+		</label>
 		<label class="${ns}-col-auto m-0 mr-3 ${ns}-ignore-downloaded" style="height: 1.5rem;">
 			<input type="checkbox" class="download-all-ignore-downloaded m-0 mr-2" checked>
 			<span>
