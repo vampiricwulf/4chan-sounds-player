@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node build.js",
     "build-beta": "node build.js --env filename=4chan-sounds-player-beta --env append-hash",
-    "build-dev": "npx webpack --config webpack.config.js --mode development --env gitcdn",
+    "build-dev": "node build.js --mode development --env gitcdn",
     "lint": "eslint .",
     "test:util": "node test/video-util.test.js",
     "test": "node test/video-util.test.js && node test/parse-action.test.js"
