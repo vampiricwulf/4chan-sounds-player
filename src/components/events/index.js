@@ -1,3 +1,5 @@
+const { compileAction } = require('./parse-action');
+
 module.exports = {
   atRoot: ['on', 'off', 'trigger'],
 
@@ -80,10 +82,23 @@ module.exports = {
     const listeners = el._eventListeners || (el._eventListeners = {});
     listeners[evt] && el.removeEventListener(evt, listeners[evt]);
 
-    // If the action is JS lazily create a script element to get the handler. Avoids CSP blocking new Function.
+    // Resolve the handler, cheapest first:
+    //   1. getHandler — a bare method/property path (no eval).
+    //   2. compileAction — parse a simple `method(args)` call and dispatch without
+    //      eval, so arg-bearing handlers work under CSPs lacking 'unsafe-eval'.
+    //   3. new Function — the general fallback (blocked by such CSPs, hence 1 & 2).
     let handler =
       action &&
       (Player.getHandler(action) ||
+        compileAction(action, path => {
+          const fn = _.get(Player, path);
+          if (typeof fn !== 'function') {
+            return null;
+          }
+          const lastDot = path.lastIndexOf('.');
+          const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
+          return { fn, scope };
+        }) ||
         function ($event) {
           try {
             const func = new Function(
