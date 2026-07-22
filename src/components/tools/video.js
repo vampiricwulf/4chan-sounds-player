@@ -34,6 +34,10 @@ const videoTool = module.exports = {
   // Expose for other tools-module code / tests.
   _fetchBytes: fetchBytes,
 
+  initialize() {
+    // No startup work yet; surface wiring (show/hide) is added in Task 6.
+  },
+
   // Lazy-load @ffmpeg/core (single-threaded) once per session.
   async loadFFmpeg() {
     if (videoTool._loaded) {

@@ -1,15 +1,18 @@
 const createTool = require('./create');
 const downloadTool = require('./download');
+const videoTool = require('./video');
 
 module.exports = {
   template: require('./templates/tools.tpl'),
 
   ...createTool,
   ...downloadTool,
+  ...videoTool,
 
   initialize() {
     createTool.initialize();
     downloadTool.initialize();
+    videoTool.initialize();
   },
 
   toggle() {
