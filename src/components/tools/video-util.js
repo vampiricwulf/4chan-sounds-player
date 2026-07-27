@@ -30,14 +30,22 @@ function muxFileName(title, fallback) {
   return (base || 'sound') + '.mp4';
 }
 
-// Frame rate that yields exactly ONE video frame for a track of `dur` seconds:
-// one frame per ceil(dur) seconds, so the second frame would land at or after the
-// end and never gets encoded. Derived from the duration rather than a fixed tiny
-// rate on purpose — the single sample's nominal duration becomes the video track's
-// duration, so a fixed rate like 1/3600 would declare an hour-long video.
-// Integer rational (never a float) so ffmpeg parses it exactly.
+// Milliseconds per second — the video track timescale used for stills. The single
+// frame's duration IS the video track's duration, so the timescale has to be fine
+// enough to express the audio length; a whole-second tick would round the file's
+// duration to the nearest second.
+const MS_TIMESCALE = 1000;
+
+// Frame rate that yields exactly ONE video frame for a track of `dur` seconds.
+// The period is ceil'd to the next millisecond so the second frame lands at or
+// after the end and is never encoded, leaving the frame's duration (and therefore
+// the video track's) within 1ms of the audio.
+//
+// Expressed as ms/ms rather than 1/seconds on purpose: with a rate of 1/240 the
+// track's tick becomes 240 SECONDS, so its duration can only be whole seconds and
+// the container rounds. At 1000/240000 the tick is a millisecond.
 function singleFrameRate(dur) {
-  return `1/${Math.max(1, Math.ceil(dur) || 1)}`;
+  return `${MS_TIMESCALE}/${Math.max(1, Math.ceil(dur * MS_TIMESCALE) || 1)}`;
 }
 
 // Still image + audio -> mp4 of exactly `dur` seconds, in ONE pass.
@@ -59,6 +67,9 @@ function stillArgs({ image, audio, out, dur, fps, audioBitrate, preset }) {
     '-r', String(fps), '-vf', EVEN_SCALE,
     // Nothing ever changes, so one keyframe for the entire track.
     '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0',
+    // Pin a millisecond timescale so the video track's duration can express the
+    // audio length instead of being rounded to whole seconds.
+    '-video_track_timescale', String(MS_TIMESCALE),
     '-c:a', 'aac', '-b:a', audioBitrate,
     '-movflags', '+faststart',
     out

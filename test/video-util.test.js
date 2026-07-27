@@ -19,13 +19,23 @@ assert.strictEqual(u.muxFileName('', 'fallback.jpg'), 'fallback.mp4', 'uses fall
 assert.strictEqual(u.muxFileName('', ''), 'sound.mp4', 'last-resort name');
 
 // arg builders — assert the load-bearing flags are present and correctly ordered
-// singleFrameRate: one frame per ceil(dur)s, so frame 2 never lands inside the
-// track. Integer rational, and never 1/0 for degenerate durations.
-assert.strictEqual(u.singleFrameRate(240), '1/240');
-assert.strictEqual(u.singleFrameRate(237.42), '1/238', 'rounds up past the end');
-assert.strictEqual(u.singleFrameRate(0.5), '1/1', 'sub-second still gets a frame');
-assert.strictEqual(u.singleFrameRate(0), '1/1', 'no divide-by-zero rate');
-assert.ok(/^1\/\d+$/.test(u.singleFrameRate(1234.567)), 'always an integer rational');
+// singleFrameRate: a millisecond-resolution rational, so the single frame's
+// duration (= the video track's duration) tracks the audio instead of rounding to
+// a whole second. Period is ceil'd to the next ms so frame 2 never lands inside.
+assert.strictEqual(u.singleFrameRate(240), '1000/240000');
+assert.strictEqual(u.singleFrameRate(237.42), '1000/237420', 'keeps the fraction of a second');
+assert.strictEqual(u.singleFrameRate(237.4187755), '1000/237419', 'ceil to the next ms');
+assert.strictEqual(u.singleFrameRate(0.5), '1000/500', 'sub-second still gets a frame');
+assert.strictEqual(u.singleFrameRate(0), '1000/1', 'no divide-by-zero rate');
+assert.ok(/^1000\/\d+$/.test(u.singleFrameRate(1234.567)), 'always an integer rational');
+// The frame must never be SHORTER than the audio, or a second frame gets encoded.
+[ 240, 237.42, 237.4187755, 0.5, 1234.567 ].forEach(d => {
+  // rate is frames-per-second as num/den, so one frame lasts den/num seconds.
+  const [ num, den ] = u.singleFrameRate(d).split('/').map(Number);
+  const period = den / num;
+  assert.ok(period >= d - 1e-9, `frame period covers the whole track for ${d}`);
+  assert.ok(period - d < 0.001, `overshoot under 1ms for ${d}`);
+});
 
 // Stills are ONE pass at a very low frame rate: a couple of dozen frames cover the
 // whole track, all under a single keyframe.
@@ -36,6 +46,8 @@ assert.ok(still.includes('-tune') && still[still.indexOf('-tune') + 1] === 'stil
 assert.strictEqual(still[still.indexOf('-t') + 1], '240', 'covers the full audio length');
 assert.strictEqual(still[still.indexOf('-r') + 1], '1/10');
 assert.ok(still.join(' ').includes('keyint=100000'), 'one keyframe for the whole track');
+assert.strictEqual(still[still.indexOf('-video_track_timescale') + 1], '1000',
+  'fine timescale so the duration is not rounded to whole seconds');
 assert.ok(still.join(' ').includes('-c:a aac'), 'audio muxed in the same pass');
 assert.strictEqual(still[still.length - 1], 'out.mp4');
 // Original dimensions are preserved — the only scaling is the even-dimension
