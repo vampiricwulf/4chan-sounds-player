@@ -30,6 +30,16 @@ function muxFileName(title, fallback) {
   return (base || 'sound') + '.mp4';
 }
 
+// Frame rate that yields exactly ONE video frame for a track of `dur` seconds:
+// one frame per ceil(dur) seconds, so the second frame would land at or after the
+// end and never gets encoded. Derived from the duration rather than a fixed tiny
+// rate on purpose — the single sample's nominal duration becomes the video track's
+// duration, so a fixed rate like 1/3600 would declare an hour-long video.
+// Integer rational (never a float) so ffmpeg parses it exactly.
+function singleFrameRate(dur) {
+  return `1/${Math.max(1, Math.ceil(dur) || 1)}`;
+}
+
 // Still image + audio -> mp4 of exactly `dur` seconds, in ONE pass.
 //
 // The picture never changes, so the frame rate is what drives the cost — and it
@@ -96,6 +106,7 @@ module.exports = {
   EVEN_SCALE,
   classifyVisual,
   muxFileName,
+  singleFrameRate,
   stillArgs,
   loopEncodeArgs,
   loopMuxArgs

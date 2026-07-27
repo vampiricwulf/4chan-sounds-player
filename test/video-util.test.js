@@ -19,6 +19,14 @@ assert.strictEqual(u.muxFileName('', 'fallback.jpg'), 'fallback.mp4', 'uses fall
 assert.strictEqual(u.muxFileName('', ''), 'sound.mp4', 'last-resort name');
 
 // arg builders — assert the load-bearing flags are present and correctly ordered
+// singleFrameRate: one frame per ceil(dur)s, so frame 2 never lands inside the
+// track. Integer rational, and never 1/0 for degenerate durations.
+assert.strictEqual(u.singleFrameRate(240), '1/240');
+assert.strictEqual(u.singleFrameRate(237.42), '1/238', 'rounds up past the end');
+assert.strictEqual(u.singleFrameRate(0.5), '1/1', 'sub-second still gets a frame');
+assert.strictEqual(u.singleFrameRate(0), '1/1', 'no divide-by-zero rate');
+assert.ok(/^1\/\d+$/.test(u.singleFrameRate(1234.567)), 'always an integer rational');
+
 // Stills are ONE pass at a very low frame rate: a couple of dozen frames cover the
 // whole track, all under a single keyframe.
 const still = u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'out.mp4', dur: 240, fps: '1/10', audioBitrate: '192k' });

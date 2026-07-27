@@ -350,13 +350,15 @@ const videoTool = module.exports = {
       const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
       // Each exec blocks the main thread, so publish the step and let it paint first.
       if (kind === 'still') {
-        // One pass: the picture never changes, so a very low frame rate covers the
-        // whole track in a couple of dozen frames under a single keyframe.
+        // One pass, and by default a single frame spanning the whole track — the
+        // picture never changes, so there's nothing else to encode.
         report('Encoding the video (the tab will freeze briefly)', encBase);
         await paint();
         exec(util.stillArgs({
           image: visIn, audio: 'audio', out: 'out.mp4',
-          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
+          dur,
+          fps: cfg.STILL_SINGLE_FRAME ? util.singleFrameRate(dur) : cfg.STILL_FPS,
+          audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
         // Animated: encode one loop, then copy it over the audio so the repeats
