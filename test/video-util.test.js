@@ -19,17 +19,30 @@ assert.strictEqual(u.muxFileName('', 'fallback.jpg'), 'fallback.mp4', 'uses fall
 assert.strictEqual(u.muxFileName('', ''), 'sound.mp4', 'last-resort name');
 
 // arg builders — assert the load-bearing flags are present and correctly ordered
-const still = u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'out.mp4', dur: 12.5, fps: 2, audioBitrate: '192k' });
-assert.deepStrictEqual(still.slice(0, 6), ['-loop', '1', '-i', 'v.jpg', '-i', 'a']);
+// Stills encode a SHORT closed-GOP segment that gets copy-looped, so the cost
+// doesn't scale with the length of the sound.
+const still = u.stillLoopArgs({ image: 'v.jpg', out: 'loop.mp4', seconds: 20, fps: 1 });
+assert.deepStrictEqual(still.slice(0, 4), ['-loop', '1', '-i', 'v.jpg']);
 assert.ok(still.includes('-tune') && still[still.indexOf('-tune') + 1] === 'stillimage');
-assert.strictEqual(still[still.indexOf('-t') + 1], '12.5');
-assert.strictEqual(still[still.length - 1], 'out.mp4');
-assert.ok(still.includes(u.EVEN_SCALE));
+assert.strictEqual(still[still.indexOf('-t') + 1], '20', 'only the segment is encoded');
+assert.strictEqual(still[still.indexOf('-r') + 1], '1');
+assert.ok(still.includes('-an'), 'segment carries no audio');
+assert.ok(still.join(' ').includes('open-gop=0'), 'closed GOP so repeats can be copied');
+assert.strictEqual(still[still.length - 1], 'loop.mp4');
+assert.ok(still.includes(u.EVEN_SCALE), 'even dims when no cap given');
+
+// boxScale: caps the long edge without upscaling, and still forces even dims.
+assert.strictEqual(u.boxScale(0), u.EVEN_SCALE, 'no cap -> plain even scale');
+assert.strictEqual(u.boxScale(), u.EVEN_SCALE, 'undefined cap -> plain even scale');
+const box = u.boxScale(1920);
+assert.ok(box.includes('force_original_aspect_ratio=decrease'), 'fits inside the box');
+assert.ok(box.includes('min(1920\\,iw)') && box.includes('min(1920\\,ih)'), 'never upscales; commas escaped');
+assert.ok(box.endsWith(u.EVEN_SCALE), 'even dims applied after the cap');
+const capped = u.stillLoopArgs({ image: 'v.jpg', out: 'l.mp4', seconds: 5, fps: 1, maxDim: 1920 });
+assert.ok(capped.includes(u.boxScale(1920)), 'still honours maxDim');
 assert.strictEqual(still[still.indexOf('-preset') + 1], 'veryfast', 'default preset');
-assert.strictEqual(
-  u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'o', dur: 1, fps: 2, audioBitrate: '192k', preset: 'ultrafast' })[
-    u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'o', dur: 1, fps: 2, audioBitrate: '192k', preset: 'ultrafast' }).indexOf('-preset') + 1
-  ], 'ultrafast', 'ultrafast preset applied');
+const stillFast = u.stillLoopArgs({ image: 'v.jpg', out: 'l.mp4', seconds: 5, fps: 1, preset: 'ultrafast' });
+assert.strictEqual(stillFast[stillFast.indexOf('-preset') + 1], 'ultrafast', 'ultrafast preset applied');
 
 const loop = u.loopEncodeArgs({ visual: 'v.webm', out: 'loop.mp4', isGif: false });
 assert.ok(loop.includes('-an'), 'loop encode drops audio');

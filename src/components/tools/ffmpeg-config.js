@@ -5,5 +5,15 @@ module.exports = {
   // @ffmpeg/core 0.12.10 UMD build (ffmpeg-core.js + ffmpeg-core.wasm).
   FFMPEG_CORE_BASE: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd',
   AUDIO_BITRATE: '192k',
-  STILL_FPS: 2
+  // Still images hold one frame for the whole track, so the frame rate only needs
+  // to be high enough for players to behave. Encode cost is linear in it.
+  STILL_FPS: 1,
+  // Cap the long edge of a still. 4chan images are often 12MP+, and encode time
+  // scales with pixel count — capping is the biggest speed win for stills. Images
+  // smaller than this are never upscaled.
+  STILL_MAX_DIM: 1920,
+  // How much of a still is actually encoded before being copy-looped to fill the
+  // track. Longer means fewer keyframes (smaller file) but more encoding; this
+  // bounds a still's encode at STILL_LOOP_SECONDS * STILL_FPS frames.
+  STILL_LOOP_SECONDS: 20
 };
