@@ -8,9 +8,28 @@ const ENCODER_CSP_MSG = 'Combined video download isn\'t available on this site �
 // One shared AudioContext reused for all duration probes (browsers cap the count).
 let _audioCtx = null;
 
+// Give the browser a chance to paint before a synchronous exec blocks the main
+// thread, so the status set just beforehand is actually visible during the freeze.
+// rAF doesn't fire in background tabs, hence the timeout fallback.
+function paint() {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+    typeof requestAnimationFrame === 'function'
+      && requestAnimationFrame(() => requestAnimationFrame(finish));
+    setTimeout(finish, 50);
+  });
+}
+
 // Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
 // Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
-function fetchBytes(url) {
+// onProgress (if given) receives a 0-1 ratio while downloading.
+function fetchBytes(url, onProgress) {
   if (/^blob:/.test(url)) {
     return fetch(url).then(r => r.arrayBuffer()).then(b => new Uint8Array(b));
   }
@@ -19,6 +38,7 @@ function fetchBytes(url) {
       method: 'GET',
       url,
       responseType: 'arraybuffer',
+      onprogress: onProgress && (r => r.total > 0 && onProgress(r.loaded / r.total)),
       onload: r => resolve(new Uint8Array(r.response)),
       onerror: reject,
       onabort: () => reject(Object.assign(new Error('aborted'), { aborted: true }))
@@ -85,21 +105,57 @@ const videoTool = module.exports = {
     }
   },
 
-  // Toggle the busy spinner on the download button. Ref-counted so a batch of
-  // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
-  // animation (compositor thread), so it keeps moving even while a synchronous
-  // exec() blocks the main thread.
+  // Toggle the busy state on the download button. Ref-counted so a batch of
+  // serialized jobs keeps it lit without flicker.
   _setProcessing(on) {
     videoTool._processingCount = Math.max(0, videoTool._processingCount + (on ? 1 : -1));
     const btn = Player.$(`.${ns}-download-video-button`);
-    btn && btn.classList[videoTool._processingCount > 0 ? 'add' : 'remove'](`${ns}-processing`);
+    if (!btn) {
+      return;
+    }
+    const busy = videoTool._processingCount > 0;
+    btn.classList[busy ? 'add' : 'remove'](`${ns}-processing`);
+    if (!busy) {
+      btn.removeAttribute('data-progress');
+      btn.style.removeProperty('--fcsp-vid-progress');
+      btn.removeAttribute('title');
+    }
+  },
+
+  // Report what the encoder is doing. `ratio` (0-1) draws a determinate ring;
+  // omit it for the indeterminate spinner. The label lands in the button's tooltip
+  // and is echoed to the console, so a step that stalls is identifiable.
+  //
+  // NOTE: core.exec() is synchronous and the core has no ASYNCIFY, so nothing can
+  // repaint *during* an encode. Real byte-level progress is therefore only possible
+  // for the async phases (encoder download, media fetches); for the encode itself we
+  // set the label and await paint() BEFORE blocking, so the freeze is attributable.
+  _setStatus(label, ratio) {
+    if (label && label !== videoTool._statusLabel) {
+      videoTool._statusLabel = label;
+      MODE === 'development' && console.log('[4chan sounds player] video:', label);
+    }
+    const btn = Player.$(`.${ns}-download-video-button`);
+    if (!btn) {
+      return;
+    }
+    if (ratio == null || !isFinite(ratio)) {
+      btn.removeAttribute('data-progress');
+      btn.style.removeProperty('--fcsp-vid-progress');
+      btn.title = label || '';
+      return;
+    }
+    const pct = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    btn.setAttribute('data-progress', '');
+    btn.style.setProperty('--fcsp-vid-progress', pct);
+    btn.title = `${label} ${pct}%`;
   },
 
   // Load the single-threaded ffmpeg core ON THE MAIN THREAD (no Web Worker).
   // 4chan's CSP blocks blob:/cross-origin workers (worker-src falls back to
   // script-src, which lacks blob:), but allows 'unsafe-eval' — so we eval the core
   // glue and run the wasm inline. The single-thread core spawns no workers itself.
-  async loadFFmpeg() {
+  async loadFFmpeg(onProgress) {
     // Bail before the ~31MB download if this site's CSP won't let us run the core.
     videoTool._assertEncoderAvailable();
     if (videoTool._loaded) {
@@ -110,9 +166,10 @@ const videoTool = module.exports = {
     }
     videoTool._loadingPromise = (async () => {
       if (!videoTool._createCore) {
+        // The wasm is ~31MB and dominates the wait, so it drives the progress ratio.
         const [ coreText, wasmBytes ] = await Promise.all([
           fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
-          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`)
+          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, onProgress)
         ]);
         // Load the core glue and capture the factory. The UMD is `var createFFmpegCore = …`;
         // read it back as the eval COMPLETION VALUE (resolved by binding) rather than via
@@ -219,14 +276,28 @@ const videoTool = module.exports = {
   // unresponsive during encoding (bounded by the encode-once loop strategy).
   async _runMux(sound, opts) {
     opts = opts || {};
-    await videoTool.loadFFmpeg();
+
+    // Weight the phases so the ring advances sensibly. The encoder download only
+    // happens once per session, so it only takes a slice when it's actually needed.
+    const needsLoad = !videoTool._loaded;
+    const W = needsLoad
+      ? { load: 0.6, fetch: 0.15 }
+      : { load: 0, fetch: 0.4 };
+    // Report both to the button and to any caller-supplied bar (e.g. Download All).
+    const report = (label, ratio) => {
+      videoTool._setStatus(label, ratio);
+      opts.onProgress && ratio != null && opts.onProgress(Math.max(0, Math.min(1, ratio)));
+    };
+
+    report('Loading the video encoder', needsLoad ? 0 : W.load);
+    await videoTool.loadFFmpeg(r => report('Loading the video encoder', r * W.load));
     const core = videoTool._ffmpeg;
     const kind = util.classifyVisual(sound.image, sound.type);
 
     // Fetch both streams (remote via GM.xhr, local blob: via fetch).
     let audioBytes;
     try {
-      audioBytes = await fetchBytes(sound.src);
+      audioBytes = await fetchBytes(sound.src, r => report('Downloading the sound', W.load + r * W.fetch * 0.5));
     } catch (err) {
       let host = '';
       try {
@@ -234,11 +305,14 @@ const videoTool = module.exports = {
       } catch (e) { /* non-URL src */ }
       throw new PlayerError(`Couldn't fetch the sound${host}.`, 'warning', err);
     }
-    const visualBytes = await fetchBytes(sound.image);
+    const visualBytes = await fetchBytes(sound.image, r => report('Downloading the image', W.load + W.fetch * 0.5 + r * W.fetch * 0.5));
+    const encBase = W.load + W.fetch;
 
-    videoTool._progressCb = opts.onProgress
-      ? e => opts.onProgress(Math.max(0, Math.min(1, (e && e.progress) || 0)))
-      : null;
+    // The core reports progress during exec, but nothing can repaint while exec
+    // blocks — so keep the last value for diagnostics on failure rather than for UI.
+    videoTool._progressCb = e => {
+      videoTool._lastExecProgress = e && e.progress;
+    };
 
     const visIn = kind === 'video' ? 'visual.mp4'
       : kind === 'gif' ? 'visual.gif'
@@ -274,17 +348,26 @@ const videoTool = module.exports = {
       }
 
       const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
+      // Each exec blocks the main thread, so publish the step and let it paint first.
       if (kind === 'still') {
+        report('Encoding the video (the tab will freeze briefly)', encBase);
+        await paint();
         exec(util.stillArgs({
           image: visIn, audio: 'audio', out: 'out.mp4',
           dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
         // Encode one loop, then loop+mux+cut to the audio length in a single pass.
+        report('Encoding the loop (the tab will freeze briefly)', encBase);
+        await paint();
         exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
         written.push('loop.mp4');
+
+        report('Looping it over the sound', encBase + (1 - encBase) * 0.6);
+        await paint();
         exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
       }
+      report('Saving', 1);
       written.push('out.mp4');
       const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array
       if (!data || !data.length) {
@@ -317,8 +400,11 @@ const videoTool = module.exports = {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
+      // Name the step that failed — otherwise a mid-encode failure is opaque.
+      const at = videoTool._statusLabel ? ` (during: ${videoTool._statusLabel.replace(/ \(.*\)$/, '')})` : '';
+      videoTool._lastLog && console.error('[4chan sounds player] last encoder log:', videoTool._lastLog);
       // logError pulls the level from a PlayerError's .type; 'error' is the default otherwise.
-      Player.logError('Failed to create the video.', err, 'error');
+      Player.logError(`Failed to create the video${at}.`, err, 'error');
       if (videoTool._evalBlocked) {
         // The feature can't run on this site — drop the now-useless button.
         Player.footer && Player.footer.render();

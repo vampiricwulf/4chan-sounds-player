@@ -157,7 +157,7 @@
 	}
 
 	// Spinner overlaid on the button — absolute so it never affects layout; 1em to
-	// match the footer icon size.
+	// match the footer icon size. Used while the step has no measurable progress.
 	&::after {
 		content: "";
 		position: absolute;
@@ -170,6 +170,19 @@
 		border-top-color: transparent;
 		border-radius: 50%;
 		animation: #{$ns}-spin 0.7s linear infinite;
+	}
+
+	// Determinate ring for steps that can report real progress (encoder download,
+	// media fetches). --fcsp-vid-progress is the percentage, set from video.js.
+	&[data-progress]::after {
+		border: 0;
+		animation: none;
+		background: conic-gradient(
+			currentColor calc(var(--fcsp-vid-progress, 0) * 1%),
+			transparent 0
+		);
+		-webkit-mask: radial-gradient(circle, transparent 54%, #000 56%);
+		mask: radial-gradient(circle, transparent 54%, #000 56%);
 	}
 }
 
