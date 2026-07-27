@@ -84,7 +84,7 @@ The first download fetches the ffmpeg encoder (around 31MB). That only happens o
 
 Encoding is single core and runs on the page itself, so the tab will be unresponsive for a few seconds while it works. This is a limitation of the environment rather than a choice:
 
-- __No multithreading.__ Multi-threaded ffmpeg.wasm needs `SharedArrayBuffer`, which browsers only expose to cross-origin isolated pages (the `COOP`/`COEP` response headers). A userscript can't add response headers to 4chan's pages, so only the single threaded build can be used. It's roughly half the speed of the multi-threaded one and can't use more than one core.
+- __No multithreading.__ Multi-threaded ffmpeg.wasm needs `SharedArrayBuffer`, which browsers only expose to [cross-origin isolated](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated) pages. That's decided from the `COOP`/`COEP` headers on the page's own response, before any userscript runs, and there's no userscript API to change them - so only the single threaded build can be used. It's roughly half the speed of the multi-threaded one and can't use more than one core.
 - __No background worker.__ Normally the encoder would at least run in a Web Worker so the page stays responsive. 4chan's CSP `script-src` doesn't allow `blob:` and sets no `worker-src`, so the worker is blocked and the encoder has to run on the main thread instead - hence the freeze.
 
 To limit the encode time the player only ever encodes each unique frame once. A single loop of the visual is encoded, then the repeats are copied rather than re-encoded, so a long song over a short gif costs about the same as a short one.
