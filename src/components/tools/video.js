@@ -357,7 +357,7 @@ const videoTool = module.exports = {
         exec(util.stillLoopArgs({
           image: visIn, out: 'loop.mp4',
           seconds: Math.min(cfg.STILL_LOOP_SECONDS, Math.ceil(dur)),
-          fps: cfg.STILL_FPS, preset, maxDim: cfg.STILL_MAX_DIM
+          fps: cfg.STILL_FPS, preset
         }));
       } else {
         exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));

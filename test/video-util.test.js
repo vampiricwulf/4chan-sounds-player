@@ -29,17 +29,10 @@ assert.strictEqual(still[still.indexOf('-r') + 1], '1');
 assert.ok(still.includes('-an'), 'segment carries no audio');
 assert.ok(still.join(' ').includes('open-gop=0'), 'closed GOP so repeats can be copied');
 assert.strictEqual(still[still.length - 1], 'loop.mp4');
-assert.ok(still.includes(u.EVEN_SCALE), 'even dims when no cap given');
-
-// boxScale: caps the long edge without upscaling, and still forces even dims.
-assert.strictEqual(u.boxScale(0), u.EVEN_SCALE, 'no cap -> plain even scale');
-assert.strictEqual(u.boxScale(), u.EVEN_SCALE, 'undefined cap -> plain even scale');
-const box = u.boxScale(1920);
-assert.ok(box.includes('force_original_aspect_ratio=decrease'), 'fits inside the box');
-assert.ok(box.includes('min(1920\\,iw)') && box.includes('min(1920\\,ih)'), 'never upscales; commas escaped');
-assert.ok(box.endsWith(u.EVEN_SCALE), 'even dims applied after the cap');
-const capped = u.stillLoopArgs({ image: 'v.jpg', out: 'l.mp4', seconds: 5, fps: 1, maxDim: 1920 });
-assert.ok(capped.includes(u.boxScale(1920)), 'still honours maxDim');
+// Original dimensions are preserved — the only scaling is the even-dimension
+// rounding H.264/yuv420p requires. Nothing is downscaled, for stills or animated.
+assert.ok(still.includes(u.EVEN_SCALE), 'stills keep their original size');
+assert.ok(!still.join(' ').includes('force_original_aspect_ratio'), 'no downscaling');
 assert.strictEqual(still[still.indexOf('-preset') + 1], 'veryfast', 'default preset');
 const stillFast = u.stillLoopArgs({ image: 'v.jpg', out: 'l.mp4', seconds: 5, fps: 1, preset: 'ultrafast' });
 assert.strictEqual(stillFast[stillFast.indexOf('-preset') + 1], 'ultrafast', 'ultrafast preset applied');

@@ -2,18 +2,10 @@
 // No DOM / GM / Player / ns / _ / Icons usage, so this file is require-able and
 // unit-testable under plain Node (see test/video-util.test.js).
 
+// Content keeps its original dimensions. The only adjustment is rounding an odd
+// width/height down by a pixel, which H.264 with yuv420p requires — it rejects
+// odd dimensions outright.
 const EVEN_SCALE = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
-
-// Fit inside a maxDim x maxDim box WITHOUT upscaling (min() against the source
-// size), then force even dimensions. Encode cost scales with pixel count, and
-// 4chan stills are often 12MP+, so capping is the single biggest speed win.
-// The commas inside min() are escaped — ffmpeg treats bare commas as filter
-// separators.
-function boxScale(maxDim) {
-  return !(maxDim > 0)
-    ? EVEN_SCALE
-    : `scale=min(${maxDim}\\,iw):min(${maxDim}\\,ih):force_original_aspect_ratio=decrease,${EVEN_SCALE}`;
-}
 
 // Decide how the visual should be encoded, from its URL and optional MIME type.
 function classifyVisual(image, type) {
@@ -42,13 +34,13 @@ function muxFileName(title, fallback) {
 // any length. Encoding the still for the whole track instead would cost one frame
 // per 1/fps of audio — hundreds of full-resolution frames of an identical image —
 // so this keeps the cost constant no matter how long the sound is.
-function stillLoopArgs({ image, out, seconds, fps, preset, maxDim }) {
+function stillLoopArgs({ image, out, seconds, fps, preset }) {
   return [
     '-loop', '1', '-i', image,
     '-t', String(seconds),
     '-an',
     '-c:v', 'libx264', '-preset', preset || 'veryfast', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
-    '-r', String(fps), '-vf', boxScale(maxDim),
+    '-r', String(fps), '-vf', EVEN_SCALE,
     '-fflags', '+genpts',
     // One IDR at the start and none after, so every copied repeat starts clean.
     '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0:open-gop=0',
@@ -95,7 +87,6 @@ function loopMuxArgs({ loop, audio, out, dur, audioBitrate }) {
 
 module.exports = {
   EVEN_SCALE,
-  boxScale,
   classifyVisual,
   muxFileName,
   stillLoopArgs,
