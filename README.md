@@ -10,6 +10,7 @@ If you have [4chan External Sounds](https://greasyfork.org/en/scripts/31045-4cha
 ## Contents
 - [Sound Player UI](#sound-player-ui)
 - [Creating Sound Images](#creating-sound-images)
+- [Combined Video Downloads](#combined-video-downloads)
 - [Searching for Threads](#sound-threads-search)
 - [Themes](#themes)
 - [API](#api)
@@ -65,6 +66,34 @@ A sound is set on an image by adding `[sound=<url>]` to the filename, where url 
 To create images using the sound player go to the tools view. The form here allows you to select/drop an image and sound. The sound will be uploaded to the selected host and the image will be renamed to include a a link to it. You can also select multiple sounds to add to a single image, but keep in mind the filename length limit when doing so. Once complete you can choose to post the created image, download it, or add it to the player. There are a few default hosts, but you can set up whatever hosts you want under Settings>Hosts. If you have a user token for the default hosts you can also set that there. Be aware that the default host filters only include default upload hosts.
 
 ![Tools View](./images/tools.png)
+
+## Combined Video Downloads
+
+Sounds are normally two separate files - the image/webm from the post, and the audio from the `[sound=<url>]` tag. The combined download merges the two into a single `.mp4` you can save or share anywhere.
+
+The visual is looped for the full length of the audio, so a short gif or webm repeats until the song ends. The audio is never trimmed, and a visual longer than the audio is cut to match it. Still images are held for the whole track.
+
+There are three places to do it:
+- The video button in the footer's download section, for the current sound (`dl-video-button` in the [footer template](#themes)).
+- Download > Video in a playlist item's menu, for any sound without playing it.
+- __Combine to mp4__ in Tools > Download All, to save the whole thread as a zip of mp4s.
+
+The first download fetches the ffmpeg encoder (around 31MB). That only happens once - your browser caches it for later, and it's never downloaded at all unless you use the feature.
+
+#### Encoding Speed
+
+Encoding is single core and runs on the page itself, so the tab will be unresponsive for a few seconds while it works. This is a limitation of the environment rather than a choice:
+
+- __No multithreading.__ Multi-threaded ffmpeg.wasm needs `SharedArrayBuffer`, which browsers only expose to cross-origin isolated pages (the `COOP`/`COEP` response headers). A userscript can't add response headers to 4chan's pages, so only the single threaded build can be used. It's roughly half the speed of the multi-threaded one and can't use more than one core.
+- __No background worker.__ Normally the encoder would at least run in a Web Worker so the page stays responsive. 4chan's CSP `script-src` doesn't allow `blob:` and sets no `worker-src`, so the worker is blocked and the encoder has to run on the main thread instead - hence the freeze.
+
+To limit the encode time the player only ever encodes each unique frame once. A single loop of the visual is encoded, then the repeats are copied rather than re-encoded, so a long song over a short gif costs about the same as a short one.
+
+If the freeze still bothers you, __Fast Video Encoding__ under Settings > Playback switches to ffmpeg's `ultrafast` preset. It's roughly twice as fast for about three times the file size, and is off by default.
+
+#### Archive Support
+
+Some archives set a CSP that blocks the encoder entirely. desuarchive, for example, doesn't allow `unsafe-eval`, which is needed to load the encoder at all. On those sites the video download buttons are simply not shown, and the batch option reports that it isn't available rather than failing part way through. The rest of the player is unaffected, and combined downloads still work normally on 4chan.
 
 ## Sound Threads Search
 
@@ -133,6 +162,7 @@ All the values here can be followed by `:""` to specify the text, otherwise they
 - `sound-link` - Opens the sounds source in a new tab.
 - `dl-image-button` - Download the sounds image with the original filename, i.e including `[sound=...]`.
 - `dl-sound-button` - Download the sound audio itself.
+- `dl-video-button` - Download the image/video and sound [combined into a single mp4](#combined-video-downloads). Hidden on sites where the encoder can't run.
 - `filter-image-button` - Add the image MD5 to the filters.
 - `filter-sound-button` - Add the sound URL to the filters.
 - `remove-button` - Remove the sound from the player. Removed sounds can be re-added using the reload button.
