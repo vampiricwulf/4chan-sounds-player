@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.0
+// @version      3.7.1
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -5373,8 +5373,8 @@ module.exports = {
     });
 
     // Show update notifications.
-    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.7.0") {
-      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.0"}</a>.`);
+    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.7.1") {
+      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.1"}</a>.`);
     }
 
     // Listen for the player closing to apply the pause on hide setting.
@@ -5532,7 +5532,7 @@ module.exports = {
       // Show the playlist or image view on load, whichever was last shown.
       settings.viewStyle = Player.playlist._lastView;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.0";
+      settings.VERSION = "3.7.1";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -5548,7 +5548,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.0") {
+    if (!fromVersion || fromVersion === "3.7.1") {
       return {};
     }
     const changes = {};
@@ -6025,7 +6025,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.0"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.1"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -7454,7 +7454,14 @@ module.exports = {
   // @ffmpeg/core 0.12.10 UMD build (ffmpeg-core.js + ffmpeg-core.wasm).
   FFMPEG_CORE_BASE: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd',
   AUDIO_BITRATE: '192k',
-  STILL_FPS: 2
+  // A still's picture never changes, so encode exactly ONE frame and let it span
+  // the whole track — the cheapest possible encode and the smallest possible file.
+  // Very low frame rates are unusual though, so if a player shows black, refuses to
+  // seek, or won't thumbnail, set this false to fall back to STILL_FPS below.
+  STILL_SINGLE_FRAME: true,
+  // Used when STILL_SINGLE_FRAME is false: one frame every 10s, so a 4 minute sound
+  // is ~24 frames under a single keyframe. Raise toward '1' if a player struggles.
+  STILL_FPS: '1/10'
 };
 
 
@@ -7764,6 +7771,9 @@ ${Player.tools.downloadTemplate()}
 // No DOM / GM / Player / ns / _ / Icons usage, so this file is require-able and
 // unit-testable under plain Node (see test/video-util.test.js).
 
+// Content keeps its original dimensions. The only adjustment is rounding an odd
+// width/height down by a pixel, which H.264 with yuv420p requires — it rejects
+// odd dimensions outright.
 const EVEN_SCALE = 'scale=trunc(iw/2)*2:trunc(ih/2)*2';
 
 // Decide how the visual should be encoded, from its URL and optional MIME type.
@@ -7789,14 +7799,46 @@ function muxFileName(title, fallback) {
   return (base || 'sound') + '.mp4';
 }
 
-// Still image + audio -> mp4 of exactly `dur` seconds (one held frame).
+// Milliseconds per second — the video track timescale used for stills. The single
+// frame's duration IS the video track's duration, so the timescale has to be fine
+// enough to express the audio length; a whole-second tick would round the file's
+// duration to the nearest second.
+const MS_TIMESCALE = 1000;
+
+// Frame rate that yields exactly ONE video frame for a track of `dur` seconds.
+// The period is ceil'd to the next millisecond so the second frame lands at or
+// after the end and is never encoded, leaving the frame's duration (and therefore
+// the video track's) within 1ms of the audio.
+//
+// Expressed as ms/ms rather than 1/seconds on purpose: with a rate of 1/240 the
+// track's tick becomes 240 SECONDS, so its duration can only be whole seconds and
+// the container rounds. At 1000/240000 the tick is a millisecond.
+function singleFrameRate(dur) {
+  return `${MS_TIMESCALE}/${Math.max(1, Math.ceil(dur * MS_TIMESCALE) || 1)}`;
+}
+
+// Still image + audio -> mp4 of exactly `dur` seconds, in ONE pass.
+//
+// The picture never changes, so the frame rate is what drives the cost — and it
+// only has to be high enough for players to behave. At one frame every several
+// seconds the whole track is a couple of dozen frames however long the sound is,
+// and a single keyframe covers all of them, which is also the smallest possible
+// file. `fps` is a fraction string like '1/10' so it stays exact.
+//
+// The rate is set on the INPUT too, so the image demuxer generates only the frames
+// we keep instead of its default 25fps that would immediately be dropped.
 function stillArgs({ image, audio, out, dur, fps, audioBitrate, preset }) {
   return [
-    '-loop', '1', '-i', image,
+    '-framerate', String(fps), '-loop', '1', '-i', image,
     '-i', audio,
     '-t', String(dur),
     '-c:v', 'libx264', '-preset', preset || 'veryfast', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
     '-r', String(fps), '-vf', EVEN_SCALE,
+    // Nothing ever changes, so one keyframe for the entire track.
+    '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0',
+    // Pin a millisecond timescale so the video track's duration can express the
+    // audio length instead of being rounded to whole seconds.
+    '-video_track_timescale', String(MS_TIMESCALE),
     '-c:a', 'aac', '-b:a', audioBitrate,
     '-movflags', '+faststart',
     out
@@ -7844,6 +7886,7 @@ module.exports = {
   EVEN_SCALE,
   classifyVisual,
   muxFileName,
+  singleFrameRate,
   stillArgs,
   loopEncodeArgs,
   loopMuxArgs
@@ -7869,9 +7912,28 @@ const ENCODER_CSP_MSG = 'Combined video download isn\'t available on this site �
 // One shared AudioContext reused for all duration probes (browsers cap the count).
 let _audioCtx = null;
 
+// Give the browser a chance to paint before a synchronous exec blocks the main
+// thread, so the status set just beforehand is actually visible during the freeze.
+// rAF doesn't fire in background tabs, hence the timeout fallback.
+function paint() {
+  return new Promise(resolve => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        resolve();
+      }
+    };
+    typeof requestAnimationFrame === 'function'
+      && requestAnimationFrame(() => requestAnimationFrame(finish));
+    setTimeout(finish, 50);
+  });
+}
+
 // Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
 // Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
-function fetchBytes(url) {
+// onProgress (if given) receives a 0-1 ratio while downloading.
+function fetchBytes(url, onProgress) {
   if (/^blob:/.test(url)) {
     return fetch(url).then(r => r.arrayBuffer()).then(b => new Uint8Array(b));
   }
@@ -7880,6 +7942,7 @@ function fetchBytes(url) {
       method: 'GET',
       url,
       responseType: 'arraybuffer',
+      onprogress: onProgress && (r => r.total > 0 && onProgress(r.loaded / r.total)),
       onload: r => resolve(new Uint8Array(r.response)),
       onerror: reject,
       onabort: () => reject(Object.assign(new Error('aborted'), { aborted: true }))
@@ -7946,21 +8009,57 @@ const videoTool = module.exports = {
     }
   },
 
-  // Toggle the busy spinner on the download button. Ref-counted so a batch of
-  // serialized jobs keeps it lit without flicker. The spinner is a CSS transform
-  // animation (compositor thread), so it keeps moving even while a synchronous
-  // exec() blocks the main thread.
+  // Toggle the busy state on the download button. Ref-counted so a batch of
+  // serialized jobs keeps it lit without flicker.
   _setProcessing(on) {
     videoTool._processingCount = Math.max(0, videoTool._processingCount + (on ? 1 : -1));
     const btn = Player.$(`.${ns}-download-video-button`);
-    btn && btn.classList[videoTool._processingCount > 0 ? 'add' : 'remove'](`${ns}-processing`);
+    if (!btn) {
+      return;
+    }
+    const busy = videoTool._processingCount > 0;
+    btn.classList[busy ? 'add' : 'remove'](`${ns}-processing`);
+    if (!busy) {
+      btn.removeAttribute('data-progress');
+      btn.style.removeProperty('--fcsp-vid-progress');
+      btn.removeAttribute('title');
+    }
+  },
+
+  // Report what the encoder is doing. `ratio` (0-1) draws a determinate ring;
+  // omit it for the indeterminate spinner. The label lands in the button's tooltip
+  // and is echoed to the console, so a step that stalls is identifiable.
+  //
+  // NOTE: core.exec() is synchronous and the core has no ASYNCIFY, so nothing can
+  // repaint *during* an encode. Real byte-level progress is therefore only possible
+  // for the async phases (encoder download, media fetches); for the encode itself we
+  // set the label and await paint() BEFORE blocking, so the freeze is attributable.
+  _setStatus(label, ratio) {
+    if (label && label !== videoTool._statusLabel) {
+      videoTool._statusLabel = label;
+       true && console.log('[4chan sounds player] video:', label);
+    }
+    const btn = Player.$(`.${ns}-download-video-button`);
+    if (!btn) {
+      return;
+    }
+    if (ratio == null || !isFinite(ratio)) {
+      btn.removeAttribute('data-progress');
+      btn.style.removeProperty('--fcsp-vid-progress');
+      btn.title = label || '';
+      return;
+    }
+    const pct = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    btn.setAttribute('data-progress', '');
+    btn.style.setProperty('--fcsp-vid-progress', pct);
+    btn.title = `${label} ${pct}%`;
   },
 
   // Load the single-threaded ffmpeg core ON THE MAIN THREAD (no Web Worker).
   // 4chan's CSP blocks blob:/cross-origin workers (worker-src falls back to
   // script-src, which lacks blob:), but allows 'unsafe-eval' — so we eval the core
   // glue and run the wasm inline. The single-thread core spawns no workers itself.
-  async loadFFmpeg() {
+  async loadFFmpeg(onProgress) {
     // Bail before the ~31MB download if this site's CSP won't let us run the core.
     videoTool._assertEncoderAvailable();
     if (videoTool._loaded) {
@@ -7971,9 +8070,10 @@ const videoTool = module.exports = {
     }
     videoTool._loadingPromise = (async () => {
       if (!videoTool._createCore) {
+        // The wasm is ~31MB and dominates the wait, so it drives the progress ratio.
         const [ coreText, wasmBytes ] = await Promise.all([
           fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
-          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`)
+          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, onProgress)
         ]);
         // Load the core glue and capture the factory. The UMD is `var createFFmpegCore = …`;
         // read it back as the eval COMPLETION VALUE (resolved by binding) rather than via
@@ -8080,14 +8180,28 @@ const videoTool = module.exports = {
   // unresponsive during encoding (bounded by the encode-once loop strategy).
   async _runMux(sound, opts) {
     opts = opts || {};
-    await videoTool.loadFFmpeg();
+
+    // Weight the phases so the ring advances sensibly. The encoder download only
+    // happens once per session, so it only takes a slice when it's actually needed.
+    const needsLoad = !videoTool._loaded;
+    const W = needsLoad
+      ? { load: 0.6, fetch: 0.15 }
+      : { load: 0, fetch: 0.4 };
+    // Report both to the button and to any caller-supplied bar (e.g. Download All).
+    const report = (label, ratio) => {
+      videoTool._setStatus(label, ratio);
+      opts.onProgress && ratio != null && opts.onProgress(Math.max(0, Math.min(1, ratio)));
+    };
+
+    report('Loading the video encoder', needsLoad ? 0 : W.load);
+    await videoTool.loadFFmpeg(r => report('Loading the video encoder', r * W.load));
     const core = videoTool._ffmpeg;
     const kind = util.classifyVisual(sound.image, sound.type);
 
     // Fetch both streams (remote via GM.xhr, local blob: via fetch).
     let audioBytes;
     try {
-      audioBytes = await fetchBytes(sound.src);
+      audioBytes = await fetchBytes(sound.src, r => report('Downloading the sound', W.load + r * W.fetch * 0.5));
     } catch (err) {
       let host = '';
       try {
@@ -8095,11 +8209,14 @@ const videoTool = module.exports = {
       } catch (e) { /* non-URL src */ }
       throw new PlayerError(`Couldn't fetch the sound${host}.`, 'warning', err);
     }
-    const visualBytes = await fetchBytes(sound.image);
+    const visualBytes = await fetchBytes(sound.image, r => report('Downloading the image', W.load + W.fetch * 0.5 + r * W.fetch * 0.5));
+    const encBase = W.load + W.fetch;
 
-    videoTool._progressCb = opts.onProgress
-      ? e => opts.onProgress(Math.max(0, Math.min(1, (e && e.progress) || 0)))
-      : null;
+    // The core reports progress during exec, but nothing can repaint while exec
+    // blocks — so keep the last value for diagnostics on failure rather than for UI.
+    videoTool._progressCb = e => {
+      videoTool._lastExecProgress = e && e.progress;
+    };
 
     const visIn = kind === 'video' ? 'visual.mp4'
       : kind === 'gif' ? 'visual.gif'
@@ -8135,17 +8252,31 @@ const videoTool = module.exports = {
       }
 
       const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
+      // Each exec blocks the main thread, so publish the step and let it paint first.
       if (kind === 'still') {
+        // One pass, and by default a single frame spanning the whole track — the
+        // picture never changes, so there's nothing else to encode.
+        report('Encoding the video (the tab will freeze briefly)', encBase);
+        await paint();
         exec(util.stillArgs({
           image: visIn, audio: 'audio', out: 'out.mp4',
-          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
+          dur,
+          fps: cfg.STILL_SINGLE_FRAME ? util.singleFrameRate(dur) : cfg.STILL_FPS,
+          audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
-        // Encode one loop, then loop+mux+cut to the audio length in a single pass.
+        // Animated: encode one loop, then copy it over the audio so the repeats
+        // cost nothing to encode.
+        report('Encoding the loop (the tab will freeze briefly)', encBase);
+        await paint();
         exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
         written.push('loop.mp4');
+
+        report('Looping it over the sound', encBase + (1 - encBase) * 0.6);
+        await paint();
         exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
       }
+      report('Saving', 1);
       written.push('out.mp4');
       const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array
       if (!data || !data.length) {
@@ -8178,8 +8309,11 @@ const videoTool = module.exports = {
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
+      // Name the step that failed — otherwise a mid-encode failure is opaque.
+      const at = videoTool._statusLabel ? ` (during: ${videoTool._statusLabel.replace(/ \(.*\)$/, '')})` : '';
+      videoTool._lastLog && console.error('[4chan sounds player] last encoder log:', videoTool._lastLog);
       // logError pulls the level from a PlayerError's .type; 'error' is the default otherwise.
-      Player.logError('Failed to create the video.', err, 'error');
+      Player.logError(`Failed to create the video${at}.`, err, 'error');
       if (videoTool._evalBlocked) {
         // The feature can't run on this site — drop the now-useless button.
         Player.footer && Player.footer.render();
@@ -8566,7 +8700,7 @@ module.exports = {
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.0"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.1"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -10336,6 +10470,13 @@ module.exports = (data = {}) => `.${ns}-colorpicker {
   border-top-color: transparent;
   border-radius: 50%;
   animation: ${ns}-spin 0.7s linear infinite;
+}
+.${ns}-download-video-button.${ns}-processing[data-progress]::after {
+  border: 0;
+  animation: none;
+  background: conic-gradient(currentColor calc(var(--fcsp-vid-progress, 0) * 1%), transparent 0);
+  -webkit-mask: radial-gradient(circle, transparent 54%, #000 56%);
+  mask: radial-gradient(circle, transparent 54%, #000 56%);
 }
 
 @keyframes ${ns}-spin {
