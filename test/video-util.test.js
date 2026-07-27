@@ -19,22 +19,23 @@ assert.strictEqual(u.muxFileName('', 'fallback.jpg'), 'fallback.mp4', 'uses fall
 assert.strictEqual(u.muxFileName('', ''), 'sound.mp4', 'last-resort name');
 
 // arg builders — assert the load-bearing flags are present and correctly ordered
-// Stills encode a SHORT closed-GOP segment that gets copy-looped, so the cost
-// doesn't scale with the length of the sound.
-const still = u.stillLoopArgs({ image: 'v.jpg', out: 'loop.mp4', seconds: 20, fps: 1 });
-assert.deepStrictEqual(still.slice(0, 4), ['-loop', '1', '-i', 'v.jpg']);
+// Stills are ONE pass at a very low frame rate: a couple of dozen frames cover the
+// whole track, all under a single keyframe.
+const still = u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'out.mp4', dur: 240, fps: '1/10', audioBitrate: '192k' });
+assert.deepStrictEqual(still.slice(0, 6), [ '-framerate', '1/10', '-loop', '1', '-i', 'v.jpg' ],
+  'input rate set too, so the demuxer does not generate frames just to drop them');
 assert.ok(still.includes('-tune') && still[still.indexOf('-tune') + 1] === 'stillimage');
-assert.strictEqual(still[still.indexOf('-t') + 1], '20', 'only the segment is encoded');
-assert.strictEqual(still[still.indexOf('-r') + 1], '1');
-assert.ok(still.includes('-an'), 'segment carries no audio');
-assert.ok(still.join(' ').includes('open-gop=0'), 'closed GOP so repeats can be copied');
-assert.strictEqual(still[still.length - 1], 'loop.mp4');
+assert.strictEqual(still[still.indexOf('-t') + 1], '240', 'covers the full audio length');
+assert.strictEqual(still[still.indexOf('-r') + 1], '1/10');
+assert.ok(still.join(' ').includes('keyint=100000'), 'one keyframe for the whole track');
+assert.ok(still.join(' ').includes('-c:a aac'), 'audio muxed in the same pass');
+assert.strictEqual(still[still.length - 1], 'out.mp4');
 // Original dimensions are preserved — the only scaling is the even-dimension
 // rounding H.264/yuv420p requires. Nothing is downscaled, for stills or animated.
 assert.ok(still.includes(u.EVEN_SCALE), 'stills keep their original size');
 assert.ok(!still.join(' ').includes('force_original_aspect_ratio'), 'no downscaling');
 assert.strictEqual(still[still.indexOf('-preset') + 1], 'veryfast', 'default preset');
-const stillFast = u.stillLoopArgs({ image: 'v.jpg', out: 'l.mp4', seconds: 5, fps: 1, preset: 'ultrafast' });
+const stillFast = u.stillArgs({ image: 'v.jpg', audio: 'a', out: 'o.mp4', dur: 5, fps: '1/10', audioBitrate: '192k', preset: 'ultrafast' });
 assert.strictEqual(stillFast[stillFast.indexOf('-preset') + 1], 'ultrafast', 'ultrafast preset applied');
 
 const loop = u.loopEncodeArgs({ visual: 'v.webm', out: 'loop.mp4', isGif: false });

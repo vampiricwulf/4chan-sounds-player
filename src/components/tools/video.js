@@ -348,25 +348,28 @@ const videoTool = module.exports = {
       }
 
       const preset = Player.config.videoUltrafast ? 'ultrafast' : 'veryfast';
-      // Both paths encode a short loop ONCE and then copy it over the audio, so
-      // encode cost doesn't grow with the length of the sound.
       // Each exec blocks the main thread, so publish the step and let it paint first.
-      report('Encoding the loop (the tab will freeze briefly)', encBase);
-      await paint();
       if (kind === 'still') {
-        exec(util.stillLoopArgs({
-          image: visIn, out: 'loop.mp4',
-          seconds: Math.min(cfg.STILL_LOOP_SECONDS, Math.ceil(dur)),
-          fps: cfg.STILL_FPS, preset
+        // One pass: the picture never changes, so a very low frame rate covers the
+        // whole track in a couple of dozen frames under a single keyframe.
+        report('Encoding the video (the tab will freeze briefly)', encBase);
+        await paint();
+        exec(util.stillArgs({
+          image: visIn, audio: 'audio', out: 'out.mp4',
+          dur, fps: cfg.STILL_FPS, audioBitrate: cfg.AUDIO_BITRATE, preset
         }));
       } else {
+        // Animated: encode one loop, then copy it over the audio so the repeats
+        // cost nothing to encode.
+        report('Encoding the loop (the tab will freeze briefly)', encBase);
+        await paint();
         exec(util.loopEncodeArgs({ visual: visIn, out: 'loop.mp4', isGif: kind === 'gif', preset }));
-      }
-      written.push('loop.mp4');
+        written.push('loop.mp4');
 
-      report('Looping it over the sound', encBase + (1 - encBase) * 0.6);
-      await paint();
-      exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
+        report('Looping it over the sound', encBase + (1 - encBase) * 0.6);
+        await paint();
+        exec(util.loopMuxArgs({ loop: 'loop.mp4', audio: 'audio', out: 'out.mp4', dur, audioBitrate: cfg.AUDIO_BITRATE }));
+      }
       report('Saving', 1);
       written.push('out.mp4');
       const data = core.FS.readFile('out.mp4', { encoding: 'binary' }); // Uint8Array

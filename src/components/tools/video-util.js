@@ -30,20 +30,27 @@ function muxFileName(title, fallback) {
   return (base || 'sound') + '.mp4';
 }
 
-// Encode a SHORT segment of a still image, closed-GOP so it can be copy-looped to
-// any length. Encoding the still for the whole track instead would cost one frame
-// per 1/fps of audio — hundreds of full-resolution frames of an identical image —
-// so this keeps the cost constant no matter how long the sound is.
-function stillLoopArgs({ image, out, seconds, fps, preset }) {
+// Still image + audio -> mp4 of exactly `dur` seconds, in ONE pass.
+//
+// The picture never changes, so the frame rate is what drives the cost — and it
+// only has to be high enough for players to behave. At one frame every several
+// seconds the whole track is a couple of dozen frames however long the sound is,
+// and a single keyframe covers all of them, which is also the smallest possible
+// file. `fps` is a fraction string like '1/10' so it stays exact.
+//
+// The rate is set on the INPUT too, so the image demuxer generates only the frames
+// we keep instead of its default 25fps that would immediately be dropped.
+function stillArgs({ image, audio, out, dur, fps, audioBitrate, preset }) {
   return [
-    '-loop', '1', '-i', image,
-    '-t', String(seconds),
-    '-an',
+    '-framerate', String(fps), '-loop', '1', '-i', image,
+    '-i', audio,
+    '-t', String(dur),
     '-c:v', 'libx264', '-preset', preset || 'veryfast', '-tune', 'stillimage', '-pix_fmt', 'yuv420p',
     '-r', String(fps), '-vf', EVEN_SCALE,
-    '-fflags', '+genpts',
-    // One IDR at the start and none after, so every copied repeat starts clean.
-    '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0:open-gop=0',
+    // Nothing ever changes, so one keyframe for the entire track.
+    '-x264-params', 'keyint=100000:min-keyint=100000:scenecut=0',
+    '-c:a', 'aac', '-b:a', audioBitrate,
+    '-movflags', '+faststart',
     out
   ];
 }
@@ -89,7 +96,7 @@ module.exports = {
   EVEN_SCALE,
   classifyVisual,
   muxFileName,
-  stillLoopArgs,
+  stillArgs,
   loopEncodeArgs,
   loopMuxArgs
 };
