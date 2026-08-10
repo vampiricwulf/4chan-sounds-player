@@ -42,6 +42,9 @@ module.exports = (env, argv) => {
       minimize: argv.mode === 'production' && !env['no-minify'],
       minimizer: [
         new TerserPlugin({
+          // Don't split the @license-bearing banner into a *.LICENSE.txt sidecar —
+          // the preamble already restores the full header in the output itself.
+          extractComments: false,
           terserOptions: {
             output: {
               preamble: banner,
