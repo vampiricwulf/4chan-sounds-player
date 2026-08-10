@@ -46,7 +46,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js
-// @updateURL    https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player.meta.js
-// @downloadURL  https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player.user.js
+// @updateURL    https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player-greasyfork.meta.js
+// @downloadURL  https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player-greasyfork.user.js
 // ==/UserScript==
 

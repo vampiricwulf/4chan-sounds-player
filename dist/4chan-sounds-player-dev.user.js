@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.1
+// @version      3.7.2
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -43,8 +43,8 @@
 // @connect      cdn.jsdelivr.net
 // @connect      *
 // @run-at       document-start
-// @require      https://raw.githubusercontent.com/richtr/NoSleep.js/07fcee254724ab1b79076fbc22f3dd447649a2eb/dist/NoSleep.min.js
-// @require      https://raw.githubusercontent.com/Stuk/jszip/7bbcb3873db23f6d27550cdbb6c4cc2bdeb32194/dist/jszip.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js
 // @updateURL    https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player-dev.meta.js
 // @downloadURL  https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player-dev.user.js
@@ -5373,8 +5373,8 @@ module.exports = {
     });
 
     // Show update notifications.
-    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.7.1") {
-      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.1"}</a>.`);
+    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== "3.7.2") {
+      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2"}</a>.`);
     }
 
     // Listen for the player closing to apply the pause on hide setting.
@@ -5532,7 +5532,7 @@ module.exports = {
       // Show the playlist or image view on load, whichever was last shown.
       settings.viewStyle = Player.playlist._lastView;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.1";
+      settings.VERSION = "3.7.2";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -5548,7 +5548,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.1") {
+    if (!fromVersion || fromVersion === "3.7.2") {
       return {};
     }
     const changes = {};
@@ -6025,7 +6025,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.1"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8700,7 +8700,7 @@ module.exports = {
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.1"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2"));
 
     // Apply any specific replacements
     if (data.replacements) {
