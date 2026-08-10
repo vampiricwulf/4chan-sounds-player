@@ -13,7 +13,7 @@
     "test": "node test/video-util.test.js && node test/parse-action.test.js"
   },
   "author": "rcc11",
-  "license": "ISC",
+  "license": "CC0-1.0",
   "devDependencies": {
     "eslint": "^9.39.2",
     "globals": "^17.0.0",
