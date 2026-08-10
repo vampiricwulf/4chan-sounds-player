@@ -4,8 +4,9 @@
   "description": "Play that faggy music weeb boi",
   "main": "main.js",
   "scripts": {
-    "build": "node build.js",
+    "build": "node build.js && npm run build-greasyfork",
     "build-beta": "node build.js --env filename=4chan-sounds-player-beta --env append-hash",
+    "build-greasyfork": "node build.js --env filename=4chan-sounds-player-greasyfork --env no-minify",
     "build-dev": "node build.js --mode development --env gitcdn",
     "lint": "eslint .",
     "test:util": "node test/video-util.test.js",

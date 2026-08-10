@@ -37,6 +37,9 @@ module.exports = (env, argv) => {
       hashFunction: 'sha256'
     },
     optimization: {
+      // Greasy Fork rejects minified script code, so `no-minify` produces a
+      // readable production build alongside the regular minified one.
+      minimize: argv.mode === 'production' && !env['no-minify'],
       minimizer: [
         new TerserPlugin({
           terserOptions: {
