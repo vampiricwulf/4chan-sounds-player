@@ -595,7 +595,7 @@ previous</code></pre>
     </article>
     <article class="entry" id="s-maxPIPWidth" data-setting="maxPIPWidth" data-context="Settings › Display › Minimised Display">
       <header><h5>Max Width</h5><span class="badge">Text</span><span class="default">Default: <code>150px</code></span></header>
-      <p>The widest the thumbnail can be. Any CSS length works, such as <code>200px</code>, <code>15vw</code> or <code>10rem</code>.</p>
+      <p>The widest the thumbnail can be. Any CSS length works, such as <code>200px</code>, <code>15vw</code> or <code>10rem</code>. A number on its own is in pixels.</p>
     </article>
     <article class="entry" id="s-chanXControls" data-setting="chanXControls" data-context="Settings › Display › Minimised Display" data-keywords="4chan x header">
       <header><h5>4chan X Header Controls</h5><span class="badge type-select">Dropdown</span><span class="badge chanx">4chan X only</span><span class="default">Default: <code>Only with the player closed</code></span></header>
@@ -616,7 +616,7 @@ previous</code></pre>
     </article>
     <article class="entry" id="s-limitPostWidths" data-setting="limitPostWidths" data-context="Settings › Display › Thread" data-keywords="overlap behind">
       <header><h5>Limit Post Widths</h5><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code></span></header>
-      <p>Narrows the posts beside the player so their text isn't hidden behind it. Only posts level with the player are narrowed, and only while it's open.</p>
+      <p>Narrows the posts beside the player so their text isn't hidden behind it. Only posts level with the player are narrowed, only while it's open, and only when it's on the right half of the window: posts start at the left edge, so narrowing them can't uncover them from a player on the left.</p>
     </article>
     <article class="entry" id="s-minPostWidth" data-setting="minPostWidth" data-context="Settings › Display › Thread">
       <header><h5>Minimum Width</h5><span class="badge">Text</span><span class="default">Default: <code>50%</code></span></header>
@@ -817,7 +817,7 @@ files.catbox.moe/abc123.mp3</code></pre>
     </article>
     <article class="entry" id="s-hotkey_bindings-previousGroup" data-setting="hotkey_bindings.previousGroup" data-context="Settings › Keybinds › Playback">
       <header><h5>Previous Group</h5><span class="badge">Key</span><span class="default">Default: <kbd>Shift</kbd>+<kbd>←</kbd></span></header>
-      <p>Go back to the previous <em>post</em>, skipping any other sounds in the current one. Useful when a single image carries several sounds.</p>
+      <p>Go back to the first sound of the previous <em>post</em>, skipping any other sounds in the current one. Useful when a single image carries several sounds.</p>
     </article>
     <article class="entry" id="s-hotkey_bindings-nextGroup" data-setting="hotkey_bindings.nextGroup" data-context="Settings › Keybinds › Playback">
       <header><h5>Next Group</h5><span class="badge">Key</span><span class="default">Default: <kbd>Shift</kbd>+<kbd>→</kbd></span></header>
@@ -853,7 +853,7 @@ files.catbox.moe/abc123.mp3</code></pre>
     </article>
     <article class="entry" id="s-hotkey_bindings-toggleFullscreen" data-setting="hotkey_bindings.toggleFullscreen" data-context="Settings › Keybinds › Display">
       <header><h5>Toggle Fullscreen</h5><span class="badge">Key</span><span class="default">Default: none</span></header>
-      <p>Enter or leave fullscreen. Works while you're typing in a text box.</p>
+      <p>Enter or leave fullscreen. Also works while you're typing in the playlist search box, but not in other text boxes.</p>
     </article>
     <article class="entry" id="s-hotkey_bindings-togglePlaylist" data-setting="hotkey_bindings.togglePlaylist" data-context="Settings › Keybinds › Display">
       <header><h5>Toggle Playlist</h5><span class="badge">Key</span><span class="default">Default: none</span></header>
@@ -861,7 +861,7 @@ files.catbox.moe/abc123.mp3</code></pre>
     </article>
     <article class="entry" id="s-hotkey_bindings-toggleSearch" data-setting="hotkey_bindings.toggleSearch" data-context="Settings › Keybinds › Display">
       <header><h5>Toggle Playlist Search</h5><span class="badge">Key</span><span class="default">Default: none</span></header>
-      <p>Show or hide the playlist search box. Works while you're typing in a text box.</p>
+      <p>Show or hide the playlist search box. Also works while you're typing in the search box itself, so the same key closes it, but not in other text boxes.</p>
     </article>
     <article class="entry" id="s-hotkey_bindings-scrollToPlaying" data-setting="hotkey_bindings.scrollToPlaying" data-context="Settings › Keybinds › Display">
       <header><h5>Jump To Playing</h5><span class="badge">Key</span><span class="default">Default: none</span></header>
@@ -994,7 +994,7 @@ p:{
   </article>
   <article class="entry" id="f-host-url" data-context="Settings › Hosts" data-keywords="endpoint api">
     <header><h5>URL</h5><span class="badge">Text</span><span class="default">Required</span></header>
-    <p>The upload endpoint. The file is sent there with a <code>POST</code> request as multipart form data. Include <code>https://</code>.</p>
+    <p>The upload endpoint. The file is sent there with a <code>POST</code> request as multipart form data. If you leave out <code>https://</code> it's added for you.</p>
   </article>
   <article class="entry" id="f-host-responsePath" data-context="Settings › Hosts" data-keywords="json">
     <header><h5>Response Path</h5><span class="badge">Text</span><span class="default">Optional</span></header>
@@ -1002,7 +1002,7 @@ p:{
   </article>
   <article class="entry" id="f-host-responseMatch" data-context="Settings › Hosts" data-keywords="regex regular expression">
     <header><h5>Response Match</h5><span class="badge">Regex</span><span class="default">Optional</span></header>
-    <p>For hosts that reply with plain text or HTML: a regular expression, without the slashes. Its first capture group is the link or filename. For example, <code>href="([^"]+\.mp3)"</code>. Ignored when <em>Response Path</em> is set. With neither set, the whole reply is used as the link, which suits catbox.</p>
+    <p>For hosts that reply with plain text or HTML: a regular expression, without the slashes. Its first capture group is the link or filename, so it needs one. For example, <code>href="([^"]+\.mp3)"</code>. Ignored when <em>Response Path</em> is set. With neither set, the whole reply is used as the link, which suits catbox.</p>
   </article>
   <article class="entry" id="f-host-soundUrl" data-context="Settings › Hosts" data-keywords="format %s prefix">
     <header><h5>File URL Format</h5><span class="badge">Text</span><span class="default">Optional</span></header>
@@ -1010,7 +1010,7 @@ p:{
   </article>
   <article class="entry" id="f-host-data" data-context="Settings › Hosts" data-keywords="json form body fields">
     <header><h5>Data (JSON)</h5><span class="badge">JSON</span><span class="default">Required</span></header>
-    <p>The form fields sent with the upload, as a JSON object. The value <code>"$file"</code> marks the field that carries the audio file. Fields set to <code>null</code> aren't sent, so a host can list optional fields, like an account hash, for you to fill in.</p>
+    <p>The form fields sent with the upload, as a JSON object. The value <code>"$file"</code> marks the field that carries the audio file, and one field must have it. Fields set to <code>null</code> aren't sent, so a host can list optional fields, like an account hash, for you to fill in.</p>
     <pre><code>{
     "reqtype": "fileupload",
     "fileToUpload": "$file",
