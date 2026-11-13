@@ -7,11 +7,12 @@ const buttons = require('./buttons');
 // matches) because it resumes from a stale offset. To keep both call shapes
 // safe, every .test()/.exec() site below resets lastIndex to 0 explicitly.
 const playingRE = /p: ?{([^}]*)}/g;
-const hoverRE = /h: ?{([^}]*)}/g;
 // Render the inner content only when at least one sound is dead (failed to load).
 const deadRE = /d: ?{([^}]*)}/g;
 // Render the inner content only when the user has removed sounds from the playlist.
 const removedRE = /\br: ?{([^}]*)}/g;
+// Any block whose content holds no other block: applied innermost first, so blocks can nest.
+const innermostBlockRE = /\b([pdhr]): ?{([^{}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -70,14 +71,24 @@ module.exports = {
 
     // Apply common template replacements, unless they are opted out.
     let html = data.template.replace(configRE, (...args) => _.get(Player.config, args[1]));
-    !data.ignoreDisplayBlocks && (html = html
-      .replace(playingRE, Player.playing && Player.playing === data.sound ? '$1' : '')
-      // Lazy replacer (not an eager ternary like the blocks above): the dead scan only
-      // runs when a template actually contains a d:{ } block, so the per-sound row
-      // template — built once per sound — doesn't pay an O(n) scan on every render.
-      .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
-      .replace(removedRE, (m, inner) => Player.playlist.removedCount() ? inner : '')
-      .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
+    if (!data.ignoreDisplayBlocks) {
+      // Conditions are only worked out for blocks the template has: the dead and removed
+      // scans would otherwise run for every row the row template builds.
+      const shows = {
+        p: () => !!Player.playing && Player.playing === data.sound,
+        d: () => Player.sounds.some(s => s.error),
+        r: () => Player.playlist.removedCount() > 0
+      };
+      // Innermost first, so "p:{ h:{menu-button} }" works: an outer block used to end at
+      // the inner one's "}", leaving a stray "}" on the page.
+      let before;
+      do {
+        before = html;
+        html = html.replace(innermostBlockRE, (m, kind, inner) => kind === 'h'
+          ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
+          : shows[kind]() ? inner : '');
+      } while (html !== before);
+    }
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
       _data.tplNameMatch = buttonConf.tplNameMatch;
@@ -230,12 +241,13 @@ module.exports = {
     const config = [];
     let match;
     while ((match = buttonRE.exec(template)) !== null) {
+      let buttonConf = Player.userTemplate._findButtonConf(match[1]);
+      // Buttons for the selected sound appear, disappear and act on it, so follow it.
+      // (The row template's rows are rebuilt by the playlist itself.)
+      buttonConf.requireSound && property !== 'rowTemplate' && events.push('playsound', 'stop', 'filters-applied');
       // If user text is given then the display doesn't change.
-      if (!match[2]) {
-        let buttonConf = Player.userTemplate._findButtonConf(match[1]);
-        if (buttonConf.property) {
-          config.push(buttonConf.property);
-        }
+      if (!match[2] && buttonConf.property) {
+        config.push(buttonConf.property);
       }
     }
     // Find config references.

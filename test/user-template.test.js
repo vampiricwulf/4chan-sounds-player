@@ -64,6 +64,9 @@ assert.strictEqual(build('removed-count r:{shown}'), '0 ', 'r:{ } hidden while n
 Player.playlist._removed.set('3:0', { id: '3:0', post: '3' });
 assert.strictEqual(build('removed-count r:{shown}'), '1 shown', 'r:{ } shown once something is removed');
 assert.strictEqual(build('color:{x} r: {y}'), 'color:{x} y', 'r:{ } only matches on its own');
+// Nested blocks are applied innermost first: no stray "}" when the outer one is hidden.
+assert.strictEqual(build('a p:{ b h:{c} } d', { sound: dead }), 'a  d', 'hidden outer block takes its inner block with it');
+assert.strictEqual(build('p:{ x d:{y} }'), ' x y ', 'shown outer and inner blocks');
 Player.playlist._removed.clear();
 assert.strictEqual(build('v%v'), 'v9.9.9');
 
@@ -105,6 +108,8 @@ console.log('user-template (buttons): all assertions passed');
   Player.playlist._removed.clear();
   assert(/playlist\.restoreRemoved\(\)[^>]*>(&nbsp;)?\(1[ \u00a0]removed\)<\/a>/.test(withRemoved), 'restore link with the removed count: ' + withRemoved);
   const deps = userTemplate.findDependencies('footerTemplate', footer);
+  // A sound's buttons follow the selected sound even without p:{ }.
+  assert(userTemplate.findDependencies('headerTemplate', 'post-link remove-button').events.includes('playsound'), 'sound buttons re-render on playsound');
   assert(deps.events.includes('remove') && deps.events.includes('add'), 'footer re-renders when sounds are removed or restored');
 }
 console.log('user-template (button text tokens): all assertions passed');

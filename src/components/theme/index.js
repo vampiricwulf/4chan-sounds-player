@@ -153,26 +153,29 @@ module.exports = {
       return Player.logError(`Theme '${_.escHTML(name)}' does not exist.`, null, 'warning');
     }
     const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
+    // Apply only the settings a theme can hold. Themes can be imported or shared, and one
+    // with other settings (the allow list, upload hosts) would change those too.
+    const next = name === 'Default' ? {} : Player.theme._themeFieldsOf(Player.config.savedThemes[name]);
     Player.set('selectedTheme', name);
+    // Put back what the previous theme set and this one doesn't, so it doesn't carry over
+    // (switching from Fixed Playlist kept its 4chan X header controls setting, for
+    // example, whether going to Default or to another theme). Default always gets the
+    // default templates; other settings only while they still have the previous theme's
+    // value, so edits made after selecting it (e.g. new theme keybinds) are kept.
+    const props = new Set(name === 'Default' ? [ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ] : []);
+    settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
+      const themeValue = s.property && _.get(previous, s.property);
+      themeValue !== undefined && _.get(next, s.property) === undefined
+        && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
+    });
+    props.forEach(prop => {
+      Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
+    });
     if (name === 'Default') {
-      // Reset everything the previous theme set, not just the templates (switching back
-      // from Fixed Playlist kept its 4chan X header controls setting, for example).
-      // Other settings only while they still have the theme's value, so edits made after
-      // selecting the theme (e.g. new theme keybinds) are kept.
-      const props = new Set([ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ]);
-      settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
-        const themeValue = s.property && _.get(previous, s.property);
-        themeValue !== undefined && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
-      });
-      props.forEach(prop => {
-        Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
-      });
       Player.settings.render();
       Player.display.updateCSSVars();
     } else {
-      // Apply only the settings a theme can hold. Themes can be imported or shared, and one
-      // with other settings (the allow list, upload hosts) would change those too.
-      Player.settings.load(Player.theme._themeFieldsOf(Player.config.savedThemes[name]));
+      Player.settings.load(next);
     }
   },
 
@@ -256,6 +259,9 @@ module.exports = {
     if (name === 'Default') {
       return Player.logError('Cannot delete the default theme. You can instead overwrite it.', null, 'warning');
     }
+    // Switch away first, while its settings are still known, so they're put back.
+    const wasSelected = Player.config.selectedTheme === name;
+    wasSelected && Player.theme.switch('Default');
     // For default themes set null so we know to not include them.
     if (Player.settings.findDefault('savedThemes').default[name]) {
       themes[name] = null;
@@ -267,8 +273,7 @@ module.exports = {
     row.parentNode.removeChild(row);
     Player.settings.set('savedThemes', themes, { bypassValidation: true, bypassRender: true });
     // A removed theme can't stay selected (next/previous would start from a missing entry).
-    if (Player.config.selectedTheme === name) {
-      Player.set('selectedTheme', 'Default');
+    if (wasSelected) {
       Player.settings.renderSetting(Player.settings.findDefault('savedThemes'));
     }
     // Its row in the theme keybinds list goes too.

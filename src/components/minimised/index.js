@@ -18,7 +18,8 @@ module.exports = {
       // Create the element if it doesn't exist.
       // Set the user template and control events on it to make all the buttons work.
       if (!container) {
-        container = _.element(`<span class="${ns}-chan-x-controls ${ns}-col-auto ${ns}-align-center"></span>`, document.querySelector('#shortcuts'), 'afterbegin');
+        // hover-trigger: so h:{ } in the template shows on hover, as in the other templates.
+        container = _.element(`<span class="${ns}-chan-x-controls ${ns}-col-auto ${ns}-align-center ${ns}-hover-trigger"></span>`, document.querySelector('#shortcuts'), 'afterbegin');
       }
 
       if (Player.config.chanXControls === 'never' || Player.config.chanXControls === 'closed' && !Player.isHidden) {
@@ -39,6 +40,9 @@ module.exports = {
           'sound-duration': `<span class="${ns}-duration" data-audio="${audioId}">0:00</span>`
         }
       }));
+      // Show the current time now rather than 0:00 until the next media event (none comes
+      // while paused).
+      Player.audio && Player.controls.updateDuration({ currentTarget: Player.audio });
     }
   },
 

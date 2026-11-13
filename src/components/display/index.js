@@ -285,7 +285,7 @@ module.exports = {
     const restoreIndex = Player.display.dismissed.indexOf(restore);
     if (restore && restoreIndex > -1) {
       Player.display.dismissed.splice(restoreIndex, 1);
-      Player.$all(`[\\@click^='display.restore("${restore}")']`).forEach(el => {
+      Player.$all(`[data-restore-id="${CSS.escape(restore)}"]`).forEach(el => {
         _.element(dismissedContentCache[restore], el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
@@ -297,7 +297,7 @@ module.exports = {
     if (dismiss && !Player.display.dismissed.includes(dismiss)) {
       Player.display.dismissed.push(dismiss);
       Player.$all(`[data-dismiss-id="${dismiss}"]`).forEach(el => {
-        _.element(`<a href="#" @click.prevent='display.restore("${dismiss}")'>${dismissedRestoreCache[dismiss]}</a>`, el, 'beforebegin');
+        _.element(`<a href="#" data-restore-id="${dismiss}" @click.prevent='display.restore("${dismiss}")'>${dismissedRestoreCache[dismiss]}</a>`, el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
       await GM.setValue('dismissed', Player.display.dismissed.join(','));
@@ -308,7 +308,7 @@ module.exports = {
     dismissedContentCache[name] = text;
     dismissedRestoreCache[name] = restore;
     return Player.display.dismissed.includes(name)
-      ? `<a href="#" @click.prevent='display.restore("${name}")'>${restore}</a>`
+      ? `<a href="#" data-restore-id="${name}" @click.prevent='display.restore("${name}")'>${restore}</a>`
       : text;
   },
 

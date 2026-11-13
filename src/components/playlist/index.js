@@ -76,9 +76,12 @@ module.exports = {
 
     // Reset to the placeholder image when the player is stopped.
     Player.on('stop', () => {
-      Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
-        el.classList.remove('playing'),
-      );
+      // Rebuild the row that was playing, so p:{ } in the row template goes too.
+      Player.$all(`.${ns}-list-item.playing`).forEach((el) => {
+        el.classList.remove('playing');
+        const sound = Player.sounds.find((s) => s.id === el.dataset.id);
+        sound && Player.playlist.refreshRow(sound);
+      });
       Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
       Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
@@ -686,7 +689,9 @@ module.exports = {
       Player.sounds.push(Player.sounds.splice(movingIdx, 1)[0]);
       list.appendChild(moving);
     }
-    Player.trigger('order');
+    // Announced once the drag ends: a re-render now (a row template showing sound-index
+    // listens for it) would replace the row being dragged.
+    Player.playlist._dragMoved = true;
   },
 
   /**
@@ -699,6 +704,10 @@ module.exports = {
     delete Player.playlist._dragging;
     e.currentTarget.classList.remove(`${ns}-dragging`);
     Player.playlist.setHoverImageVisibility();
+    if (Player.playlist._dragMoved) {
+      Player.playlist._dragMoved = false;
+      Player.trigger('order');
+    }
   },
 
   /**
