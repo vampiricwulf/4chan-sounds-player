@@ -92,22 +92,27 @@ module.exports = {
     // (and the [futari no christmas] hardcoded match) and can contain arbitrary
     // characters from archived posts. Compute lazily: most playlist templates
     // don't include sound-title at all, so the per-row escAttr cost is wasted.
+    // Values from the sound (its title and properties) go in through placeholders filled
+    // last, so the later token passes can't rewrite text inside them (a title containing
+    // "sound-src" or "%v" was rendered as the URL / version).
+    const inserts = [];
+    const insert = value => `\u0000${inserts.push(String(value)) - 1}\u0000`;
     let escName, escLocation;
     const getEscName = () => escName !== undefined ? escName : (escName = name ? _.escAttr(name) : '');
     const getEscLocation = () => escLocation !== undefined ? escLocation : (escLocation = _.escAttr(data.location || ''));
     !data.ignoreSoundName && (html = html
       .replace(soundTitleMarqueeRE, () => name
-        ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem; text-overflow: clip;"><span title="${getEscName()}" class="${ns}-title-marquee" data-location="${getEscLocation()}">${getEscName()}</span></div>`
+        ? insert(`<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem; text-overflow: clip;"><span title="${getEscName()}" class="${ns}-title-marquee" data-location="${getEscLocation()}">${getEscName()}</span></div>`)
         : '')
       .replace(soundTitleRE, () => name
-        ? `<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem"><span title="${getEscName()}">${getEscName()}</span></div>`
+        ? insert(`<div class="${ns}-col ${ns}-truncate-text" style="margin: 0 .5rem"><span title="${getEscName()}">${getEscName()}</span></div>`)
         : ''));
     !data.ignoreSoundProperties && (html = html
       // Always escape sound props when interpolated into the rendered HTML. The
       // `-esc` suffix is the OPT-IN for JS-string-safe escaping (used inside
       // event-handler attributes that wrap the value in a JS string literal);
       // plain tokens get HTML-attr escaping which is correct for href/value/etc.
-      .replace(soundPropRE, (...args) => data.sound ? _.escAttr(data.sound[args[1]], !!args[2]) : '')
+      .replace(soundPropRE, (...args) => data.sound ? insert(_.escAttr(data.sound[args[1]], !!args[2])) : '')
       // Position among PLAYABLE sounds. Dead sounds are excluded from sound-count, so
       // exclude them from the index too — otherwise "sound-index / sound-count" can read
       // e.g. 3 / 2 when the playing sound sits after a dead one. Lazy function so builds
@@ -137,7 +142,8 @@ module.exports = {
       }
     }
 
-    return html;
+    // eslint-disable-next-line no-control-regex
+    return inserts.length ? html.replace(/\u0000(\d+)\u0000/g, (m, i) => inserts[i]) : html;
   },
 
   /**
@@ -252,6 +258,10 @@ module.exports = {
     // is mid-mutation, filteredSounds awaiting rebuild). The 'filters-applied'
     // event at the end of applyFilters drives one consistent re-render instead.
     if (Player._applyingFilters && (type === 'add' || type === 'remove' || type === 'playsound')) {
+      return;
+    }
+    // The initial parse of the thread triggers one 'filters-applied' when it's done.
+    if (Player._bulkAdding && (type === 'add' || type === 'filters-applied')) {
       return;
     }
     // Check if any components are dependent on the updated property.

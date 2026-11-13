@@ -70,10 +70,21 @@ module.exports = {
     // `show` restore does, so a malformed/empty/deleted value can't set "NaNpx".
     Player.syncTab('position', value => {
       const [ left, top ] = (value || '').split(':');
+      // Clamp to this window: the position may come from a larger one.
       if (isFinite(+left) && left !== '' && isFinite(+top) && top !== '') {
-        Player.position.move(+left, +top, true);
+        Player.position.move(+left, +top);
       }
     });
+    // Keep the player on screen when the window shrinks. Not saved, so a larger window
+    // still gets the saved position back.
+    window.addEventListener('resize', _.debounce(() => {
+      if (!Player.container || Player.isHidden || Player.config.viewStyle === 'fullscreen') {
+        return;
+      }
+      const { width, height } = Player.container.getBoundingClientRect();
+      Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
+      Player.position.resize(width, height);
+    }, 150));
     Player.syncTab('size', value => {
       const [ width, height ] = (value || '').split(':');
       +width && +height && Player.position.resize(width, height, true);

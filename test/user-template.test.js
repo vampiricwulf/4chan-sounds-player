@@ -66,3 +66,13 @@ const deps = userTemplate.findDependencies('footerTemplate', 'sound-imageMD5');
 assert.ok(deps.events.includes('playsound'), 'sound-imageMD5 re-renders on playsound');
 
 console.log('user-template: all assertions passed');
+
+// --- sound values are filled in last, so later token passes can't rewrite them ---
+{
+  const tricky = { ...sound, title: 'remix sound-src %v sound-count', name: 'n' };
+  const out = userTemplate.build({ template: 'sound-title', sound: tricky });
+  assert(out.includes('remix sound-src %v sound-count'), 'title text left untouched: ' + out);
+  const withReplacement = userTemplate.build({ template: 'sound-title play-button', sound: { ...sound, title: 'my play-button song' }, replacements: { 'play-button': '<b>PB</b>' } });
+  assert(withReplacement.includes('my play-button song') && withReplacement.endsWith('<b>PB</b>'), 'replacements skip the title: ' + withReplacement);
+}
+console.log('user-template (placeholders): all assertions passed');

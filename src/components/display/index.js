@@ -38,7 +38,9 @@ module.exports = {
     Player.display._initNoSleep(Player.config.preventSleep);
     // Close dialogs when the user clicks anywhere or presses escape.
     document.body.addEventListener('click', Player.display.closeDialogs);
-    document.body.addEventListener('keydown', e => e.key === 'Escape' && Player.display.closeDialogs(e));
+    // Escape closes every dialog, including one with focus inside (passing the event made
+    // dialogs that allow clicks inside, like the theme save form, stay open).
+    document.body.addEventListener('keydown', e => e.key === 'Escape' && Player.display.closeDialogs());
     // Update fullscreen details when details are changed/loaded
     Player.on('playsound', Player.display.updateFullScreenDetails);
     Player.on('tags-loaded', sound => sound === Player.playing && Player.display.updateFullScreenDetails());
@@ -182,6 +184,8 @@ module.exports = {
 	 * Hide the player. Stops polling for changes, and pauses the aduio if set to.
 	 */
   hide() {
+    // Hiding the fullscreen element's container would leave a blank fullscreen page.
+    document.fullscreenElement && Player.container.contains(document.fullscreenElement) && document.exitFullscreen();
     Player.container.style.display = 'none';
 
     Player.isHidden = true;
