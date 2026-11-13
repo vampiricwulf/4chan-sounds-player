@@ -19,5 +19,5 @@
     --fcsp-muted: #909090;
 
     // Max pip size set by user
-    --fcsp-max-pip-size: ${Player.config.maxPIPWidth};
+    --fcsp-max-pip-size: ${_.cssLength(Player.config.maxPIPWidth)};
 }

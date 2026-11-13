@@ -95,7 +95,7 @@
 .#{$ns}-hover-trigger:hover .#{$ns}-hover-display {
 	display: flex;
 }
-[\\\@pointdrag], .no-touch-action {
+.no-touch-action {
 	touch-action: none;
 }
 .#{$ns}-truncate-text {

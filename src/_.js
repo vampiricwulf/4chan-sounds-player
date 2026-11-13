@@ -347,3 +347,11 @@ module.exports.escHTML = function (str) {
     }
   });
 };
+
+/**
+ * A length setting as CSS: a bare number means pixels ("250" was an invalid value, which
+ * left the size unlimited).
+ */
+module.exports.cssLength = function (value) {
+  return /^\s*[0-9.]+\s*$/.test(String(value)) ? `${String(value).trim()}px` : value;
+};

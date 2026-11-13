@@ -95,7 +95,10 @@ module.exports = {
 	 * Applies a max width to posts next to the player so they don't get hidden behind it.
 	 */
   setPostWidths() {
-    const enabled = !Player.isHidden && Player.config.limitPostWidths;
+    // Posts start at the left, so narrowing them only moves them out from under a player on
+    // the right. With the player on the left it squeezed them and they stayed covered.
+    const rect = !Player.isHidden && Player.config.limitPostWidths && Player.container.getBoundingClientRect();
+    const enabled = !!rect && rect.left + rect.width / 2 > document.documentElement.clientWidth / 2;
     const posts = document.querySelectorAll(selectors.limitWidthOf);
     let limits = [];
     let maxWidthCss = '';
@@ -111,9 +114,7 @@ module.exports = {
       // Coerce a bare number/numeric-string to a px value; pass through any string that
       // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
       // numbers as raw CSS which browsers reject.
-      minWidthCss = minWidth == null || minWidth === ''
-        ? ''
-        : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+      minWidthCss = minWidth == null || minWidth === '' ? '' : String(_.cssLength(minWidth));
 
       // Read every position before writing any style. Interleaving them forced a layout
       // per post on each call, and this runs on scroll.

@@ -129,7 +129,23 @@ module.exports = {
 
     // Point drag is a special case to handle pointer dragging.
     if (evt === 'pointdrag') {
+      // Stop touch input panning the page instead, which cancels the drag. (A CSS rule on
+      // the attribute missed every one with modifiers, like @pointdrag.prevent.)
+      el.classList.add('no-touch-action');
+      // A drag whose button was released where we didn't see it (a context menu took the
+      // mouseup) ends at the next move rather than following the cursor around.
+      const moveListener = function (e) {
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+          return Player.events.clearMousedown(e);
+        }
+        return listener.call(this, e);
+      };
       const downListener = (e) => {
+        // Only the main button (or a touch or pen) drags: a right-click opened a context
+        // menu over a drag that then never ended, and seeked the seek bar.
+        if (e.button > 0) {
+          return;
+        }
         // No idea why but this seems to fire twice. So avoid that.
         if (!e._dragInit) {
           e._dragInit = true;
@@ -137,16 +153,16 @@ module.exports = {
           if (!e.preventDrag) {
             el.setPointerCapture(e.pointerId);
             Player._mousedown = el;
-            Player._mousedownListener = listener;
+            Player._mousedownListener = moveListener;
             Player._mousedownMoveEl = mods.unbound
               ? document.documentElement
               : el;
             Player._mousedownMoveEl.addEventListener(
               'pointermove',
-              listener,
+              moveListener,
               mods,
             );
-            el.addEventListener('pointerleave', listener, mods);
+            el.addEventListener('pointerleave', moveListener, mods);
             mods.boxed &&
               el.addEventListener('pointerleave', Player.events.clearMousedown);
             !mods.move && listener(e);

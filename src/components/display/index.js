@@ -13,7 +13,9 @@ const dismissedRestoreCache = {};
 const noSleep = typeof NoSleep === 'function' && new NoSleep();
 // Only for the element currently playing (the audio element, or the video element for a
 // standalone video).
-const enableNoSleep = e => e.currentTarget === Player.audio && noSleep.enable();
+// enable() returns a promise that rejects while the page is hidden (a track changing in a
+// background tab): it's taken again when the page is shown (see _initNoSleep).
+const enableNoSleep = e => e.currentTarget === Player.audio && Promise.resolve(noSleep.enable()).catch(() => {});
 const disableNoSleep = e => e.currentTarget === Player.audio && noSleep.disable();
 
 module.exports = {
@@ -452,9 +454,19 @@ module.exports = {
       media[action]('ended', disableNoSleep);
     });
     if (enabled !== Player.display._noSleepEnabled && Player.audio && !Player.audio.paused) {
-      noSleep[enabled ? 'enable' : 'disable']();
+      Promise.resolve(noSleep[enabled ? 'enable' : 'disable']()).catch(() => {});
     }
     Player.display._noSleepEnabled = enabled;
+    // NoSleep only takes the wake lock back on its own if it still held one when the page
+    // was hidden, not if a track started while hidden. Take it whenever the page is shown
+    // during playback.
+    if (!Player.display._noSleepVisibility) {
+      Player.display._noSleepVisibility = true;
+      document.addEventListener('visibilitychange', () => {
+        document.visibilityState === 'visible' && Player.display._noSleepEnabled && Player.audio && !Player.audio.paused
+          && !noSleep.isEnabled && Promise.resolve(noSleep.enable()).catch(() => {});
+      });
+    }
   },
 
   untz() {
