@@ -17,7 +17,10 @@ const soundTitleRE = /sound-title/g;
 const soundTitleMarqueeRE = /sound-title-marquee/g;
 const soundIndexRE = /sound-index/g;
 const soundCountRE = /sound-count/g;
-const soundPropRE = /sound-(src|id|name|post|imageOrThumb|image|thumb|filename|imageMD5)(-esc)?/g;
+// Alternation takes the first branch that matches, so names that extend another
+// name (imageOrThumb, imageMD5) must come before it (image), or `sound-imageMD5`
+// matches as `sound-image` followed by the literal text "MD5".
+const soundPropRE = /sound-(src|id|name|post|imageOrThumb|imageMD5|image|thumb|filename)(-esc)?/g;
 const soundFilterCountRE = /filtered-count/g;
 const deadCountRE = /dead-count/g;
 const configRE = /\$config\[([^\]]+)\]/g;
