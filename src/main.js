@@ -62,13 +62,24 @@ async function doInit() {
 
 document.addEventListener('4chanXInitFinished', doInit);
 
-// The timeout makes sure 4chan X will have added it's classes and be identified.
-setTimeout(function () {
-  if (!initialized) {
-    if (document.readyState !== 'loading') {
-      doInit();
-    } else {
-      document.addEventListener('DOMContentLoaded', doInit);
-    }
+// Fallback for pages without 4chan X. The timeout makes sure 4chan X will have added
+// its classes and be identified.
+let waitedForChanX = false;
+function fallbackInit() {
+  if (initialized || initializing) {
+    return;
   }
-}, 1000);
+  if (document.readyState === 'loading') {
+    return document.addEventListener('DOMContentLoaded', fallbackInit, { once: true });
+  }
+  // 4chan X and its forks (XT, neXT) mark <html> as soon as they start, but on big
+  // threads their post processing runs well past a second. Starting mid-way puts play
+  // links next to file links they then move into hidden markup, so wait for their init
+  // event, with a safety net in case it never fires.
+  if (!waitedForChanX && document.documentElement.classList.contains('fourchan-x')) {
+    waitedForChanX = true;
+    return setTimeout(fallbackInit, 15000);
+  }
+  doInit();
+}
+setTimeout(fallbackInit, 1000);
