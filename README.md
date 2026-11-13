@@ -118,23 +118,29 @@ For the templates other than the row template, values that refer to a sound refe
 
 __Conditional Display__
 - `p:{ <content> }` - Only displays the given content if the sound is currently selected.
-- `h:{ <content> }` - Only displays the given content if the cursor is hovering over the element (i.e. the footer or row). Note that unlike `p:{}` that fully omits the contents this will instead wrap it in a containing div. If that messes up your template you can set a class of `fcsp-hover-display` on elements to achieve the same effect instead.
+- `h:{ <content> }` - Only displays the given content if the cursor is hovering over the element (i.e. the footer or row). Note that unlike `p:{}` that fully omits the contents this will instead wrap it in a `span` with the class `fcsp-hover-display`. If that messes up your template you can set a class of `fcsp-hover-display` on elements to achieve the same effect instead.
+- `d:{ <content> }` - Only displays the given content if at least one sound failed to load. Pair it with `dead-count`.
 
-For both `p:{}` and `h:{}` the content given will have the same replacements applied. So, for example, you can choose to only show the menu button when hovering over a row by adding `h:{ menubutton }` to the row template.
+For `p:{}`, `h:{}` and `d:{}` the content given will have the same replacements applied. So, for example, you can choose to only show the menu button when hovering over a row by adding `h:{ menu-button }` to the row template.
 
 __Sound Properties__
-- `sound-count` - The number of songs added to the player.
-- `sound-index` - The index of the sound (starting from 1).
+- `sound-count` - The number of playable sounds added to the player. Sounds that failed to load are not counted.
+- `sound-index` - The index of the sound (starting from 1), skipping sounds that failed to load.
+- `dead-count` - The number of sounds that failed to load.
+- `filtered-count` - The number of sounds excluded by your filters or allowed hosts.
 - `sound-title` - The name of the sound. If you want to scroll long sound names use `sound-title-marquee`.
-- `src` - The src for the sound file.
-- `id` - An identifier for the sound.
-- `title` - Same as sound-name but without being wrapped in any html
-- `post` - The post identifier for the sound.
-- `imageOrThumb` - Full size image URL for images, or thumbnail URL for webms.
-- `image` - Full image/webm URL.
-- `thumb` - Thumnail URL.
-- `filename` - The entire filename, including `[sound=...]`.
-- `imageMD5` - MD5 of the image.
+- `sound-src` - The src for the sound file.
+- `sound-id` - An identifier for the sound.
+- `sound-name` - Same as sound-title but without being wrapped in any html.
+- `sound-post` - The post identifier for the sound.
+- `sound-imageOrThumb` - Full size image URL for images, or thumbnail URL for webms.
+- `sound-image` - Full image/webm URL.
+- `sound-thumb` - Thumnail URL.
+- `sound-filename` - The entire filename, including `[sound=...]`.
+- `sound-imageMD5` - MD5 of the image.
+- `%v` - The player version.
+
+The `sound-*` values above (other than `sound-count`, `sound-index` and `sound-title`) are escaped for use in HTML attributes. Add `-esc` to the end, e.g. `sound-src-esc`, to escape the value for use inside a JavaScript string instead.
 
 __Config Properties__
 The format for any config property is `$config[property]`. You can reference any config value but mainly the only useful ones are colors.
@@ -157,7 +163,7 @@ They're the ones defined in Settings > Display.
 
 __Links/Buttons__
 
-All the values here can be followed by `:""` to specify the text, otherwise they will default to icons with 4chan X or short text displays.
+All the values here can be followed by `:""` to specify the text, otherwise they will default to icons with 4chan X or short text displays. Each one works with either a `-button` or a `-link` ending.
 - `playing-link` - Jumps to the sound in the playlist.
 - `post-link` - Jumps to the post for the sound.
 - `image-link` - Opens the sounds image in a new tab.
@@ -176,10 +182,12 @@ All the values here can be followed by `:""` to specify the text, otherwise they
 - `add-button` - Open the file input to add local files.
 - `reload-button` - Reloads the sounds from the thread to add any missing files. Useful if you change the allowed hosts or filters but generally all sounds should already be added.
 - `view-menu-button` - Open the view menu dropdown to switch between views.
+- `theme-menu-button` - Open the theme menu dropdown to switch between themes.
 - `settings-button` - Open/close the settings.
 - `threads-button` - Open/close the threads search view.
 - `tools-button` - Open/close the tools view.
 - `close-button` - Hide the player.
+- `untz-button` - Toggle party mode, which plays 1.3x faster with pulsing colors.
 
 __4chan X Header Controls__
 
@@ -197,9 +205,11 @@ The only replacements made to custom CSS are config values and sound properties.
 
 ## API
 
-The player can be controlled by using PlayerEvents with an action and arguments. The documentation below is as if you were calling the functions directly, but you'll need to send events as below.
+The player can be controlled by using PlayerEvents with an action and arguments. The documentation below is as if you were calling the functions directly, but you'll need to send events as below, with the arguments given as an array.
 
-`document.dispatchEvent(new CustomEvent('PlayerEvent', { detail: { action: '<function name>', arguments: ...<args> } }))`
+`document.dispatchEvent(new CustomEvent('PlayerEvent', { detail: { action: '<function name>', arguments: [ <args> ] } }))`
+
+For example, `{ action: 'next', arguments: [ { group: true } ] }`.
 
 #### Playback
 - `play()` - Play audio.
@@ -218,6 +228,7 @@ The player can be controlled by using PlayerEvents with an action and arguments.
 - `theme.next()` - Switch to the next theme, according to the configured order.
 - `theme.previous()` - Switch to the previous theme, according to the configured order.
 - `set(property, value, { bypassValidation } )` - Set a config value. If `bypassValidation` is not set the value will be checked for changes and ignored if it's the same.
+- `settings.reset(property)` - Reset a config value to its default.
 - `settings.export()` - Trigger an export of the user settings.
 - `settings.import()` - Trigger a file input to import user settings.
 - `settings.load(settings, { applyDefault: false })` - Load a user settings object. If `applyDefault` is set any settings not included in the given object will be set to the default. Otherwise they are left unchanged.
