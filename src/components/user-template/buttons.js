@@ -191,9 +191,17 @@ module.exports = [
     action: data => `remove("${_.escAttr(data.sound.id, true)}")`,
     icon: Icons.trash,
     attrs: data => [
-      'title="Filter the image."',
+      'title="Remove from the playlist."',
       `data-id="${_.escAttr(data.sound.id)}"`
     ]
+  },
+  {
+    tplName: 'restore',
+    action: 'playlist.restoreRemoved()',
+    actionMods: '.prevent',
+    showIf: () => Player.playlist._removed.size > 0,
+    icon: Icons.arrowCounterclockwise,
+    attrs: [ 'title="Add the sounds you removed back to the playlist."' ]
   },
   {
     tplName: 'menu',

@@ -1,6 +1,7 @@
 module.exports = {
   fcSounds: '<svg width="452" height="257" xmlns="http://www.w3.org/2000/svg"><g><text font-weight="bold" font-style="italic" font-family="Helvetica, Arial, sans-serif" font-size="250" y="197" fill-opacity="0.05" fill="#000000">4sp</text></g></svg>',
   arrowClockwise: require('../node_modules/bootstrap-icons/icons/arrow-clockwise.svg').default,
+  arrowCounterclockwise: require('../node_modules/bootstrap-icons/icons/arrow-counterclockwise.svg').default,
   arrowsCollapse: require('../node_modules/bootstrap-icons/icons/arrows-collapse.svg').default,
   arrowDown: require('../node_modules/bootstrap-icons/icons/arrow-down.svg').default,
   arrowsExpand: require('../node_modules/bootstrap-icons/icons/arrows-expand.svg').default,

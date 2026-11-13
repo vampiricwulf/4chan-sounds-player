@@ -271,7 +271,7 @@
   <p>The player adds a button to each post that has a sound:</p>
   <ul>
     <li><strong>Play</strong> (a <span aria-hidden="true">▶</span> icon after the filename on 4chan, <em>Play</em> on FoolFuuka archives, <em>[play]</em> on warosu) plays that post's sound in the player.</li>
-    <li><strong>Filter / Add</strong> appears when a post's sound was blocked by your <a href="#s-filters">filters</a> or isn't on an <a href="#s-allow">allowed host</a>. Hover over it to see why. Click it to allow that sound once and add it to the playlist.</li>
+    <li><strong>Filter / Add</strong> appears when a post's sound was blocked by your <a href="#s-filters">filters</a> or isn't on an <a href="#s-allow">allowed host</a>, or when you removed it from the playlist. Hover over it to see why. Click it to allow that sound once, or to bring back the one you removed, and add it to the playlist.</li>
   </ul>
 
   <h3 id="player-header">Header</h3>
@@ -319,11 +319,11 @@
     <tr><td>Download › Sound</td><td>Saves the audio file.</td></tr>
     <tr><td>Download › Video</td><td>Saves the image and audio <a href="#video">combined into one mp4</a>. Hidden on sites that block the encoder.</td></tr>
     <tr><td>Filter › Image / Sound</td><td>Adds the image's MD5 hash, or the sound's URL, to your <a href="#s-filters">filters</a>, which removes it from the playlist.</td></tr>
-    <tr><td>Remove</td><td>Takes the sound out of the playlist for now. Reloading the page brings it back, as does a <a href="#tpl-buttons"><code>reload-button</code></a> if you add one to a template.</td></tr>
+    <tr><td>Remove</td><td>Takes the sound out of the playlist until you reload the page. To bring it back sooner, click the <em>Add</em> button on its <a href="#player-posts">post</a>, or the <code>(1 removed)</code> link in the <a href="#player-footer">footer</a> to bring back everything you removed. A <a href="#tpl-buttons"><code>reload-button</code></a> also brings them all back.</td></tr>
   </table></div>
 
   <h3 id="player-footer">Footer</h3>
-  <p>The default footer shows <code>3 / 42 sounds</code>, the playing position and the total. Click it to scroll the playlist to the playing sound. If any sounds failed to load it adds <code>(+ 2 dead)</code>. While a sound is selected it also shows:</p>
+  <p>The default footer shows <code>3 / 42 sounds</code>, the playing position and the total. Click it to scroll the playlist to the playing sound. If any sounds failed to load it adds <code>(+ 2 dead)</code>. If you removed any sounds it adds <code>(2 removed)</code>: click it to put them back. While a sound is selected it also shows:</p>
   <ul>
     <li><strong>Post link:</strong> jumps to the post.</li>
     <li><strong>Open [ image sound ]:</strong> opens either file in a new tab.</li>
@@ -938,7 +938,7 @@ view-menu-button add-button theme-menu-button close-button</code></pre>
   <article class="entry" id="s-footerTemplate" data-setting="footerTemplate" data-context="Settings › Theme" data-keywords="template">
     <header><h4>Footer</h4><span class="badge">Template</span></header>
     <p>The bar under the playlist. The default includes the corner resize handle, the <code>fcsp-expander</code> line. Keep it if you want to be able to resize the player.</p>
-    <pre><code>playing-button:"sound-index /&amp;nbsp;" sound-count sounds d:{ (+ dead-count dead)}
+    <pre><code>playing-button:"sound-index /&amp;nbsp;" sound-count sounds d:{ (+ dead-count dead)} r:{ restore-link:"&amp;nbsp;(removed-count removed)"}
 &lt;div class="fcsp-col"&gt;&lt;/div&gt;
 p:{
 		post-link
@@ -1048,6 +1048,7 @@ p:{
     <tr><td><code>p:{ … }</code></td><td>…only when a sound is selected. In the row template, only on the row that's playing. When the condition is false the contents are left out completely.</td></tr>
     <tr><td><code>h:{ … }</code></td><td>…only while the mouse is over that footer, header or row. The contents are wrapped in a hidden <code>span</code>. If that breaks your layout, add the class <code>fcsp-hover-display</code> to your own element instead.</td></tr>
     <tr><td><code>d:{ … }</code></td><td>…only when at least one sound in the playlist failed to load. Pair it with <code>dead-count</code>.</td></tr>
+    <tr><td><code>r:{ … }</code></td><td>…only when you've removed sounds from the playlist. Pair it with <code>removed-count</code> and <code>restore-link</code>.</td></tr>
   </table></div>
   <p>Tokens inside a block work as normal. Blocks can't contain another block or a <code>}</code>.</p>
 
@@ -1059,6 +1060,7 @@ p:{
     <tr><td><code>sound-index</code></td><td>The sound's position in the playlist, counting from 1 and skipping dead sounds.</td></tr>
     <tr><td><code>sound-count</code></td><td>How many playable sounds there are. Dead sounds aren't counted.</td></tr>
     <tr><td><code>dead-count</code></td><td>How many sounds failed to load.</td></tr>
+    <tr><td><code>removed-count</code></td><td>How many sounds you removed from the playlist.</td></tr>
     <tr><td><code>filtered-count</code></td><td>How many sounds your filters or allowed hosts kept out.</td></tr>
     <tr><td><code>sound-name</code></td><td>The name as plain text, with no HTML around it, so it can go inside attributes.</td></tr>
     <tr><td><code>sound-src</code></td><td>The audio URL.</td></tr>
@@ -1098,14 +1100,15 @@ p:{
     <tr><td><code>dl-video</code></td><td>Download the <a href="#video">combined mp4</a>. Hidden where the encoder can't run.</td></tr>
     <tr><td><code>filter-image</code></td><td>Add the image's MD5 to your filters.</td></tr>
     <tr><td><code>filter-sound</code></td><td>Add the sound's URL to your filters.</td></tr>
-    <tr><td><code>remove</code></td><td>Remove the sound from the playlist. <code>reload</code> brings it back.</td></tr>
+    <tr><td><code>remove</code></td><td>Remove the sound from the playlist. <code>restore</code> or <code>reload</code> brings it back.</td></tr>
+    <tr><td><code>restore</code></td><td>Put back every sound you removed. Only shown when you've removed some.</td></tr>
     <tr><td><code>menu</code></td><td>Open the sound's menu. Same as right-clicking the row.</td></tr>
     <tr><td><code>repeat</code></td><td>Cycle Repeat through All, One and None.</td></tr>
     <tr><td><code>shuffle</code></td><td>Turn shuffle on or off.</td></tr>
     <tr><td><code>playlist</code></td><td>Switch between the playlist and image views.</td></tr>
     <tr><td><code>hover-images</code></td><td>Turn playlist hover previews on or off.</td></tr>
     <tr><td><code>add</code></td><td>Open the file picker to add local files.</td></tr>
-    <tr><td><code>reload</code></td><td>Scan the thread again and add any missing sounds. Useful after you change Allowed Hosts or Filters.</td></tr>
+    <tr><td><code>reload</code></td><td>Scan the thread again and add any missing sounds, including ones you removed. Useful after you change Allowed Hosts or Filters.</td></tr>
     <tr><td><code>view-menu</code></td><td>Open the menu that switches views.</td></tr>
     <tr><td><code>theme-menu</code></td><td>Open the theme menu.</td></tr>
     <tr><td><code>settings</code></td><td>Open or close Settings.</td></tr>

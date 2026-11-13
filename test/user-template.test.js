@@ -27,7 +27,8 @@ global.Player = {
   config: {},
   sounds: [ sound, dead ],
   filteredSounds: [ {}, {}, {} ],
-  playing: sound
+  playing: sound,
+  playlist: { _removed: new Map() }
 };
 
 const userTemplate = require('../src/components/user-template');
@@ -59,6 +60,11 @@ assert.strictEqual(build('[sound-imageMD5]', { sound: null }), '[]');
 assert.strictEqual(build('sound-index/sound-count'), '1/1', 'dead sounds are skipped');
 assert.strictEqual(build('dead-count'), '1');
 assert.strictEqual(build('filtered-count'), '3');
+assert.strictEqual(build('removed-count r:{shown}'), '0 ', 'r:{ } hidden while nothing is removed');
+Player.playlist._removed.set('3:0', { id: '3:0', post: '3' });
+assert.strictEqual(build('removed-count r:{shown}'), '1 shown', 'r:{ } shown once something is removed');
+assert.strictEqual(build('color:{x} r: {y}'), 'color:{x} y', 'r:{ } only matches on its own');
+Player.playlist._removed.clear();
 assert.strictEqual(build('v%v'), 'v9.9.9');
 
 // --- findDependencies sees sound-imageMD5 as a sound property ---
@@ -93,5 +99,12 @@ console.log('user-template (buttons): all assertions passed');
   const out = userTemplate.build({ template: footer, sound });
   assert(!out.includes('sound-index') && !out.includes('sound-count'), 'tokens replaced in the footer: ' + out);
   assert(/>1[ \u00a0]\/&nbsp;<\/a>/.test(out), 'playing index shown in the button text: ' + out);
+  assert(!out.includes('removed'), 'no removed note while nothing is removed: ' + out);
+  Player.playlist._removed.set('3:0', { id: '3:0', post: '3' });
+  const withRemoved = userTemplate.build({ template: footer, sound });
+  Player.playlist._removed.clear();
+  assert(/playlist\.restoreRemoved\(\)[^>]*>(&nbsp;)?\(1[ \u00a0]removed\)<\/a>/.test(withRemoved), 'restore link with the removed count: ' + withRemoved);
+  const deps = userTemplate.findDependencies('footerTemplate', footer);
+  assert(deps.events.includes('remove') && deps.events.includes('add'), 'footer re-renders when sounds are removed or restored');
 }
 console.log('user-template (button text tokens): all assertions passed');

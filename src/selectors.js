@@ -26,7 +26,9 @@ module.exports = {
       relative: [ '.fileText .file-info', '.fileText a' ],
       position: 'afterend',
       prependText: ' ',
-      unfilterText: Icons.filter
+      unfilterText: Icons.filter,
+      // For a post whose sounds were removed rather than filtered.
+      restoreText: Icons.arrowCounterclockwise
     },
     // Deliberately missing dots because this is used to set the class
     styleFetcher: 'post reply style-fetcher',

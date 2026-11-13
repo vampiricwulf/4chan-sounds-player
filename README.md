@@ -120,13 +120,15 @@ __Conditional Display__
 - `p:{ <content> }` - Only displays the given content if the sound is currently selected.
 - `h:{ <content> }` - Only displays the given content if the cursor is hovering over the element (i.e. the footer or row). Note that unlike `p:{}` that fully omits the contents this will instead wrap it in a `span` with the class `fcsp-hover-display`. If that messes up your template you can set a class of `fcsp-hover-display` on elements to achieve the same effect instead.
 - `d:{ <content> }` - Only displays the given content if at least one sound failed to load. Pair it with `dead-count`.
+- `r:{ <content> }` - Only displays the given content if you removed sounds from the playlist. Pair it with `removed-count` and `restore-link`.
 
-For `p:{}`, `h:{}` and `d:{}` the content given will have the same replacements applied. So, for example, you can choose to only show the menu button when hovering over a row by adding `h:{ menu-button }` to the row template.
+For `p:{}`, `h:{}`, `d:{}` and `r:{}` the content given will have the same replacements applied. So, for example, you can choose to only show the menu button when hovering over a row by adding `h:{ menu-button }` to the row template.
 
 __Sound Properties__
 - `sound-count` - The number of playable sounds added to the player. Sounds that failed to load are not counted.
 - `sound-index` - The index of the sound (starting from 1), skipping sounds that failed to load.
 - `dead-count` - The number of sounds that failed to load.
+- `removed-count` - The number of sounds you removed from the playlist.
 - `filtered-count` - The number of sounds excluded by your filters or allowed hosts.
 - `sound-title` - The name of the sound. If you want to scroll long sound names use `sound-title-marquee`.
 - `sound-src` - The src for the sound file.
@@ -175,14 +177,15 @@ All the values here can be followed by `:""` to specify the text, otherwise they
 - `dl-video-button` - Download the image/video and sound [combined into a single mp4](#combined-video-downloads). Hidden on sites where the encoder can't run.
 - `filter-image-button` - Add the image MD5 to the filters.
 - `filter-sound-button` - Add the sound URL to the filters.
-- `remove-button` - Remove the sound from the player. Removed sounds can be re-added using the reload button.
+- `remove-button` - Remove the sound from the player. Removed sounds can be re-added with the add button on their post, the restore button or the reload button.
+- `restore-button` - Add every sound you removed back to the player. Only shown when there are some.
 - `menu-button` - Open the dropdown menu for the sound. You can right click the sound item to open it instead.
 - `repeat-button` - Toggles the repeat setting between all, one and none.
 - `shuffle-button` - Toggles shuffle.
 - `playlist-button` - Toggles between the playlist and image view.
 - `hover-images-button` - Toggles hover images in the playlist.
 - `add-button` - Open the file input to add local files.
-- `reload-button` - Reloads the sounds from the thread to add any missing files. Useful if you change the allowed hosts or filters but generally all sounds should already be added.
+- `reload-button` - Reloads the sounds from the thread to add any missing files, including ones you removed. Useful if you change the allowed hosts or filters but generally all sounds should already be added.
 - `view-menu-button` - Open the view menu dropdown to switch between views.
 - `theme-menu-button` - Open the theme menu dropdown to switch between themes.
 - `settings-button` - Open/close the settings.

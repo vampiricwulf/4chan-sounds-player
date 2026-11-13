@@ -172,7 +172,7 @@ module.exports = {
 
       const parsed = Player.posts.getSounds(filename, imageSrc, postID, thumbSrc, imageMD5);
       // Leave out sounds the user removed.
-      const sounds = parsed.sounds.filter(sound => !Player.playlist._removedIds.has(sound.id));
+      const sounds = parsed.sounds.filter(sound => !Player.playlist._removed.has(sound.id));
       const filtered = parsed.filtered;
 
       if (sounds.length || filtered.length) {
@@ -253,9 +253,10 @@ module.exports = {
   },
 
   /**
-	 * Read all the sounds from the thread again.
+	 * Read all the sounds from the thread again, including ones the user removed.
 	 */
   refresh() {
+    Player.playlist.restoreRemoved();
     Player.posts.addPosts(document.body);
   },
 
@@ -270,13 +271,14 @@ module.exports = {
         return;
       }
 
-      // Create/update the unfilter button, or remove it.
+      // Create/update the add button for filtered or removed sounds, or remove it.
       const linkScope = Player.posts._linkScope(postEl);
       let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
       const allFilters = Player.posts.getFilters(postId);
       const hasFilter = allFilters.host.length || allFilters.image || allFilters.sound.length;
-      if (hasFilter) {
-        postEl.classList.add('filtered-sound');
+      const removed = Player.playlist.removedCount(postId);
+      postEl.classList[hasFilter ? 'add' : 'remove']('filtered-sound');
+      if (hasFilter || removed) {
         // There is a filtered sound for the post so create/update the add link,
         const filtered = [allFilters.image && 'image', allFilters.sound.length && 'sound'].filter(Boolean).join(' and ');
         // Hosts come from post filenames and the URL parser keeps characters like `"`,
@@ -286,20 +288,25 @@ module.exports = {
         const hint = (hosts.length > 1 ? `The hosts ${hosts.join(', ')} are not allowed` : '')
 					+ (hosts.length === 1 ? `The host ${hosts[0]} is not allowed` : '')
 					+ (filtered ? `${allFilters.host.length ? ', and the' : 'The'} player filters disallow this ${filtered}` : '')
-					+ '. Click to allow and add to the player.';
+					+ (removed ? `${hasFilter ? '. ' : ''}You removed ${removed > 1 ? `${removed} sounds in this post` : 'this sound'} from the player` : '')
+					+ (hasFilter ? '. Click to allow and add to the player.' : '. Click to add it back.');
 
+        // A filtered post shows the filter icon; one with only removed sounds a restore icon.
+        const kind = hasFilter ? 'filtered' : 'removed';
+        const linkText = (kind === 'removed' && linkInfo.restoreText) || linkInfo.unfilterText || '';
         if (addLink) {
           addLink.dataset.content = hint;
+          addLink.dataset.kind !== kind && (addLink.innerHTML = linkText);
+          addLink.dataset.kind = kind;
         } else {
           _.element('<span>'
 						+ (linkInfo.prependText || '')
-						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkInfo.unfilterText || ''}</a>`
+						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-kind="${kind}" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkText}</a>`
 						+ (linkInfo.appendText || '')
 						+ '</span>', relative, linkInfo.position);
         }
       } else {
-        // There isn't a filtered so remove the add link.
-        postEl.classList.remove('filtered-sound');
+        // Nothing filtered or removed, so remove the add link.
         addLink && addLink.parentNode.parentNode.removeChild(addLink.parentNode);
         addLink && addLink.infoEl && addLink.infoEl.parentNode.removeChild(addLink.infoEl);
       }
@@ -354,7 +361,11 @@ module.exports = {
   },
 
   allowPost(postId) {
+    // Only what the link said was filtered is allowed. Sounds the user removed from this
+    // post come back too, unless a filter made since then applies to them; the link then
+    // shows that instead.
     const allowed = Player.posts.getFilters(postId);
+    Player.playlist.restoreRemoved(postId);
     // The host comes from the post. Allow entries also match subdomains, so refuse a
     // single label ("com" would allow every .com site) and local or IP-address hosts (the
     // player fetches allowed sounds with the userscript's cross-site requests).

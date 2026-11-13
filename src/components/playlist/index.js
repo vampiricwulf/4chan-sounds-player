@@ -8,7 +8,10 @@ module.exports = {
   public: ['search'],
 
   tagLoadTO: {},
-  _removedIds: new Set(),
+  // Sounds the user removed from the playlist, by id. Kept until the page is reloaded, so
+  // reading the posts again doesn't bring them back, and they can be restored from their
+  // post's add link or the footer.
+  _removed: new Map(),
 
   template: require('./templates/player.tpl'),
   listTemplate: require('./templates/list.tpl'),
@@ -400,9 +403,11 @@ module.exports = {
     }
     const index = Player.sounds.indexOf(sound);
     // Remember what the user removed so parsing the posts again (a setting change, a
-    // reload, a re-inserted post) doesn't bring it back. Filters and settings that remove
-    // sounds temporarily don't count.
-    sound && !temporary && !Player._applyingFilters && Player.playlist._removedIds.add(sound.id);
+    // thread update, a re-inserted post) doesn't bring it back, and so it can be restored.
+    // Filters and settings that remove sounds temporarily don't count, and local files
+    // can't come back (their object URL is released below).
+    const userRemoved = !!sound && !temporary && !Player._applyingFilters;
+    userRemoved && !sound.local && Player.playlist._removed.set(sound.id, sound);
 
     // If the playing sound is being removed then play the next sound.
     if (Player.playing === sound) {
@@ -417,8 +422,7 @@ module.exports = {
 
     // A removed local file's object URL can go once no other sound uses it (a file can hold
     // several sounds). Not for temporary removals, which can bring the sound back.
-    if (sound && sound.local && !temporary && !Player._applyingFilters
-      && !Player.sounds.some(s => s.image === sound.image) && /^blob:/.test(sound.image)) {
+    if (userRemoved && sound.local && !Player.sounds.some(s => s.image === sound.image) && /^blob:/.test(sound.image)) {
       URL.revokeObjectURL(sound.image);
     }
     // Remove the item from the list.
@@ -427,6 +431,44 @@ module.exports = {
     // Update the post's play link (applyFilters does this itself once it's done).
     sound && sound.post && !Player._applyingFilters && Player.posts.updateButtons(sound.post);
     sound && Player.trigger('remove', sound);
+  },
+
+  /**
+   * Put sounds the user removed back in the playlist, in their place: a post's, or all of
+   * them when no post is given. Returns how many came back.
+   */
+  restoreRemoved(postId) {
+    const restored = [];
+    Player.playlist._removed.forEach((sound, id) => {
+      if (postId == null || sound.post === String(postId)) {
+        Player.playlist._removed.delete(id);
+        restored.push(sound);
+      }
+    });
+    let filtered = false;
+    restored.forEach(sound => {
+      sound.playing = false;
+      // Filters or allowed hosts changed since then apply as they would to a new post.
+      sound.disallow = Player.disallowedSound(sound);
+      if (!sound.disallow) {
+        Player.add(sound);
+      } else if (!sound.disallow.invalid) {
+        Player.filteredSounds.push(sound);
+        filtered = true;
+      }
+    });
+    new Set(restored.map(sound => sound.post)).forEach(post => post && Player.posts.updateButtons(post));
+    filtered && Player.trigger('filters-applied');
+    return restored.length;
+  },
+
+  /**
+   * How many of a post's sounds the user removed.
+   */
+  removedCount(postId) {
+    let count = 0;
+    Player.playlist._removed.forEach(sound => sound.post === postId && count++);
+    return count;
   },
 
   toggleRepeat() {

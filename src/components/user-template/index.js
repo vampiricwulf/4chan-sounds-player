@@ -10,6 +10,8 @@ const playingRE = /p: ?{([^}]*)}/g;
 const hoverRE = /h: ?{([^}]*)}/g;
 // Render the inner content only when at least one sound is dead (failed to load).
 const deadRE = /d: ?{([^}]*)}/g;
+// Render the inner content only when the user has removed sounds from the playlist.
+const removedRE = /\br: ?{([^}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -23,6 +25,8 @@ const soundCountRE = /sound-count/g;
 const soundPropRE = /sound-(src|id|name|post|imageOrThumb|imageMD5|image|thumb|filename)(-esc)?/g;
 const soundFilterCountRE = /filtered-count/g;
 const deadCountRE = /dead-count/g;
+const removedCountRE = /removed-count/g;
+const restoreButtonRE = /restore-(?:button|link)/g;
 const configRE = /\$config\[([^\]]+)\]/g;
 
 // Hold information on which config values components templates depend on.
@@ -72,6 +76,7 @@ module.exports = {
       // runs when a template actually contains a d:{ } block, so the per-sound row
       // template — built once per sound — doesn't pay an O(n) scan on every render.
       .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
+      .replace(removedRE, (m, inner) => Player.playlist._removed.size ? inner : '')
       .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
@@ -137,6 +142,7 @@ module.exports = {
       // templates without the token (e.g. the per-sound row template) skip the scan.
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
+      .replace(removedCountRE, () => Player.playlist._removed.size)
       .replace(soundFilterCountRE, Player.filteredSounds.length));
     !data.ignoreVersion && (html = html.replace(/%v/g, VERSION));
 
@@ -183,6 +189,9 @@ module.exports = {
     soundFilterCountRE.lastIndex = 0;
     deadCountRE.lastIndex = 0;
     deadRE.lastIndex = 0;
+    removedCountRE.lastIndex = 0;
+    removedRE.lastIndex = 0;
+    restoreButtonRE.lastIndex = 0;
     buttonRE.lastIndex = 0;
     configRE.lastIndex = 0;
 
@@ -213,6 +222,9 @@ module.exports = {
     hasIndex && events.push('order', 'dead-change');
     hasFilterCount && events.push('filters-applied');
     hasDead && events.push('add', 'remove', 'filters-applied', 'dead-change');
+    // removed-count, r:{ } and the restore button change when a sound is removed or restored.
+    const hasRemoved = removedCountRE.test(template) || removedRE.test(template) || restoreButtonRE.test(template);
+    hasRemoved && events.push('add', 'remove', 'filters-applied');
 
     // Find which buttons the template includes that are dependent on config values.
     const config = [];
