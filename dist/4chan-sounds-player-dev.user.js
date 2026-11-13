@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.576
+// @version      3.7.2.578
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1677,9 +1677,11 @@ module.exports = {
     const size = length > 0
       ? (Player.audio.buffered.end(length - 1) / Player.audio.duration) * 100
       : 0;
-    // If it's fully loaded then stop polling.
-    size === 100 && Player.controls.stopPollingForLoading();
-    Player.audio.loadedBar.style.width = size + '%';
+    // The playing row's loading bars also follow a sound webm's video.
+    const rowLoaded = Player.playlist.updateLoadingBars();
+    // Stop polling once everything is loaded, or nothing is playing.
+    (!Player.playing || size === 100 && rowLoaded) && Player.controls.stopPollingForLoading();
+    Player.audio.loadedBar && (Player.audio.loadedBar.style.width = size + '%');
   },
 
   /**
@@ -3846,6 +3848,7 @@ module.exports = {
       Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
         el.classList.remove('playing'),
       );
+      Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
       container.href = '#';
@@ -3854,6 +3857,9 @@ module.exports = {
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
       container.classList.remove(`${ns}-show-video`);
     });
+
+    // Show or remove the playing row's loading bars.
+    Player.on('config:rowLoadingBars', () => Player.playlist.refreshRow(Player.playing));
 
     // Reapply filters when they change
     Player.on('config:filters', Player.playlist.applyFilters);
@@ -4531,6 +4537,61 @@ module.exports = {
     }
   },
 
+  /**
+   * The playing row's loading bars, at how much has loaded so far.
+   */
+  loadingBars() {
+    if (!Player.config.rowLoadingBars) {
+      return '';
+    }
+    const { video, audio, done } = Player.playlist._loadingState();
+    return `<div class="${ns}-row-loading ${done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+      + `<div class="${ns}-row-loading-video" style="width: ${video * 100}%"></div>`
+      + `<div class="${ns}-row-loading-audio" style="width: ${audio * 100}%"></div>`
+      + '</div>';
+  },
+
+  /**
+   * Update the playing row's loading bars. Returns whether everything has loaded.
+   */
+  updateLoadingBars() {
+    const state = Player.playlist._loadingState();
+    const bars = Player.container && Player.$(`.${ns}-list-item.playing .${ns}-row-loading`);
+    if (bars) {
+      bars.children[0].style.width = `${state.video * 100}%`;
+      bars.children[1].style.width = `${state.audio * 100}%`;
+      bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
+    }
+    return state.done;
+  },
+
+  /**
+   * How much of the playing sound's video and audio have loaded, from 0 to 1. A standalone
+   * video is both. A sound without a video only has audio.
+   */
+  _loadingState() {
+    const video = Player.playing && Player.isVideo ? Player.playlist._loadedRatio(Player.video) : 0;
+    const audio = Player.playing ? Player.playlist._loadedRatio(Player.audio) : 0;
+    return { video, audio, done: !!Player.playing && (!Player.isVideo || video === 1) && audio === 1 };
+  },
+
+  /**
+   * The share of a media element's duration that has been downloaded.
+   */
+  _loadedRatio(media) {
+    const duration = media && media.duration;
+    if (!duration || !isFinite(duration) || !media.getAttribute('src')) {
+      return 0;
+    }
+    let loaded = 0;
+    for (let i = 0; i < media.buffered.length; i++) {
+      loaded += media.buffered.end(i) - media.buffered.start(i);
+    }
+    const ratio = loaded / duration;
+    // Durations are estimates for some formats, so the buffered end can stop just short.
+    return ratio > 0.995 ? 1 : Math.max(0, ratio);
+  },
+
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
@@ -4738,6 +4799,7 @@ module.exports = (data = {}) => (data.sounds || Player.sounds).map(sound => !Pla
 		data-id="${_.escAttr(sound.id)}"
 		draggable="true"
 	>
+		${sound.playing ? Player.playlist.loadingBars() : ''}
 		${Player.userTemplate.build({
 			template: Player.config.rowTemplate,
 			location: 'item-' + sound.id,
@@ -5942,10 +6004,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.576") {
+    if (storedVersion !== "3.7.2.578") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.576"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.578"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6244,7 +6306,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.576";
+      settings.VERSION = "3.7.2.578";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6260,7 +6322,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.576") {
+    if (!fromVersion || fromVersion === "3.7.2.578") {
       return {};
     }
     const changes = {};
@@ -6751,7 +6813,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.576"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.578"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -9709,7 +9771,7 @@ module.exports = {
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.576"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.578"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -9892,6 +9954,14 @@ module.exports = [
     title: 'Show Update Notifications',
     description: 'Show notifications when the player is successfully updated.',
     displayGroup: 'Display'
+  },
+  {
+    property: 'rowLoadingBars',
+    default: true,
+    title: 'Playlist Loading Bars',
+    description: 'Show how much of the playing sound has loaded behind its playlist row: the video along the top half and the audio along the bottom half. They fade out once everything has loaded.',
+    displayGroup: 'Display',
+    allowInTheme: true
   },
   {
     property: 'hoverImages',
@@ -10091,6 +10161,20 @@ module.exports = [
         title: 'Loaded Bar Background',
         description: 'The loaded bar within the seek bar.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.controls_loaded_bar")', mods: '.prevent' } ],
+      },
+      {
+        property: 'colors.loading_video',
+        default: 'rgba(46, 204, 64, 0.65)',
+        title: 'Row Video Loading',
+        description: 'The top half of the playing row\'s loading bars, for the video.',
+        actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_video")', mods: '.prevent' } ],
+      },
+      {
+        property: 'colors.loading_audio',
+        default: 'rgba(255, 65, 54, 0.65)',
+        title: 'Row Audio Loading',
+        description: 'The bottom half of the playing row\'s loading bars, for the audio.',
+        actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_audio")', mods: '.prevent' } ],
       },
       // Not configurable but here for access in templates.
       {
@@ -11304,6 +11388,8 @@ module.exports = (data = {}) => `:root {
   --fcsp-controls-inactive: ${Player.config.colors.controls_inactive};
   --fcsp-controls-empty-bar: ${Player.config.colors.controls_empty_bar};
   --fcsp-controls-loaded-bar: ${Player.config.colors.controls_loaded_bar};
+  --fcsp-loading-video: ${Player.config.colors.loading_video};
+  --fcsp-loading-audio: ${Player.config.colors.loading_audio};
   --fcsp-muted: #909090;
   --fcsp-max-pip-size: ${Player.config.maxPIPWidth};
 }`
@@ -12024,6 +12110,8 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
   background: var(--fcsp-odd-row);
   overflow: hidden;
   height: 1.3rem;
+  position: relative;
+  isolation: isolate;
 }
 .${ns}-list-item:nth-child(2n) {
   background: var(--fcsp-even-row);
@@ -12040,6 +12128,38 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 .${ns}-list-item.${ns}-dead {
   opacity: 0.5;
   text-decoration: line-through;
+}
+.${ns}-list-item.${ns}-dead .${ns}-row-loading {
+  display: none;
+}
+
+.${ns}-row-loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: opacity 0.6s ease 0.8s;
+}
+.${ns}-row-loading > div {
+  position: absolute;
+  left: 0;
+  height: 50%;
+  max-width: 100%;
+  transition: width 0.3s linear;
+}
+.${ns}-row-loading .${ns}-row-loading-video {
+  top: 0;
+  background: var(--fcsp-loading-video);
+}
+.${ns}-row-loading .${ns}-row-loading-audio {
+  bottom: 0;
+  background: var(--fcsp-loading-audio);
+}
+.${ns}-row-loading.${ns}-row-loaded {
+  opacity: 0;
 }
 
 .dialog .tags-dialog .entry {
