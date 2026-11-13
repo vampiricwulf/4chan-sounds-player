@@ -149,7 +149,7 @@ const Player =
        * (_origSrc), so a filter added while the rerouter was on stays effective when it's
        * off, and vice versa.
        */
-      disallowedSound({ src, imageMD5, _origSrc }) {
+      disallowedSound({ src, imageMD5, _origSrc, standaloneVideo }) {
         try {
           const link = new URL(src);
           const stripped = src.replace(/^(https?:)?\/\//, '');
@@ -163,7 +163,10 @@ const Player =
             return { invalid: true };
           }
           const result = {};
-          result.host =
+          // A video without a sound plays the post's own file from the site's media host
+          // (an archive's isn't in Allowed Hosts, so every video there came up as blocked),
+          // so only the filters apply to it.
+          result.host = !standaloneVideo &&
             !Player.config.allow.find(
               // Hostnames are case-insensitive; `host` is already lowercased, so
               // lowercase the allow entry too or a user-typed `Catbox.moe` never matches.

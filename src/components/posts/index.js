@@ -129,8 +129,9 @@ module.exports = {
   addPost(post, skipRender) {
     try {
       // Posts inside the player are its own (the threads view's board layout shows other
-      // threads' OPs), not this thread's.
-      if (Player.container && Player.container.contains(post)) {
+      // threads' OPs), not this thread's. FoolFuuka shows quote previews, including other
+      // threads' posts, in #backlink.
+      if ((Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
         return;
       }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
@@ -162,8 +163,11 @@ module.exports = {
       let filename = null;
       let filenameLocations = selectors.filename;
 
+      // The post's own elements only: a FoolFuuka OP's article holds its replies, so with a
+      // banned or missing file it took the first reply's (and an inlined quote can come
+      // before a post's own file).
       Object.keys(filenameLocations).some(function(selector) {
-        const node = post.querySelector(selector);
+        const node = Player.posts._own(post, selector);
         return node && (filename = node[filenameLocations[selector]]);
       });
 
@@ -173,7 +177,7 @@ module.exports = {
 
       selectors.filenameParser && (filename = selectors.filenameParser(filename));
 
-      const thumbContainer = post.querySelector(selectors.thumb);
+      const thumbContainer = Player.posts._own(post, selectors.thumb);
       const fileThumb = thumbContainer && thumbContainer.closest('a');
       const imageSrc = fileThumb && fileThumb.href;
       if (!imageSrc) {
@@ -186,8 +190,11 @@ module.exports = {
       const thumbSrc = thumbEl && (thumbEl.nodeName === 'VIDEO'
         ? thumbEl.poster
         : thumbEl.src || thumbEl.dataset.src) || null;
+      // Fuuka's "View same" link holds the MD5, in URL-safe base64 (the link after the
+      // file line is the image itself, whose name was taken for it).
+      const viewSame = Site === 'Fuuka' && post.querySelector(':scope > a[href*="/image/"]');
       const imageMD5 = Site === 'Fuuka'
-        ? post.querySelector(':scope > br + a').href.split('/').pop()
+        ? viewSame && Player.posts._md5FromUrlSafe(viewSame.getAttribute('href').split('/').pop())
         : thumbEl && thumbEl.getAttribute('data-md5');
 
       if (imageMD5 === 'HO0kbeZNQqBye1CF7Tq7hg==' && post.innerHTML.includes('[futari no christmas]')) {
@@ -202,7 +209,8 @@ module.exports = {
       // A post rebuilt after its sounds were removed still needs its restore link.
       if (sounds.length || filtered.length || sounds.length !== parsed.sounds.length) {
         sounds.forEach(sound => Player.add(sound, skipRender));
-        filtered.forEach(sound => Player.filteredSounds.push(sound));
+        // Once each: a post parsed again (its preview, a rebuilt post) piled up copies.
+        filtered.forEach(sound => !Player.filteredSounds.some(s => s.id === sound.id) && Player.filteredSounds.push(sound));
         Player.posts.updateButtons(postID);
         filtered.length && Player.trigger('filters-applied');
       }
@@ -409,11 +417,27 @@ module.exports = {
   },
 
   /**
+	 * The first element matching a selector that's the post's own, not one of a post nested
+	 * in it (an inline quote, a FoolFuuka OP's replies).
+	 */
+  _own(post, selector) {
+    return Array.from(post.querySelectorAll(selector)).find(el => el.closest(selectors.posts) === post) || null;
+  },
+
+  /**
+	 * An MD5 from URL-safe base64 (Fuuka's links) in the standard form 4chan uses.
+	 */
+  _md5FromUrlSafe(value) {
+    const b64 = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+    return b64 ? b64 + '='.repeat((4 - b64.length % 4) % 4) : null;
+  },
+
+  /**
 	 * A post's own play or add link, wherever it was put, but not one of a post nested in it
 	 * (an inline quote, a FoolFuuka OP's replies).
 	 */
   _ownLink(post, className) {
-    return Array.from(post.querySelectorAll(`.${className}`)).find(link => link.closest(selectors.posts) === post) || null;
+    return Player.posts._own(post, `.${className}`);
   },
 
   getFilters(postId) {

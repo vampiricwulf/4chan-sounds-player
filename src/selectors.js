@@ -58,15 +58,19 @@ module.exports = {
   Fuuka: {
     postIdPrefix: 'p',
     posts: '.content > div, td.reply',
+    // A reply's file line follows its first <br>; an OP's is its first child.
     filename: {
-      ':scope > br + span': 'textContent'
+      ':scope > br + span': 'textContent',
+      ':scope > span:first-child': 'textContent'
     },
     filenameParser: v => v.split(', ').slice(2).join(', '),
     thumb: '.thumb',
     playLink: {
       class: '',
       text: 'play',
-      relative: 'br:nth-of-type(2)',
+      // The <br> after the file line, for replies and OPs alike (the second <br> anywhere
+      // in an OP was one inside its comment).
+      relative: [ ':scope > br + span ~ br', ':scope > span:first-child ~ br' ],
       position: 'beforebegin',
       prependText: ' [',
       appendText: ']',
