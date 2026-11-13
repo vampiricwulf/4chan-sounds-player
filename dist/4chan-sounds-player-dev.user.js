@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.606
+// @version      3.7.2.608
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1425,6 +1425,8 @@ module.exports = {
     Player.playing = null;
     Player.isVideo = false;
     Player.isStandalone = false;
+    // Unloading drops the queued pause event, which is what updates the buttons.
+    Player.controls.setPlayButtons(Player.audio, true);
     Player.trigger('stop');
   },
 
@@ -2142,10 +2144,22 @@ module.exports = {
       // Those links live in the desktop nav bars, which 4chan's mobile view and StyleChan's
       // "Show Navigation Links" option hide, leaving no way to open the player. Fall back to
       // a small fixed button then. Checked after layout so stylesheets have applied.
-      requestAnimationFrame(() => {
-        if (!links.some(link => link.getClientRects().length)) {
-          _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
+      // Also when the window is narrowed later (4chan's mobile view hides them below 480px).
+      let launcher = null;
+      const checkLinks = () => {
+        const hidden = !links.some(link => link.getClientRects().length);
+        if (hidden && !launcher) {
+          launcher = _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
         }
+        launcher && (launcher.style.display = hidden ? '' : 'none');
+      };
+      requestAnimationFrame(checkLinks);
+      let resizeFrame = null;
+      window.addEventListener('resize', () => {
+        resizeFrame = resizeFrame || requestAnimationFrame(() => {
+          resizeFrame = null;
+          checkLinks();
+        });
       });
     }
   },
@@ -2571,7 +2585,7 @@ module.exports = {
   \***************************************************/
 (module) {
 
-module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Player.config.viewStyle}" @drop.stop.prevent='playlist.addFromDrop' style="top: 30px; left: 0px; width: 360px; height: 360px; display: none;">
+module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Player.config.viewStyle}" @dragover.prevent="" @drop.stop.prevent='playlist.addFromDrop' style="top: 30px; left: 0px; width: 360px; height: 360px; display: none;">
 	<div class="${ns}-header ${ns}-row ${ns}-align-center ${ns}-hover-trigger" @pointdragstart="position.initMove" @pointdrag.unbound="position.doMove" @pointdragend="position.stopMove">
 		${Player.header.template(data)}
 	</div>
@@ -2781,6 +2795,10 @@ module.exports = {
       // A drag whose button was released where we didn't see it (a context menu took the
       // mouseup) ends at the next move rather than following the cursor around.
       const moveListener = function (e) {
+        // Another finger moving isn't this drag.
+        if (e.pointerId !== undefined && e.pointerId !== Player._mousedownPointerId) {
+          return;
+        }
         if (e.pointerType === 'mouse' && e.buttons === 0) {
           return Player.events.clearMousedown(e);
         }
@@ -2792,6 +2810,11 @@ module.exports = {
         if (e.button > 0) {
           return;
         }
+        // One drag at a time: a second finger on another handle replaced the drag being
+        // tracked, and the first one's move listener was then never removed.
+        if (Player._mousedown && Player._mousedownPointerId !== e.pointerId) {
+          return;
+        }
         // No idea why but this seems to fire twice. So avoid that.
         if (!e._dragInit) {
           e._dragInit = true;
@@ -2799,6 +2822,7 @@ module.exports = {
           if (!e.preventDrag) {
             el.setPointerCapture(e.pointerId);
             Player._mousedown = el;
+            Player._mousedownPointerId = e.pointerId;
             Player._mousedownListener = moveListener;
             Player._mousedownMoveEl = mods.unbound
               ? document.documentElement
@@ -2894,8 +2918,11 @@ module.exports = {
   },
 
   clearMousedown(e) {
-    if (Player._mousedown) {
-      Player._mousedown.releasePointerCapture(e.pointerId);
+    // Only the pointer that started the drag ends it (lifting another finger doesn't).
+    if (Player._mousedown && (e.pointerId === undefined || e.pointerId === Player._mousedownPointerId)) {
+      try {
+        Player._mousedown.releasePointerCapture(Player._mousedownPointerId);
+      } catch (err) { /* not captured any more */ }
       Player._mousedownMoveEl.removeEventListener(
         'pointermove',
         Player._mousedownListener,
@@ -3735,6 +3762,22 @@ module.exports = {
               volume: `controls.handleVolume($event, "${aId}")`
             }
           }), node.parentNode);
+          // On native 4chan the expanded media sits in the post's whole file block: keep the
+          // controls over the media itself (they spanned the block, wider than a small video).
+          if (!isChanX && typeof ResizeObserver === 'function') {
+            const fit = () => {
+              if (!node.isConnected || node.offsetParent !== node.parentNode) {
+                return;
+              }
+              controls.style.left = node.offsetLeft + 'px';
+              controls.style.right = 'auto';
+              controls.style.width = node.offsetWidth + 'px';
+              controls.style.bottom = Math.max(0, node.parentNode.clientHeight - node.offsetTop - node.offsetHeight) + 'px';
+            };
+            node._inlinePlayer.controlsFit = new ResizeObserver(fit);
+            node._inlinePlayer.controlsFit.observe(node);
+            fit();
+          }
           // Don't want to close the expanded image or open the image when the controls are clicked.
           controls.addEventListener('click', e => {
             e.preventDefault();
@@ -3799,6 +3842,7 @@ module.exports = {
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
     // Remove controls.
+    node._inlinePlayer.controlsFit && node._inlinePlayer.controlsFit.disconnect();
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {
       controls.parentNode.classList.remove(`${ns}-has-controls`);
@@ -4382,11 +4426,14 @@ module.exports = {
   },
 
   addFromDrop(e) {
-    for (let item of e.dataTransfer.items) {
-      const entry = item.getAsEntry
-        ? item.getAsEntry()
-        : item.webkitGetAsEntry();
-      entry && Player.playlist._scanEntry(entry);
+    const entries = [ ...(e.dataTransfer.items || []) ].map(item => item.getAsEntry
+      ? item.getAsEntry()
+      : item.webkitGetAsEntry && item.webkitGetAsEntry()).filter(Boolean);
+    if (entries.length) {
+      entries.forEach(entry => Player.playlist._scanEntry(entry));
+    } else if (e.dataTransfer.files && e.dataTransfer.files.length) {
+      // No file-system entries (some browsers, or files that aren't on disk): use the files.
+      Player.playlist.addFromFiles([ ...e.dataTransfer.files ]);
     }
   },
 
@@ -5214,7 +5261,7 @@ module.exports = (data = {}) => `<div class="${ns}-menu dialog ${ns}-dialog" id=
 		Download
 		<div class="dialog submenu" style="inset: 0px auto auto 100%;">
 			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.image, true)}", "${_.escAttr(data.sound.filename, true)}")'>Image</a>
-			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name, true)}")'>Sound</a>
+			<a class="entry" href="#" @click.prevent='tools.download("${_.escAttr(data.sound.src, true)}", "${_.escAttr(data.sound.name || data.sound.title, true)}")'>Sound</a>
 			${Player.tools._encoderAvailable() && !data.sound.standaloneVideo ? `<a class="entry" href="#" @click.prevent='tools.downloadVideo("${_.escAttr(data.sound.id, true)}")'>Video</a>` : ''}
 		</div>
 	</div>
@@ -5367,7 +5414,11 @@ module.exports = {
       // Use isFinite + non-empty check so a saved corner like '0:0' (player
       // pinned to top-left) restores correctly instead of being skipped via the
       // falsy-zero short-circuit. size has no '0' case (a 0px window is junk).
-      +width && +height && Player.position.resize(width, height, true);
+      // Without a saved size, still fit the default one in the window (on a narrow phone
+      // its header buttons were off-screen).
+      +width && +height
+        ? Player.position.resize(width, height, true)
+        : Player.position.resize(Player.container.offsetWidth, Player.container.offsetHeight);
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
@@ -5684,8 +5735,12 @@ module.exports = {
       }
     };
     docClasses.contains('fixed') && reserve(document.querySelector('#header-bar'));
-    const mobileBar = document.getElementById('mobile-bar');
-    mobileBar && getComputedStyle(mobileBar).position === 'fixed' && reserve(mobileBar);
+    // 4chan-neXT's mobile bar, and native 4chan's mobile nav (which covered the player's
+    // header, leaving no way to drag it out).
+    [ 'mobile-bar', 'boardNavMobile' ].forEach(id => {
+      const bar = document.getElementById(id);
+      bar && getComputedStyle(bar).position === 'fixed' && reserve(bar);
+    });
     return { top, bottom };
   },
 
@@ -5705,9 +5760,15 @@ module.exports = {
     if (relRect.left + width > document.documentElement.clientWidth) {
       item.style.left = (relRect.left + relRect.width - width) + 'px';
     }
-    if (relRect.top + relRect.height + height > document.documentElement.clientHeight - Player.position.getHeaderOffset().bottom) {
+    const { top: headerTop, bottom: headerBottom } = Player.position.getHeaderOffset();
+    if (relRect.top + relRect.height + height > document.documentElement.clientHeight - headerBottom) {
       item.style.top = (relRect.top - height) + 'px';
     }
+    // Never past the window's edges (on a narrow screen the colour picker opened half
+    // off the left side).
+    const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
+    item.style.left = clamp(parseFloat(item.style.left), 0, document.documentElement.clientWidth - width) + 'px';
+    item.style.top = clamp(parseFloat(item.style.top), headerTop, document.documentElement.clientHeight - headerBottom - height) + 'px';
   }
 };
 
@@ -5963,7 +6024,8 @@ module.exports = {
     }, []);
     // Add webms without a sound filename as a standalone video if enabled. The synthetic
     // match must align with the regex's capture groups: [full, name, host, src].
-    if (!matches.length && Player.posts.videosAllowed() && filename.match(/\.(webm|mp4)$/i)) {
+    // (Always for a local file, which the user added on purpose: there's no post.)
+    if (!matches.length && (Player.posts.videosAllowed() || !post) && filename.match(/\.(webm|mp4)$/i)) {
       // `.webm` is 5 chars, `.mp4` is 4 — strip the actual extension instead of a
       // fixed-width slice that truncates an extra char for .mp4 titles.
       matches.push([null, filename.replace(/\.(webm|mp4)$/i, ''), 'sound', image]);
@@ -6643,10 +6705,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.606") {
+    if (storedVersion !== "3.7.2.608") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.606"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.608"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6962,7 +7024,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.606";
+      settings.VERSION = "3.7.2.608";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6978,7 +7040,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.606") {
+    if (!fromVersion || fromVersion === "3.7.2.608") {
       return {};
     }
     const changes = {};
@@ -7482,7 +7544,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.606"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.608"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8852,6 +8914,12 @@ const videoUtil = __webpack_require__(/*! ./video-util */ "./src/components/tool
 // File types that run or render as code when opened.
 const RISKY_EXTENSIONS = /\.(exe|com|bat|cmd|scr|pif|cpl|msi|msp|hta|html?|xhtml|mht|svg|js|jse|vbs|vbe|wsf|wsh|ps1|psm1|lnk|url|reg|jar|sh|app|dmg|pkg|deb|rpm|apk)$/i;
 
+const MEDIA_EXTENSIONS = {
+  'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'audio/ogg': 'ogg', 'audio/opus': 'opus', 'audio/wav': 'wav',
+  'audio/x-wav': 'wav', 'audio/flac': 'flac', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/webm': 'weba',
+  'video/webm': 'webm', 'video/mp4': 'mp4', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif'
+};
+
 // A file name that can't be saved as something that runs: posts choose both the name and
 // the link, so either can carry the extension. Windows drops trailing dots and spaces
 // ("invoice.exe." saves as invoice.exe), so those go first; a risky extension gets .bin.
@@ -8862,6 +8930,21 @@ function safeFileName(name) {
 
 const get = (src, opts) => {
   let xhr;
+  // The page's own files (local sounds, as blob: links): fetch them directly. A userscript
+  // manager's request may not reach them, and this keeps their type for the file name.
+  if (/^(blob|data):/i.test(String(src))) {
+    const controller = new AbortController();
+    xhr = { abort: () => controller.abort() };
+    let p = fetch(src, { signal: controller.signal }).then(response => response.blob(), err => {
+      err && err.name === 'AbortError' && (err.aborted = true);
+      throw err;
+    });
+    if (opts && opts.catch) {
+      p = p.catch(opts.catch);
+    }
+    p.abort = () => xhr.abort();
+    return p;
+  }
   // Wrap so aborting rejects.
   let p = new Promise((resolve, reject) => {
     xhr = GM.xmlHttpRequest({
@@ -8964,6 +9047,9 @@ const downloadTool = module.exports = {
       const base = name.replace(/\.[a-z0-9]{1,5}$/i, '') || 'download';
       name = safeFileName(urlExt ? `${base}.${urlExt}` : name);
       const blob = await get(src);
+      // Nothing to go on from the link (a local file's blob: URL): name it by its type.
+      const typeExt = !urlExt && !/\.[a-z0-9]{1,5}$/i.test(name) && MEDIA_EXTENSIONS[(blob.type || '').split(';')[0]];
+      typeExt && (name = `${name}.${typeExt}`);
       const a = _.element(`<a href="${URL.createObjectURL(blob)}" download="${_.escAttr(name)}" rel="noopener" target="_blank"></a>`);
       a.click();
       URL.revokeObjectURL(a.href);
@@ -10309,7 +10395,7 @@ module.exports = [
     requireSound: true,
     action: data => {
       const src = data.sound[data.tplNameMatch[1] === 'image' ? 'image' : 'src'];
-      const name = data.sound[data.tplNameMatch[1] === 'image' ? 'filename' : 'name'] || '';
+      const name = data.tplNameMatch[1] === 'image' ? data.sound.filename || '' : data.sound.name || data.sound.title || '';
       return `tools.download("${_.escAttr(src, true)}", "${_.escAttr(name, true)}")`;
     },
     actionMods: '.prevent',
@@ -10572,7 +10658,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.606"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.608"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12226,6 +12312,14 @@ module.exports = (data = {}) => `.${ns}-colorpicker {
   padding: 0.25rem;
   white-space: nowrap;
   z-index: 999;
+  max-width: calc(100vw - .5rem);
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+.${ns}-colorpicker input.${ns}-rgb-input {
+  width: 2.5rem !important;
+  min-width: 0 !important;
+  box-sizing: border-box;
 }
 .${ns}-colorpicker .${ns}-cp-saturation {
   display: inline-block;
