@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.616
+// @version      3.7.2.618
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -5200,6 +5200,29 @@ module.exports = {
     return ratio > 0.995 ? 1 : Math.max(0, ratio);
   },
 
+  /**
+   * Keep the search box out from under a header that a theme lays over the playlist. Fixed
+   * Playlist does, hidden until hovered: hovering the search box showed the header instead,
+   * so the box could never be clicked.
+   */
+  fitSearch() {
+    const search = Player.$(`.${ns}-playlist-search`);
+    const header = Player.$(`.${ns}-header`);
+    if (!search || !header) {
+      return;
+    }
+    const margin = parseFloat(search.style.marginTop) || 0;
+    let needed = 0;
+    if (!Player.isHidden && search.getClientRects().length && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+      const h = header.getBoundingClientRect();
+      const s = search.getBoundingClientRect();
+      // Where the box would be, scrolled to the top and without the space it's been given.
+      const top = s.top + search.parentNode.scrollTop - margin;
+      needed = h.top < top + s.height && h.bottom > top && h.left < s.right && h.right > s.left ? Math.ceil(h.bottom - top) : 0;
+    }
+    needed !== margin && (search.style.marginTop = needed ? needed + 'px' : null);
+  },
+
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
@@ -5607,6 +5630,75 @@ module.exports = {
       const [ width, height ] = (value || '').split(':');
       +width && +height && Player.position.resize(width, height, true);
     });
+
+    // Fit what's laid out around the player (see fitAround) when its size, place or styling
+    // changes. A theme's CSS sizes and places it too, so watch the elements themselves.
+    const observer = new ResizeObserver(Player.position.scheduleFit);
+    Player.on('rendered', () => {
+      observer.disconnect();
+      [ Player.container, Player.$(`.${ns}-header`), Player.$(`.${ns}-under-image`) ].forEach(el => el && observer.observe(el));
+    });
+    Player.on([ 'show', 'hide', 'view', 'config:customCSS', 'config:showPlaylistSearch' ], Player.position.scheduleFit);
+    window.addEventListener('resize', Player.position.scheduleFit);
+    // 4chan X adds its navigation buttons when it's done loading.
+    document.addEventListener('4chanXInitFinished', () => setTimeout(Player.position.scheduleFit));
+  },
+
+  /**
+   * Run fitAround at most once a frame (dragging moves the player on every pointermove).
+   */
+  scheduleFit() {
+    Player.position._fitFrame = Player.position._fitFrame || requestAnimationFrame(() => {
+      Player.position._fitFrame = null;
+      Player.position.fitAround();
+    });
+  },
+
+  /**
+   * Keep things clear of each other around the player.
+   */
+  fitAround() {
+    Player.position.fitNavLinks();
+    Player.playlist.fitSearch();
+  },
+
+  /**
+   * 4chan X's Reply/Index Navigation buttons are fixed to the page's top right, so they
+   * covered the player whenever it was there (Fixed Playlist always is). Move them beside it.
+   */
+  fitNavLinks() {
+    const nav = document.getElementById('navlinks');
+    if (!nav) {
+      return;
+    }
+    const set = (prop, value) => nav.style.setProperty(prop, value, 'important');
+    // Back where 4chan X puts them, to see whether that's under the player.
+    if (nav._fcspMoved) {
+      nav._fcspMoved = false;
+      [ 'top', 'right', 'bottom' ].forEach(prop => nav.style.removeProperty(prop));
+    }
+    const p = Player.container && !Player.isHidden && Player.container.getBoundingClientRect();
+    const n = nav.getBoundingClientRect();
+    if (!p || !p.width || !n.width || n.left >= p.right || n.right <= p.left || n.top >= p.bottom || n.bottom <= p.top) {
+      return;
+    }
+    const gap = 10;
+    const viewWidth = document.documentElement.clientWidth;
+    const viewHeight = document.documentElement.clientHeight;
+    nav._fcspMoved = true;
+    if (p.left >= n.width + gap * 2) {
+      // To its left, at the same height.
+      set('right', (viewWidth - p.left + gap) + 'px');
+    } else if (viewHeight - p.bottom >= n.height + gap * 2) {
+      // A player as wide as the window (phones): below it, or above it.
+      set('top', (p.bottom + gap) + 'px');
+      set('bottom', 'auto');
+    } else if (p.top - Player.position.getHeaderOffset().top >= n.height + gap * 2) {
+      set('top', (p.top - gap - n.height) + 'px');
+      set('bottom', 'auto');
+    } else {
+      nav._fcspMoved = false;
+    }
   },
 
   /**
@@ -5840,6 +5932,7 @@ module.exports = {
     if (Player.config.limitPostWidths) {
       Player.position._scheduleWidths();
     }
+    Player.position.scheduleFit();
   },
 
   /**
@@ -6858,10 +6951,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.616") {
+    if (storedVersion !== "3.7.2.618") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.616"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.618"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7177,7 +7270,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.616";
+      settings.VERSION = "3.7.2.618";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7193,7 +7286,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.616") {
+    if (!fromVersion || fromVersion === "3.7.2.618") {
       return {};
     }
     const changes = {};
@@ -7697,7 +7790,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.616"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.618"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10813,7 +10906,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.616"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.618"));
 
     // Apply any specific replacements
     if (data.replacements) {
