@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.614
+// @version      3.7.2.616
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1760,7 +1760,8 @@ module.exports = {
     // loop, like an inline player's audio following its video, has to be sent back).
     // Not while the user holds the video's own seek bar: the seek they're making is passed
     // to the sound, and pulling the video back to the sound's older position fought it.
-    const userHolding = to._inlinePlayer && to._inlinePlayer.pressing && to === to._inlinePlayer.video;
+    const userHolding = to._inlinePlayer && to === to._inlinePlayer.video
+      && (to._inlinePlayer.pressing || performance.now() - (to._userSeekAt || 0) < 1000);
     if (!userHolding && from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
@@ -1770,7 +1771,10 @@ module.exports = {
       }
     }
     if (!leading) {
-      !to.paused && to.pause();
+      if (!to.paused) {
+        to._syncPauseAt = performance.now();
+        to.pause();
+      }
       return;
     }
     // play() rejects when a newer load or pause interrupts it; that's expected here.
@@ -3526,7 +3530,12 @@ module.exports = {
 
     Player.inline.observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
-        mutation.addedNodes.forEach(Player.inline.handleAddedNode);
+        mutation.addedNodes.forEach(node => {
+          Player.inline.handleAddedNode(node);
+          // Expanded media inside a block of new content (4chan X's thread updater with
+          // Expand All Images), and copies of our controls in quote copies.
+          node.querySelectorAll && Player.inline._handleAddedTree(node);
+        });
         mutation.removedNodes.forEach(Player.inline.handleRemovedNode);
       });
     });
@@ -3659,6 +3668,17 @@ module.exports = {
         // (Only if it's still playing when the event arrives: two started together would
         // otherwise each pause the other.)
         isExpandedImage && audio.addEventListener('play', () => !audio.paused && Player.inline._pauseOtherExpanded(audio));
+        // Hiding the post (4chan X's [–]) leaves the expanded media in place but not shown:
+        // stop the sound there, as there's nothing left to stop it with.
+        if (isExpandedImage) {
+          node._inlinePlayer.hiddenCheck = () => {
+            if (document.visibilityState === 'visible' && !node.getClientRects().length) {
+              const master = node._inlinePlayer.master || audio;
+              !master.paused && master.pause();
+            }
+          };
+          audio.addEventListener('timeupdate', node._inlinePlayer.hiddenCheck);
+        }
         // Link video & audio so they sync.
         if (isVideo) {
           node._linked = audio;
@@ -3697,7 +3717,17 @@ module.exports = {
             if (ownControls) {
               [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
             }
-            const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
+            // Chrome's built-in controls send the page no pointer events at all, so a change
+            // to a video that's on show in a visible tab counts as the user's too (4chan X
+            // pauses videos when they leave the screen or the tab is hidden), except the ones
+            // the sync itself makes.
+            const onShow = () => document.visibilityState === 'visible' && (() => {
+              const rect = node.getBoundingClientRect();
+              return rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+            })();
+            const byUser = () => ownControls && (node._inlinePlayer.pressing
+              || performance.now() - node._inlinePlayer.lastPress < 1000
+              || (onShow() && performance.now() - (node._syncPauseAt || 0) > 300));
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
@@ -3706,13 +3736,18 @@ module.exports = {
               node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
               // A seek the user started is forwarded however long it takes to finish.
               node._inlinePlayer.noteSeek = () => byUser() && (node._inlinePlayer.userSeek = true);
+              // Where the video was, to tell its loop wrapping round from a seek.
+              node._inlinePlayer.trackTime = () => node._inlinePlayer.lastTime = node.currentTime;
+              node.addEventListener('timeupdate', node._inlinePlayer.trackTime);
               node._inlinePlayer.forwardSeek = () => {
                 const userSeek = node._inlinePlayer.userSeek || byUser();
                 node._inlinePlayer.userSeek = false;
-                // Not the seeks the sync makes.
-                if (!userSeek || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                const wrapped = node.loop && node.currentTime < 0.5 && node._inlinePlayer.lastTime > node.duration - 1;
+                // Not the seeks the sync makes, or the loop.
+                if (!userSeek || wrapped || performance.now() - (node._syncSeekAt || 0) < 1000) {
                   return;
                 }
+                node._userSeekAt = performance.now();
                 // The video loops under a longer sound: keep the sound in the same loop.
                 const d = node.duration;
                 audio.currentTime = d > 0 && isFinite(d) && audio.duration > d
@@ -3855,12 +3890,42 @@ module.exports = {
 	 * @param {Element} node Added node.
 	 */
   handleRemovedNode(node) {
+    // Moved rather than removed (4chan X re-threading re-appends posts): it's back on the
+    // page by now, so keep its player.
+    if (node.isConnected) {
+      return;
+    }
     const nodes = [ node ];
     node.querySelectorAll && nodes.push(...node.querySelectorAll(`.${ns}-has-inline-audio`));
     nodes.forEach(node => {
       if (node._inlineAudio) {
         Player.inline._removeForNode(node);
       }
+    });
+  },
+
+  /**
+	 * Look inside new content: copies (4chan X's inline quotes clone a post as it is, ids
+	 * ending in _N) get our dead controls stripped, and expanded media in new posts gets a
+	 * player.
+	 */
+  _handleAddedTree(root) {
+    // Never the player's own interface (its controls aren't an inline player's).
+    if (Player.container && (Player.container === root || Player.container.contains(root) || root.contains(Player.container))) {
+      return;
+    }
+    root.querySelectorAll(`.${ns}-has-controls > .${ns}-controls`).forEach(controls => {
+      const media = controls.parentNode && controls.parentNode.querySelector(`.${ns}-has-inline-audio`);
+      if (!media || !media._inlineAudio) {
+        controls.parentNode && controls.parentNode.classList.remove(`${ns}-has-controls`);
+        controls.remove();
+      }
+    });
+    root.querySelectorAll(`.${ns}-has-inline-audio`).forEach(media => !media._inlineAudio && media.classList.remove(`${ns}-has-inline-audio`));
+    root.querySelectorAll('img, video').forEach(media => {
+      const post = media.closest(selectors.posts);
+      const isCopy = post && /_\d+$/.test(post.id);
+      !isCopy && !media._inlineAudio && Player.inline.handleAddedNode(media);
     });
   },
 
@@ -3873,6 +3938,8 @@ module.exports = {
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
+    node._inlinePlayer.trackTime && node.removeEventListener('timeupdate', node._inlinePlayer.trackTime);
+    node._inlinePlayer.hiddenCheck && node._inlineAudio.removeEventListener('timeupdate', node._inlinePlayer.hiddenCheck);
     node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ]
       .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
     clearTimeout(node._inlinePlayer.pressTimeout);
@@ -4106,6 +4173,8 @@ module.exports = {
       // Show the current time now rather than 0:00 until the next media event (none comes
       // while paused).
       Player.audio && Player.controls.updateDuration({ currentTarget: Player.audio });
+      // The controls can change the header's height.
+      Player.position.updateHeaderOffsets();
     }
   },
 
@@ -5440,6 +5509,9 @@ module.exports = {
     const { top, bottom } = Player.position.getHeaderOffset();
     Player.config.offsetTop = top + 'px';
     Player.config.offsetBottom = bottom + 'px';
+    // And keep them current: the header's height changes (the player's own controls in it,
+    // the window narrowing), and themes like Fixed Playlist place the player by them.
+    window.addEventListener('resize', _.debounce(Player.position.updateHeaderOffsets, 150));
 
     // Apply the last position/size, and post width limiting, when the player is shown.
     Player.on('show', async function () {
@@ -5658,6 +5730,15 @@ module.exports = {
         GM.setValue('position', parseInt(Player.container.style.left, 10) + ':' + parseInt(Player.container.style.top, 10));
       }
     }
+  },
+
+  /**
+	 * Update offsetTop/offsetBottom when the header's size has changed.
+	 */
+  updateHeaderOffsets() {
+    const { top, bottom } = Player.position.getHeaderOffset();
+    Player.config.offsetTop !== top + 'px' && Player.set('offsetTop', top + 'px', { bypassSave: true });
+    Player.config.offsetBottom !== bottom + 'px' && Player.set('offsetBottom', bottom + 'px', { bypassSave: true });
   },
 
   /**
@@ -6008,7 +6089,10 @@ module.exports = {
 
       const thumbContainer = Player.posts._own(post, selectors.thumb);
       const fileThumb = thumbContainer && thumbContainer.closest('a');
-      const imageSrc = fileThumb && fileThumb.href;
+      // 4chan X takes the link off the thumbnail while it shows the expanded video (Expand All
+      // Images does it before new posts arrive): fall back to the file name's link.
+      const fileLink = !(fileThumb && fileThumb.href) && Player.posts._own(post, '.fileText a[href], .file-info a[href]');
+      const imageSrc = (fileThumb && fileThumb.href) || (fileLink && fileLink.href);
       if (!imageSrc) {
         return;
       }
@@ -6774,10 +6858,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.614") {
+    if (storedVersion !== "3.7.2.616") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.614"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.616"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7093,7 +7177,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.614";
+      settings.VERSION = "3.7.2.616";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7109,7 +7193,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.614") {
+    if (!fromVersion || fromVersion === "3.7.2.616") {
       return {};
     }
     const changes = {};
@@ -7613,7 +7697,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.614"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.616"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10729,7 +10813,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.614"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.616"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12574,7 +12658,15 @@ module.exports = (data = {}) => `.${ns}-colorpicker {
   background: var(--fcsp-controls-inactive);
 }
 
-.${ns}-chan-x-controls .${ns}-current-time, .${ns}-chan-x-controls .${ns}-duration {
+span.${ns}-chan-x-controls {
+  max-width: min(40vw, 30rem);
+  min-width: 0;
+  overflow: hidden;
+}
+span.${ns}-chan-x-controls .${ns}-truncate-text {
+  min-width: 0;
+}
+span.${ns}-chan-x-controls .${ns}-current-time, span.${ns}-chan-x-controls .${ns}-duration {
   margin: 0 0.25rem;
 }
 
