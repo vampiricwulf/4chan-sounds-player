@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.620
+// @version      3.7.2.622
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -5201,9 +5201,10 @@ module.exports = {
   },
 
   /**
-   * Keep the search box out from under a header that a theme lays over the playlist. Fixed
-   * Playlist does, hidden until hovered: hovering the search box showed the header instead,
-   * so the box could never be clicked.
+   * A theme can lay the header over the top of the playlist, hidden until hovered (Fixed
+   * Playlist does). The search box was under it, so hovering the box showed the header
+   * instead and the box could never be clicked. The box goes with the header then: just
+   * below it, hidden with it, and hovering either shows both (see _list.scss).
    */
   fitSearch() {
     const search = Player.$(`.${ns}-playlist-search`);
@@ -5211,16 +5212,20 @@ module.exports = {
     if (!search || !header) {
       return;
     }
-    const margin = parseFloat(search.style.marginTop) || 0;
-    let needed = 0;
-    if (!Player.isHidden && search.getClientRects().length && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+    let overlay = false;
+    if (!Player.isHidden && search.style.display !== 'none' && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+      // Where the box is when it's not with the header: at the top of the list.
+      const list = search.parentNode;
+      const l = list.getBoundingClientRect();
+      const top = l.top + list.clientTop + parseFloat(getComputedStyle(list).paddingTop);
       const h = header.getBoundingClientRect();
-      const s = search.getBoundingClientRect();
-      // Where the box would be, scrolled to the top and without the space it's been given.
-      const top = s.top + search.parentNode.scrollTop - margin;
-      needed = h.top < top + s.height && h.bottom > top && h.left < s.right && h.right > s.left ? Math.ceil(h.bottom - top) : 0;
+      overlay = l.width > 0 && h.top < top + search.offsetHeight && h.bottom > top && h.left < l.right && h.right > l.left;
+      // While it's in use the list starts below it, not under it (the first result was hidden).
+      overlay && Player.container.style.setProperty(`--${ns}-search-pad`, Math.ceil(h.bottom + search.offsetHeight - top) + 'px');
     }
-    needed !== margin && (search.style.marginTop = needed ? needed + 'px' : null);
+    search.style.top = overlay ? (header.offsetTop + header.offsetHeight) + 'px' : null;
+    overlay || Player.container.style.removeProperty(`--${ns}-search-pad`);
+    Player.container.classList.toggle(`${ns}-search-overlay`, overlay);
   },
 
   toggleSearch(show) {
@@ -6956,10 +6961,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.620") {
+    if (storedVersion !== "3.7.2.622") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.620"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.622"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7275,7 +7280,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.620";
+      settings.VERSION = "3.7.2.622";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7291,7 +7296,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.620") {
+    if (!fromVersion || fromVersion === "3.7.2.622") {
       return {};
     }
     const changes = {};
@@ -7795,7 +7800,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.620"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.622"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10911,7 +10916,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.620"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.622"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -13373,6 +13378,30 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 
 .dialog .tags-dialog .entry {
   cursor: initial;
+}
+
+.${ns}-search-overlay .${ns}-playlist-search {
+  position: absolute;
+  left: 0;
+  z-index: 9;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+.${ns}-search-overlay .${ns}-playlist-search:not(:placeholder-shown) {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+.${ns}-search-overlay:has(.${ns}-header:hover, .${ns}-playlist-search:hover, .${ns}-playlist-search:focus) .${ns}-header, .${ns}-search-overlay:has(.${ns}-header:hover, .${ns}-playlist-search:hover, .${ns}-playlist-search:focus) .${ns}-playlist-search {
+  opacity: 1 !important;
+}
+.${ns}-search-overlay:has(.${ns}-header:hover, .${ns}-playlist-search:hover, .${ns}-playlist-search:focus) .${ns}-playlist-search {
+  visibility: visible;
+  transition: opacity 0.3s ease;
+}
+.${ns}-search-overlay:has(.${ns}-playlist-search:focus, .${ns}-playlist-search:not(:placeholder-shown)) .${ns}-list-container {
+  padding-top: var(--${ns}-search-pad, 0);
 }
 
 .${ns}-settings textarea {
