@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.590
+// @version      3.7.2.593
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -4677,6 +4677,9 @@ module.exports = {
   },
 
   search(v) {
+    // Matching is on lowercased text, as the search box lowercases what's typed; do the
+    // same for a value passed in (the PlayerEvent API).
+    v = typeof v === 'string' ? v.toLowerCase() : v;
     const lastSearch = Player.playlist._lastSearch;
     Player.playlist._lastSearch = v;
     if (v === lastSearch) {
@@ -5479,7 +5482,12 @@ const selectors = __webpack_require__(/*! ../../selectors */ "./src/selectors.js
 const hosts = __webpack_require__(/*! ../../hosts */ "./src/hosts.js");
 
 const protocolRE = /^(https?:)?\/\//;
-const filenameRE = new RegExp('(.*?)[[({](' + Object.keys(hosts).join('|') + ')[ =:|$](.*?)[\\])}]', 'gi');
+// A tag closes with the bracket it opened with, so "[sound=…song(1).mp3]" keeps the ")" in
+// its link. (Any closing bracket ended it before.) Mismatched ones ("[sound=…)") are still
+// read, as a last resort. Groups: name, then host and link for [ ], ( ), { } or mismatched.
+const hostAlternatives = Object.keys(hosts).join('|');
+const filenameRE = new RegExp(`(.*?)(?:\\[(${hostAlternatives})[ =:|$](.*?)\\]|\\((${hostAlternatives})[ =:|$](.*?)\\)`
+  + `|\\{(${hostAlternatives})[ =:|$](.*?)\\}|[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
 // Hostname-anchored: requires // (or userinfo@) immediately before the matched
 // catbox.moe, and a path/port/query/fragment/end immediately after. So substrings
 // in paths or query strings don't match, and `xcatbox.moe` doesn't either.
@@ -5688,12 +5696,13 @@ module.exports = {
     // its text as part of the next sound's name.
     let carried = '';
     const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
-      const src = match[3].trim();
+      const host = match[2] || match[4] || match[6] || match[8];
+      const src = (match[3] || match[5] || match[7] || match[9] || '').trim();
       if (!src.includes('.') || /\s/.test(src)) {
         carried += match[0];
         return valid;
       }
-      valid.push([ match[0], carried + match[1], match[2], src ]);
+      valid.push([ match[0], carried + match[1], host, src ]);
       carried = '';
       return valid;
     }, []);
@@ -6355,10 +6364,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.590") {
+    if (storedVersion !== "3.7.2.593") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.590"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.593"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6452,6 +6461,18 @@ module.exports = {
       return typeof value === 'number' && isFinite(value);
     }
     return false;
+  },
+
+  /**
+	 * settings.reset for the PlayerEvent API: only settings the API may set, so a page script
+	 * can't wipe saved themes, filters, hosts or templates back to their defaults.
+	 */
+  resetPublic(property) {
+    const conf = Player.settings.findDefault(property);
+    if (!conf || !Player.settings._apiAllows(property, conf.default)) {
+      return console.warn('[4chan sounds player] PlayerEvent: reset not allowed:', property);
+    }
+    return Player.settings.reset(property);
   },
 
   /**
@@ -6661,7 +6682,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.590";
+      settings.VERSION = "3.7.2.593";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6677,7 +6698,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.590") {
+    if (!fromVersion || fromVersion === "3.7.2.593") {
       return {};
     }
     const changes = {};
@@ -7177,7 +7198,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.590"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.593"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8930,7 +8951,8 @@ module.exports = {
 	 * Encode the decoded input.
 	 */
   handleDecoded(e) {
-    Player.$(`.${ns}-encoded-input`).value = encodeURIComponent(e.currentTarget.value);
+    // ( and ) too: a tag written with parentheses would otherwise end at the first ")".
+    Player.$(`.${ns}-encoded-input`).value = encodeURIComponent(e.currentTarget.value).replace(/\(/g, '%28').replace(/\)/g, '%29');
   },
 
   /**
@@ -10199,7 +10221,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.590"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.593"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -11576,7 +11598,8 @@ const Player =
           // privileges (cross-site requests with the user's cookies).
           const restricted = {
             set: Player.settings.setPublic,
-            'settings.load': Player.settings.loadPublic
+            'settings.load': Player.settings.loadPublic,
+            'settings.reset': Player.settings.resetPublic
           };
           document.addEventListener('PlayerEvent', (e) => {
             const action = e.detail && e.detail.action;
