@@ -26,32 +26,40 @@ module.exports = {
 
       if (Player.config.limitPostWidths) {
         Player.position.setPostWidths();
-        window.addEventListener('scroll', Player.position.setPostWidths);
+        window.addEventListener('scroll', Player.position._scheduleWidths, { passive: true });
       }
     });
 
     // Remove post width limiting when the player is hidden.
     Player.on('hide', function () {
       Player.position.setPostWidths();
-      window.removeEventListener('scroll', Player.position.setPostWidths);
+      window.removeEventListener('scroll', Player.position._scheduleWidths, { passive: true });
     });
 
     // Reapply the post width limiting config values when they're changed.
     Player.on('config', prop => {
       if (prop === 'limitPostWidths' || prop === 'minPostWidth') {
-        window.removeEventListener('scroll', Player.position.setPostWidths);
+        window.removeEventListener('scroll', Player.position._scheduleWidths, { passive: true });
         Player.position.setPostWidths();
         if (Player.config.limitPostWidths) {
-          window.addEventListener('scroll', Player.position.setPostWidths);
+          window.addEventListener('scroll', Player.position._scheduleWidths, { passive: true });
         }
       }
     });
 
-    // Remove post width limit from inline quotes
-    new MutationObserver(function () {
-      document.querySelectorAll('#hoverUI .postContainer, .inline .postContainer, .backlink_container article').forEach(post => {
-        post.style.maxWidth = null;
-        post.style.minWidth = null;
+    // Remove post width limit from inline quotes. Only when nodes were added, and at most
+    // once a frame: this observes the whole page, which changes constantly.
+    let resetFrame = null;
+    new MutationObserver(function (mutations) {
+      if (resetFrame || !mutations.some(m => m.addedNodes.length)) {
+        return;
+      }
+      resetFrame = requestAnimationFrame(() => {
+        resetFrame = null;
+        document.querySelectorAll('#hoverUI .postContainer, .inline .postContainer, .backlink_container article').forEach(post => {
+          post.style.maxWidth && (post.style.maxWidth = null);
+          post.style.minWidth && (post.style.minWidth = null);
+        });
       });
     }).observe(document.body, {
       childList: true,
@@ -76,24 +84,52 @@ module.exports = {
 	 * Applies a max width to posts next to the player so they don't get hidden behind it.
 	 */
   setPostWidths() {
-    const offset = (document.documentElement.clientWidth - Player.container.offsetLeft) + 10;
     const enabled = !Player.isHidden && Player.config.limitPostWidths;
-    const startY = Player.container.offsetTop;
-    const endY = Player.container.getBoundingClientRect().height + startY;
+    const posts = document.querySelectorAll(selectors.limitWidthOf);
+    let limits = [];
+    let maxWidthCss = '';
+    let minWidthCss = '';
 
-    const minWidth = Player.config.minPostWidth;
-    // Coerce a bare number/numeric-string to a px value; pass through any string that
-    // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
-    // numbers as raw CSS which browsers reject.
-    const minWidthCss = minWidth == null || minWidth === ''
-      ? null
-      : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+    if (enabled) {
+      const offset = (document.documentElement.clientWidth - Player.container.offsetLeft) + 10;
+      const startY = Player.container.offsetTop;
+      const endY = Player.container.getBoundingClientRect().height + startY;
+      maxWidthCss = `calc(100% - ${offset}px)`;
 
-    document.querySelectorAll(selectors.limitWidthOf).forEach(post => {
-      const rect = enabled && post.getBoundingClientRect();
-      const limitWidth = enabled && rect.top + rect.height > startY && rect.top < endY;
-      post.style.maxWidth = limitWidth ? `calc(100% - ${offset}px)` : null;
-      post.style.minWidth = limitWidth && minWidthCss ? minWidthCss : null;
+      const minWidth = Player.config.minPostWidth;
+      // Coerce a bare number/numeric-string to a px value; pass through any string that
+      // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
+      // numbers as raw CSS which browsers reject.
+      minWidthCss = minWidth == null || minWidth === ''
+        ? ''
+        : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+
+      // Read every position before writing any style. Interleaving them forced a layout
+      // per post on each call, and this runs on scroll.
+      limits = Array.from(posts, post => {
+        const rect = post.getBoundingClientRect();
+        return rect.bottom > startY && rect.top < endY;
+      });
+    }
+
+    posts.forEach((post, i) => {
+      const maxWidth = limits[i] ? maxWidthCss : '';
+      const minWidth = limits[i] ? minWidthCss : '';
+      post.style.maxWidth !== maxWidth && (post.style.maxWidth = maxWidth);
+      post.style.minWidth !== minWidth && (post.style.minWidth = minWidth);
+    });
+  },
+
+  /**
+   * Update post widths at most once a frame (scroll fires far more often).
+   */
+  _scheduleWidths() {
+    if (Player.position._widthsFrame) {
+      return;
+    }
+    Player.position._widthsFrame = requestAnimationFrame(() => {
+      Player.position._widthsFrame = null;
+      Player.position.setPostWidths();
     });
   },
 
