@@ -58,6 +58,15 @@ module.exports.isEqual = function isEqual(a, b, strict = true) {
   return strict ? a === b : a == b;
 };
 
+/**
+ * Deep copy a plain JSON value (setting values and defaults). Objects and arrays from
+ * the settings config must not be shared with Player.config: in-place edits there
+ * would change the defaults themselves.
+ */
+module.exports.clone = function clone(value) {
+  return value !== null && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : value;
+};
+
 module.exports.toDuration = function toDuration(number) {
   // isFinite filters Infinity (a live-stream / unknown media.duration) which would
   // otherwise propagate through the modulo math as NaN and render "NaN:NaN".
@@ -73,8 +82,9 @@ module.exports.timeAgo = function timeAgo(date) {
     Math.floor(date),
     Math.floor(Date.now() / 1000),
   );
-  return weeks > 1
-    ? weeks + ' weeks ago'
+  // >= 1: with > 1, 7-13 days showed only the leftover days ("10 days" as "3 days ago").
+  return weeks >= 1
+    ? weeks + (weeks === 1 ? ' week' : ' weeks') + ' ago'
     : days > 0
       ? days + (days === 1 ? ' day' : ' days') + ' ago'
       : hours > 0

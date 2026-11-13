@@ -35,7 +35,15 @@ module.exports = {
         }
         container.setAttribute('data-host-name', newValue);
         hosts[newValue] = host;
-        delete hosts[name];
+        // A built-in host has to stay as null under its old name, or the next load mixes
+        // the default back in next to the renamed copy.
+        if (Player.settings.findDefault('uploadHosts').default[name]) {
+          hosts[name] = null;
+        } else {
+          delete hosts[name];
+        }
+        // Keep the default upload host pointing at the renamed host.
+        Player.config.defaultUploadHost === name && Player.set('defaultUploadHost', newValue);
         name = newValue;
       }
 
@@ -132,7 +140,7 @@ module.exports = {
   },
 
   restoreDefaults() {
-    Object.assign(Player.config.uploadHosts, Player.settings.findDefault('uploadHosts').default);
+    Object.assign(Player.config.uploadHosts, _.clone(Player.settings.findDefault('uploadHosts').default));
     Player.set('uploadHosts', Player.config.uploadHosts, { bypassValidation: true });
   }
 };

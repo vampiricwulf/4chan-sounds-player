@@ -137,7 +137,9 @@ module.exports = [
     updateCSSVars: true,
     allowInTheme: true,
     class: `${ns}-colorpicker-input`,
-    attrs: '@focusout.stop.prevent="colorpicker._updatePreview" @click="colorpicker.create"',
+    // .stop: otherwise the same click reaches the body's close-dialogs handler, which
+    // removed the picker as soon as it opened.
+    attrs: '@focusout.stop.prevent="colorpicker._updatePreview" @click.stop="colorpicker.create"',
     // Escape the value: it comes from settings, which can be imported or shared as a theme.
     displayMethod: ({ value, attrs }) => `<div class="${ns}-col">
 				<input type="text" ${attrs} value="${_.escAttr(value)}">

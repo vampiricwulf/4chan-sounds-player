@@ -16,7 +16,15 @@ module.exports = {
     Player.theme.validateOrder();
 
     // Observe changes to stylesheets and classes to re-apply the board theme dynamically.
-    const observer = new MutationObserver(_.debounce(() => Player.theme.applyBoardTheme(), 500));
+    // Ignore the player's own stylesheets: applyBoardTheme rewrites them, and reacting to
+    // that re-ran it (and re-rendered the settings) every 500ms, forever.
+    const applyBoardTheme = _.debounce(() => Player.theme.applyBoardTheme(), 500);
+    const isOwn = node => node && [ Player.stylesheet, Player.varsCSS, Player.userStylesheet ].some(el => el && (el === node || el.contains(node)));
+    const observer = new MutationObserver(mutations => {
+      const external = mutations.some(m => !isOwn(m.target)
+        && !(m.type === 'childList' && [ ...m.addedNodes, ...m.removedNodes ].every(isOwn)));
+      external && applyBoardTheme();
+    });
 
     // Watch for stylesheet changes in head
     observer.observe(document.head, {
@@ -91,16 +99,20 @@ module.exports = {
         return `rgb(${playingRGB[0]}, ${playingRGB[1]}, ${playingRGB[2]})`;
       })()
     };
+    let changed = false;
     settingsConfig.find(s => s.property === 'colors').settings.forEach(setting => {
       const updateConfig = opts.force || (setting.default === _.get(Player.config, setting.property));
       colorSettingMap[setting.property] && (setting.default = colorSettingMap[setting.property]);
-      updateConfig && Player.set(setting.property, setting.default, { bypassSave: true, bypassRender: true, bypassStylesheet: true });
+      // Player.set returns nothing when the value is unchanged.
+      updateConfig && Player.set(setting.property, setting.default, { bypassSave: true, bypassRender: true, bypassStylesheet: true }) && (changed = true);
     });
 
     // Clean up the element.
     document.body.removeChild(div);
 
-    if (!opts.bypassRender) {
+    // Only rewrite the CSS and re-render the settings when a colour actually changed: a
+    // re-render closes an open colour picker and drops focus from the settings inputs.
+    if (!opts.bypassRender && (changed || opts.force)) {
       // Updated the stylesheet.
       Player.display.updateCSSVars();
       // Re-render the settings.
@@ -170,9 +182,12 @@ module.exports = {
     if (!keyDef.key) {
       bindings = bindings.filter(def => def.themeName !== themeName);
     } else {
-      let binding = bindings.find(def => def.themeName === themeName);
-      binding || bindings.push(binding = { themeName });
-      Object.assign(binding, keyDef);
+      // Replace rather than modify the existing binding: modifying it in place made the
+      // change compare equal to the stored value, so it was never saved, and it kept
+      // modifiers from the previous key.
+      const binding = { themeName, ...keyDef };
+      const index = bindings.findIndex(def => def.themeName === themeName);
+      index === -1 ? bindings.push(binding) : (bindings[index] = binding);
     }
     return bindings;
   },
@@ -228,7 +243,7 @@ module.exports = {
   },
 
   restoreDefaults() {
-    Object.assign(Player.config.savedThemes, Player.settings.findDefault('savedThemes').default);
+    Object.assign(Player.config.savedThemes, _.clone(Player.settings.findDefault('savedThemes').default));
     Player.theme.validateOrder();
     Player.set('savedThemes', Player.config.savedThemes, { bypassValidation: true });
   },
@@ -239,13 +254,17 @@ module.exports = {
       return Player.container.removeChild(open);
     }
     const el = _.element(saveMenuTemplate({ settingsConfig }), Player.container);
+    // Kept to reposition against when the fields are toggled.
+    Player.theme._saveOptionsAnchor = e.currentTarget;
     Player.position.showRelativeTo(el, e.currentTarget);
     Player.$(`.${ns}-save-theme-name`).focus();
   },
 
   toggleSaveFields() {
     Player.$(`.${ns}-theme-save-options`).classList.toggle('fields-collapsed');
-    Player.position.showRelativeTo(Player.$(`.${ns}-theme-save-options`), Player.$('[\\@click^="theme.showSaveOptions"]'));
+    // The old lookup by an '@click' attribute never matched ('@click.prevent.stop').
+    const anchor = Player.theme._saveOptionsAnchor;
+    anchor && document.contains(anchor) && Player.position.showRelativeTo(Player.$(`.${ns}-theme-save-options`), anchor);
   },
 
   toggleSaveButtonText(e) {
@@ -256,6 +275,11 @@ module.exports = {
     const name = Player.$(`.${ns}-save-theme-name`).value;
     if (!name) {
       return Player.logError('A name is required to save a theme.', null, 'warning');
+    }
+    // "Default" isn't a stored theme: a saved one by that name could be neither applied
+    // nor deleted.
+    if (name === 'Default') {
+      return Player.logError('"Default" is reserved. Choose another name.', null, 'warning');
     }
     const checked = Player.$all(`.${ns}-theme-save-options input:checked`);
     const data = [ ...checked ].reduce((data, el) => _.set(data, el.value, _.get(Player.config, el.value)), {});

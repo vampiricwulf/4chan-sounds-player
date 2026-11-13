@@ -119,7 +119,18 @@ module.exports = {
 	 */
   reset(property, opts) {
     let settingConfig = Player.settings.findDefault(property);
-    Player.set(property, settingConfig.default, { ...opts, settingConfig });
+    Player.set(property, _.clone(settingConfig.default), { ...opts, settingConfig });
+  },
+
+  /**
+	 * Reset every setting (except the current view) to its default.
+	 */
+  resetAll() {
+    Player.settings.load({}, { applyDefault: true, ignore: [ 'viewStyle' ], bypassSave: true, bypassRender: true });
+    // Rebuild the saved themes order from the default themes before saving/rendering.
+    Player.theme.validateOrder();
+    Player.settings.save();
+    Player.settings.render();
   },
 
   /**
@@ -158,6 +169,9 @@ module.exports = {
       if (value !== undefined) {
         // Mix in default.
         setting.mix && (value = { ...setting.default, ...(value || {}) });
+        // Copy, so editing the loaded value in place can't change the default (or the
+        // saved theme it came from).
+        value = _.clone(value);
         const data = Player.set(setting.property, value, { bypassAll: true, settingConfig: setting });
         data && (changes[setting.property] = data);
       }
@@ -432,7 +446,7 @@ module.exports = {
 	 */
   handleKeyChange(e) {
     e.preventDefault();
-    if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta') {
+    if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'AltGraph') {
       return;
     }
     e.currentTarget.value = e.which === 8 || e.key.toLowerCase() === 'backspace'

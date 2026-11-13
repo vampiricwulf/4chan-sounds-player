@@ -6,7 +6,8 @@ module.exports = [
     async run() {
       const defaultHosts = Player.settings.findDefault('uploadHosts').default;
       Object.keys(defaultHosts).forEach(host => {
-        Player.config.uploadHosts[host].filenameLength = defaultHosts[host].filenameLength;
+        // A removed built-in host is stored as null.
+        Player.config.uploadHosts[host] && (Player.config.uploadHosts[host].filenameLength = defaultHosts[host].filenameLength);
       });
       return {};
     }

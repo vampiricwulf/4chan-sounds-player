@@ -1,4 +1,5 @@
-Object.entries(Player.config.uploadHosts).map(([ name, host ]) => `
+// Removed built-in hosts are stored as null so they stay removed; skip them.
+Object.entries(Player.config.uploadHosts).filter(([ , host ]) => host).map(([ name, host ]) => `
 	<div class="${ns}-row ${ns}-col ${ns}-host-input ${host.invalid ? 'invalid' : ''}" data-host-name="${_.escAttr(name)}">
 		<div class="${ns}-row ${ns}-host-controls">
 			<div class="${ns}-col-auto">

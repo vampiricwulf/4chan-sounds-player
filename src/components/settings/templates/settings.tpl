@@ -1,7 +1,7 @@
 `<div class="${ns}-settings-tabs ${ns}-row">
 	<div class="${ns}-settings-tab-group ${ns}-col-auto">
 		<a href="#" class="${ns}-settings-reset-all ${ns}-settings-tab"
-			@click.prevent='settings.load({},{"applyDefault":true,"ignore":["viewStyle"]})'
+			@click.prevent="settings.resetAll"
 			title="Reset all settings to their default values.">
 			${Icons.reboot}
 		</a>

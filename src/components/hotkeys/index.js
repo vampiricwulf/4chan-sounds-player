@@ -177,9 +177,10 @@ module.exports = {
       }
       const bindingConfig = k === keyDef.key
 				&& (!!keyDef.shiftKey === !!e.shiftKey) && (!!keyDef.ctrlKey === !!e.ctrlKey) && (!!keyDef.metaKey === !!e.metaKey)
-				// Bindings can't include Alt, so Alt combos (Alt+Left/Right is browser back/forward) pass through.
+				// Unbound Alt combos (Alt+Left/Right is browser back/forward) pass through.
 				&& (!!keyDef.altKey === !!e.altKey)
-				&& (!keyDef.ignoreRepeat || !e.repeat)
+				// ignoreRepeat is part of the setting's config, not the stored binding.
+				&& (!(keyConfigs[name] && keyConfigs[name].ignoreRepeat) || !e.repeat)
 				&& keyConfigs[name];
 
       if (bindingConfig && (!inputFocused || bindingConfig.allowFocusedInput)) {
@@ -196,15 +197,18 @@ module.exports = {
   stringifyKey(key) {
     let k = key.key.toLowerCase();
     Player.hotkeys._keyMap[k] && (k = Player.hotkeys._keyMap[k]);
-    return (key.ctrlKey ? 'Ctrl+' : '') + (key.shiftKey ? 'Shift+' : '') + (key.metaKey ? 'Meta+' : '') + k;
+    return (key.ctrlKey ? 'Ctrl+' : '') + (key.altKey ? 'Alt+' : '') + (key.shiftKey ? 'Shift+' : '') + (key.metaKey ? 'Meta+' : '') + k;
   },
 
   /**
 	 * Turn an input string into a hotkey definition object.
 	 */
   parseKey(str) {
-    const keys = str.split('+');
-    let key = keys.pop();
+    // Modifiers are a known prefix; everything after them is the key, which can itself be
+    // '+' ("Shift++"), so don't just split on '+'.
+    const [ , modifiers, rest ] = String(str).match(/^((?:(?:Ctrl|Alt|Shift|Meta)\+)*)([\s\S]*)$/);
+    const keys = modifiers.split('+').filter(Boolean);
+    let key = rest;
     Object.keys(Player.hotkeys._keyMap).find(k => Player.hotkeys._keyMap[k] === key && (key = k));
     const newValue = { key };
     keys.forEach(key => newValue[key.toLowerCase() + 'Key'] = true);
