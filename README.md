@@ -217,7 +217,7 @@ For example, `{ action: 'next', arguments: [ { group: true } ] }`.
 - `togglePlay()` - Play/pause the audio.
 - `next({ group: Boolean, force: Boolean })` - Skip to the next sound. Pass `group: true` to the next sound image, and `force: true` to ignore repeat one being set.
 - `previous({ group: false, force: false })` - Skip to the previous sound. Same arguments as `next`.
-- `stop()` - Stop playback and close (not hide) the player.
+- `stop()` - Stop playback and unload the sound. The player stays open; use `hide()` to hide it.
 - `volumeUp()` - Raise the volume by 5 percent.
 - `volumeDown()` - Lower the volume by 5 percent.
 - `toggleMute()` - Mute/unmute.

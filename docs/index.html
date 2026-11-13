@@ -261,7 +261,7 @@
   <p>The player is a floating window with a header, an image area, playback controls, a playlist and a footer. The header's view menu switches the window between four views: <strong>Player</strong>, <a href="#settings">Settings</a>, <a href="#threads">Threads</a> and <a href="#tools">Tools</a>.</p>
 
   <h3 id="player-open">Opening the player</h3>
-  <p>On native 4chan a <strong>[Sounds]</strong> link appears at the top and bottom of the page, next to <em>Settings</em>. With 4chan X it's an icon in the header bar. Click it again to hide the player.</p>
+  <p>On native 4chan a <strong>[Sounds]</strong> link appears at the top and bottom of the page, next to <em>Settings</em>. With 4chan X it's an icon in the header bar. Click it again to hide the player. If those links are hidden (4chan's mobile view, or StyleChan with <em>Show Navigation Links</em> off), a small round play button appears in the bottom-left corner instead.</p>
   <div class="figure-row">
     <figure><img src="images/button-native.png" alt="The Sounds link beside the native Settings link" width="429" height="85" loading="lazy"><figcaption>Native 4chan</figcaption></figure>
     <figure><img src="images/button-4chan-x.png" alt="The Sounds icon in the 4chan X header" width="265" height="31" loading="lazy"><figcaption>4chan X header</figcaption></figure>
@@ -1177,7 +1177,7 @@ p:{ post-link dl-video-button }
     <tr><td><code>togglePlay</code></td><td></td><td>Play or pause.</td></tr>
     <tr><td><code>next</code></td><td class="wrap"><code>{ group, force }</code></td><td>Next sound. <code>group: true</code> skips to the next post's sounds. <code>force: true</code> ignores Repeat One.</td></tr>
     <tr><td><code>previous</code></td><td class="wrap"><code>{ group, force }</code></td><td>Previous sound, with the same options.</td></tr>
-    <tr><td><code>stop</code></td><td></td><td>Stop playback and close the player.</td></tr>
+    <tr><td><code>stop</code></td><td></td><td>Stop playback and unload the sound. The player stays open; use <code>hide</code> to hide it.</td></tr>
     <tr><td><code>volumeUp</code> / <code>volumeDown</code></td><td></td><td>Change the volume by 5%.</td></tr>
     <tr><td><code>toggleMute</code></td><td></td><td>Mute or unmute.</td></tr>
   </table></div>
