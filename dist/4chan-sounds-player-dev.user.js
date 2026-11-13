@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.584
+// @version      3.7.2.590
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1131,6 +1131,14 @@ module.exports.escHTML = function (str) {
   });
 };
 
+/**
+ * A length setting as CSS: a bare number means pixels ("250" was an invalid value, which
+ * left the size unlimited).
+ */
+module.exports.cssLength = function (value) {
+  return /^\s*[0-9.]+\s*$/.test(String(value)) ? `${String(value).trim()}px` : value;
+};
+
 
 /***/ },
 
@@ -1202,8 +1210,9 @@ module.exports = {
 	 * Switching being playing and paused.
 	 */
   togglePlay() {
-    // A play waiting for a sound webm to load counts as playing, so this cancels it.
-    if (Player.audio.paused && !Player.actions._pendingPlay) {
+    // A play waiting for a sound webm to load counts as playing, so this cancels it. A sound
+    // that failed to load isn't playing, though the element doesn't say paused: play retries it.
+    if ((Player.audio.paused || Player.audio.error) && !Player.actions._pendingPlay) {
       Player.play();
     } else {
       Player.pause();
@@ -1222,6 +1231,11 @@ module.exports = {
         if (!sound) {
           return;
         }
+      }
+      // The play button (or a key) on a sound that failed to load: retry it, as clicking its
+      // row does. play() on the errored element would only reject.
+      if (!sound && Player.playing && Player.audio.error) {
+        sound = Player.playing;
       }
       // If nothing is currently selected to play start playing the first sound.
       if (!sound && !Player.playing && Player.sounds.length) {
@@ -1349,6 +1363,8 @@ module.exports = {
 	 * Pause playback.
 	 */
   pause() {
+    // Pausing during the wait before skipping a sound that failed: land on the next one paused.
+    Player._errorAdvanceWasPlaying = false;
     // Cancel a play still waiting for a sound webm's audio and video to load; otherwise it
     // would start anyway once they had.
     if (Player.actions._pendingPlay) {
@@ -1457,13 +1473,23 @@ module.exports = {
         nextSound = Player.sounds[newIndex];
       } while (
         nextSound && newIndex !== currentIndex
-        && ((group && (!nextSound.post || nextSound.post === Player.playing.post)) || nextSound.error)
+        // Also skip sounds being removed along with the playing one (playlist.removeAll).
+        && ((group && (!nextSound.post || nextSound.post === Player.playing.post)) || nextSound.error || nextSound._removing)
       );
+      // A group move back lands on the first sound of the previous post, as one forward
+      // lands on the first of the next. (It landed on the previous post's last sound.)
+      if (group && direction < 0 && nextSound && nextSound.post && newIndex !== currentIndex) {
+        let first = newIndex;
+        for (let i = newIndex - 1; i >= 0 && Player.sounds[i].post === nextSound.post; i--) {
+          !Player.sounds[i].error && (first = i);
+        }
+        nextSound = Player.sounds[first];
+      }
     }
     // Don't auto-play a dead sound: when the skip loop wrapped back to a dead current
     // (every other sound is dead too) stop rather than looping on the error. Manual
     // selection (handleSelect) bypasses this and still retries a dead link.
-    nextSound && !nextSound.error && Player.play(nextSound, { paused });
+    nextSound && !nextSound.error && !nextSound._removing && Player.play(nextSound, { paused });
   },
 
   /**
@@ -1509,6 +1535,8 @@ module.exports = {
     ended: () => Player.config.autoplayNext && Player.next(),
     pause: 'controls.handleMediaEvent',
     play: 'controls.handleMediaEvent',
+    // After a stall ('waiting'), so the linked video restarts in step with the audio.
+    playing: 'controls.handleMediaEvent',
     seeked: 'controls.handleMediaEvent',
     waiting: 'controls.handleMediaEvent',
     ratechange: 'controls.handleMediaEvent',
@@ -1604,7 +1632,12 @@ module.exports = {
       // playback was requested: count it as playing, and cancel the wait.
       const wasPlaying = !!Player.actions._pendingPlay || (!!Player.audio && !Player.audio.paused);
       Player.actions._pendingPlay && Player.pause();
-      Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !wasPlaying }), 3000);
+      // It isn't playing (the element still says it is): show the play button, which retries.
+      Player.controls.setPlayButtons(Player.audio, true);
+      // Read when the timer fires: pausing in the meantime (pause() clears it) means the
+      // next sound should start paused.
+      Player._errorAdvanceWasPlaying = wasPlaying;
+      Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !Player._errorAdvanceWasPlaying }), 3000);
     }
   },
 
@@ -1657,16 +1690,40 @@ module.exports = {
 
   /**
 	 * Sync the webm to the audio. Matches the videos time and play state to the audios.
+	 *
+	 * The audio leads: while it's paused, ended or stalled waiting for data, the video
+	 * waits too. (This used to do nothing unless both were fully ready, so a stalled audio
+	 * left the video running ahead, and an ended one left it looping.)
 	 */
   sync(from) {
-    const to = from._linked;
-    if (from && from.readyState > 3 && to && to.readyState > 3) {
-      to.currentTime = from.currentTime % to.duration;
-      // play() rejects when a newer load or pause interrupts it; that's expected here.
-      from.paused ? to.pause() : to.play().catch(() => {});
-      to.playbackRate = from.playbackRate;
-      to.defaultPlaybackRate = from.defaultPlaybackRate;
+    const to = from && from._linked;
+    if (!to) {
+      return;
     }
+    if (from.paused || from.ended || from.readyState < from.HAVE_FUTURE_DATA) {
+      !to.paused && to.pause();
+      return;
+    }
+    to.playbackRate = from.playbackRate;
+    to.defaultPlaybackRate = from.defaultPlaybackRate;
+    // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
+    // again. A shorter video loops, so compare positions within its loop.
+    if (to.duration > 0 && isFinite(to.duration)) {
+      const target = from.currentTime % to.duration;
+      const drift = Math.abs(to.currentTime - target);
+      Math.min(drift, to.duration - drift) > 0.15 && (to.currentTime = target);
+    }
+    // play() rejects when a newer load or pause interrupts it; that's expected here.
+    to.paused && to.play().catch(() => {});
+  },
+
+  /**
+	 * The main player's video started again after waiting for data: bring it back in step
+	 * with the audio. (Only for a sound webm, where the video has a linked audio.)
+	 */
+  syncVideo(e) {
+    const video = e.currentTarget;
+    video._linked && video._linked === Player.audio && Player.controls.sync(Player.audio);
   },
 
   /**
@@ -1918,7 +1975,9 @@ const dismissedRestoreCache = {};
 const noSleep = typeof NoSleep === 'function' && new NoSleep();
 // Only for the element currently playing (the audio element, or the video element for a
 // standalone video).
-const enableNoSleep = e => e.currentTarget === Player.audio && noSleep.enable();
+// enable() returns a promise that rejects while the page is hidden (a track changing in a
+// background tab): it's taken again when the page is shown (see _initNoSleep).
+const enableNoSleep = e => e.currentTarget === Player.audio && Promise.resolve(noSleep.enable()).catch(() => {});
 const disableNoSleep = e => e.currentTarget === Player.audio && noSleep.disable();
 
 module.exports = {
@@ -2357,9 +2416,19 @@ module.exports = {
       media[action]('ended', disableNoSleep);
     });
     if (enabled !== Player.display._noSleepEnabled && Player.audio && !Player.audio.paused) {
-      noSleep[enabled ? 'enable' : 'disable']();
+      Promise.resolve(noSleep[enabled ? 'enable' : 'disable']()).catch(() => {});
     }
     Player.display._noSleepEnabled = enabled;
+    // NoSleep only takes the wake lock back on its own if it still held one when the page
+    // was hidden, not if a track started while hidden. Take it whenever the page is shown
+    // during playback.
+    if (!Player.display._noSleepVisibility) {
+      Player.display._noSleepVisibility = true;
+      document.addEventListener('visibilitychange', () => {
+        document.visibilityState === 'visible' && Player.display._noSleepEnabled && Player.audio && !Player.audio.paused
+          && !noSleep.isEnabled && Promise.resolve(noSleep.enable()).catch(() => {});
+      });
+    }
   },
 
   untz() {
@@ -2428,7 +2497,7 @@ module.exports = (data = {}) => `<div id="${ns}-container" data-view-style="${Pl
 	<div class="${ns}-footer ${ns}-row ${ns}-align-center ${ns}-hover-trigger">
 		${Player.footer.template(data)}
 	</div>
-	<input class="${ns}-add-local-file-input" type="file" @change.prevent='playlist.addFromFiles($event.currentTarget.files)' style="display: none" accept="image/*,.webm,.mp4" multiple>
+	<input class="${ns}-add-local-file-input" type="file" @change.prevent="playlist.handleFileSelect" style="display: none" accept="image/*,.webm,.mp4" multiple>
 </div>`
 
 
@@ -2611,7 +2680,23 @@ module.exports = {
 
     // Point drag is a special case to handle pointer dragging.
     if (evt === 'pointdrag') {
+      // Stop touch input panning the page instead, which cancels the drag. (A CSS rule on
+      // the attribute missed every one with modifiers, like @pointdrag.prevent.)
+      el.classList.add('no-touch-action');
+      // A drag whose button was released where we didn't see it (a context menu took the
+      // mouseup) ends at the next move rather than following the cursor around.
+      const moveListener = function (e) {
+        if (e.pointerType === 'mouse' && e.buttons === 0) {
+          return Player.events.clearMousedown(e);
+        }
+        return listener.call(this, e);
+      };
       const downListener = (e) => {
+        // Only the main button (or a touch or pen) drags: a right-click opened a context
+        // menu over a drag that then never ended, and seeked the seek bar.
+        if (e.button > 0) {
+          return;
+        }
         // No idea why but this seems to fire twice. So avoid that.
         if (!e._dragInit) {
           e._dragInit = true;
@@ -2619,16 +2704,16 @@ module.exports = {
           if (!e.preventDrag) {
             el.setPointerCapture(e.pointerId);
             Player._mousedown = el;
-            Player._mousedownListener = listener;
+            Player._mousedownListener = moveListener;
             Player._mousedownMoveEl = mods.unbound
               ? document.documentElement
               : el;
             Player._mousedownMoveEl.addEventListener(
               'pointermove',
-              listener,
+              moveListener,
               mods,
             );
-            el.addEventListener('pointerleave', listener, mods);
+            el.addEventListener('pointerleave', moveListener, mods);
             mods.boxed &&
               el.addEventListener('pointerleave', Player.events.clearMousedown);
             !mods.move && listener(e);
@@ -3207,7 +3292,9 @@ module.exports = {
     const target = e.target;
     const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA', 'BUTTON' ].includes(target.nodeName)
       || target.isContentEditable
-      || (target.getAttribute && target.getAttribute('role') === 'button');
+      || (target.getAttribute && target.getAttribute('role') === 'button')
+      // A video or audio with its own controls (an expanded webm) uses Space and the arrows.
+      || ((target.nodeName === 'VIDEO' || target.nodeName === 'AUDIO') && target.controls);
     const k = e.key.toLowerCase();
     const bindings = Player.config.hotkey_bindings || {};
 
@@ -3215,6 +3302,9 @@ module.exports = {
     Object.entries(bindings).forEach(function checkBinding([ name, keyDef ]) {
       if (Array.isArray(keyDef)) {
         return keyDef.find(_def => checkBinding([ name, _def ]));
+      }
+      if (!keyDef || typeof keyDef.key !== 'string') {
+        return;
       }
       const bindingConfig = k === keyDef.key
 				&& (!!keyDef.shiftKey === !!e.shiftKey) && (!!keyDef.ctrlKey === !!e.ctrlKey) && (!!keyDef.metaKey === !!e.metaKey)
@@ -3224,9 +3314,9 @@ module.exports = {
 				&& (!(keyConfigs[name] && keyConfigs[name].ignoreRepeat) || !e.repeat)
 				&& keyConfigs[name];
 
-      // allowFocusedInput is for the player's own inputs (its search box), not the page's:
-      // a printable binding would otherwise be swallowed while typing a reply.
-      if (bindingConfig && (!inputFocused || (bindingConfig.allowFocusedInput && Player.container && Player.container.contains(target)))) {
+      // allowFocusedInput is for the playlist search box only. Anywhere else (a reply, the
+      // settings or tools fields) a printable binding would be swallowed while typing.
+      if (bindingConfig && (!inputFocused || (bindingConfig.allowFocusedInput && target.classList.contains(`${ns}-playlist-search`)))) {
         e.preventDefault();
         e._binding = keyDef;
         Player.getHandler(bindingConfig.keyHandler)(e);
@@ -3238,7 +3328,8 @@ module.exports = {
 	 * Turn a hotkey definition or key event into an input string.
 	 */
   stringifyKey(key) {
-    let k = key.key.toLowerCase();
+    let k = String((key && key.key) || '').toLowerCase();
+    key = key || {};
     Player.hotkeys._keyMap[k] && (k = Player.hotkeys._keyMap[k]);
     return (key.ctrlKey ? 'Ctrl+' : '') + (key.altKey ? 'Alt+' : '') + (key.shiftKey ? 'Shift+' : '') + (key.metaKey ? 'Meta+' : '') + k;
   },
@@ -3285,6 +3376,7 @@ module.exports = {
     ended: evt => Player.inline._movePlaying((evt.currentTarget._inlineAudio || evt.currentTarget).dataset.id, +(Player.config.expandedRepeat !== 'one')),
     pause: 'controls.handleMediaEvent',
     play: 'controls.handleMediaEvent',
+    playing: 'controls.handleMediaEvent',
     seeked: 'controls.handleMediaEvent',
     waiting: 'controls.handleMediaEvent',
     timeupdate: 'controls.updateDuration',
@@ -3836,10 +3928,18 @@ module.exports = {
 
     // Various things to do when a new sound plays.
     Player.on('playsound', (sound) => {
-      // Start the loading bars afresh, even for the same sound played again.
+      // Handlers run one after another, so a stop or another play can come first: then this
+      // sound isn't the one to show.
+      if (sound !== Player.playing) {
+        return;
+      }
+      // Start the loading bars afresh, even for the same sound played again, timed from
+      // about when its files started loading.
       Player.playlist._loading = null;
+      const loadStart = performance.now();
       // Update the image/video.
       Player.playlist.showImage(sound);
+      Player.playlist._loadingState(loadStart);
       // Update the previously and the new playing rows.
       Player.$all(
         `.${ns}-list-item.playing, .${ns}-list-item[data-id="${Player.playing.id}"]`,
@@ -3916,7 +4016,8 @@ module.exports = {
         Player.sounds[
           (Player.sounds.indexOf(Player.playing) + 1) % Player.sounds.length
         ];
-      next && Player.playlist.preload(next);
+      // With a single sound the next one is the playing one, already loading.
+      next && next !== Player.playing && Player.playlist.preload(next);
     });
 
     // Maintain changes to the user templates it's dependent values
@@ -4113,6 +4214,16 @@ module.exports = {
     });
   },
 
+  /**
+   * The add-files input changed. Take the files and clear the input, so picking the same
+   * file again (after removing it) still fires a change.
+   */
+  handleFileSelect(e) {
+    const files = [ ...e.currentTarget.files ];
+    e.currentTarget.value = '';
+    Player.playlist.addFromFiles(files);
+  },
+
   addFromFiles(files) {
     // Check each of the files for sounds.
     [...files].forEach((file) => {
@@ -4193,6 +4304,19 @@ module.exports = {
   /**
    * Remove a sound
    */
+  /**
+   * Remove several sounds. If the playing one is among them, playback moves past all of
+   * them at once instead of onto another that's about to go.
+   */
+  removeAll(sounds, opts) {
+    sounds.forEach(sound => sound._removing = true);
+    try {
+      sounds.forEach(sound => Player.playlist.remove(sound, opts));
+    } finally {
+      sounds.forEach(sound => delete sound._removing);
+    }
+  },
+
   remove(sound, { temporary } = {}) {
     // Accept the sound object or id
     if (typeof sound !== 'object') {
@@ -4237,7 +4361,7 @@ module.exports = {
   restoreRemoved(postId) {
     const restored = [];
     Player.playlist._removed.forEach((sound, id) => {
-      if (postId == null || sound.post === String(postId)) {
+      if ((postId == null || sound.post === String(postId)) && Player.playlist._restorable(sound)) {
         Player.playlist._removed.delete(id);
         restored.push(sound);
       }
@@ -4245,6 +4369,8 @@ module.exports = {
     let filtered = false;
     restored.forEach(sound => {
       sound.playing = false;
+      // The Fatbox rerouter may have been turned on or off since it was removed.
+      typeof sound._origSrc === 'string' && (sound.src = Player.posts.rerouteSrc(sound._origSrc));
       // Filters or allowed hosts changed since then apply as they would to a new post.
       sound.disallow = Player.disallowedSound(sound);
       if (!sound.disallow) {
@@ -4260,12 +4386,19 @@ module.exports = {
   },
 
   /**
-   * How many of a post's sounds the user removed.
+   * How many sounds the user removed that can be restored: a post's, or all of them.
    */
   removedCount(postId) {
     let count = 0;
-    Player.playlist._removed.forEach(sound => sound.post === postId && count++);
+    Player.playlist._removed.forEach(sound => (postId == null || sound.post === postId) && Player.playlist._restorable(sound) && count++);
     return count;
+  },
+
+  /**
+   * A removed video without a sound only comes back while Include Video allows videos.
+   */
+  _restorable(sound) {
+    return !sound.standaloneVideo || sound.local || Player.posts.videosAllowed();
   },
 
   toggleRepeat() {
@@ -4482,7 +4615,9 @@ module.exports = {
       // Phase A: partition Player.sounds into kept / newly-filtered.
       const newlyFiltered = [];
       Player.sounds.forEach((sound) => {
-        sound.disallow = Player.disallowedSound(sound);
+        // Local files were added without these checks (a blob: URL has no host to allow),
+        // so filters and allowed hosts don't apply to them.
+        sound.disallow = !sound.local && Player.disallowedSound(sound);
         if (sound.disallow) {
           newlyFiltered.push(sound);
         }
@@ -4504,9 +4639,7 @@ module.exports = {
       // bookkeeping lives in playlist.remove). Don't call updateButtons yet —
       // getFilters reads Player.filteredSounds which won't include these sounds until
       // the rebuild below.
-      newlyFiltered.forEach((sound) => {
-        Player.playlist.remove(sound);
-      });
+      Player.playlist.removeAll(newlyFiltered);
 
       // Apply Phase B: add newlyAllowed back to Player.sounds.
       newlyAllowed.forEach((sound) => {
@@ -4606,7 +4739,7 @@ module.exports = {
     }
     const state = Player.playlist._loadingState();
     const hidden = `${ns}-row-loading-hidden`;
-    return `<div class="${ns}-row-loading ${state.done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+    return `<div class="${ns}-row-loading ${state.faded ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
       + `<div class="${ns}-row-loading-video ${state.showVideo ? '' : hidden}" style="width: ${state.video * 100}%"></div>`
       + `<div class="${ns}-row-loading-audio ${state.showAudio ? '' : hidden}" style="width: ${state.audio * 100}%"></div>`
       + '</div>';
@@ -4624,54 +4757,73 @@ module.exports = {
       audio.style.width = `${state.audio * 100}%`;
       video.classList[state.showVideo ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
       audio.classList[state.showAudio ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
-      bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
+      bars.classList[state.faded ? 'add' : 'remove'](`${ns}-row-loaded`);
     }
     return state.done;
   },
 
   /**
    * How much of the playing sound's video and audio have loaded, from 0 to 1, and which of
-   * the two bars to show. A standalone video is both. A sound without a video only has audio.
+   * the two lines to show. A standalone video is both. A sound without a video only has audio.
    *
-   * A bar only shows if its file is still downloading a moment after the sound started:
-   * one loading from the cache (or already preloaded) has finished by then. The choice is
-   * made once per sound, so a cached video's bar doesn't appear later when the browser
-   * reads further into it.
+   * A line only shows for a file that came from the network: one that could play within
+   * moments of being set (from the cache, or already preloaded) gets none. Whether the
+   * browser is still downloading can't tell them apart, since it also pauses a network
+   * download once it has enough buffered ahead. The choice is made once per sound.
+   *
+   * `faded` is when the shown lines are full; `done` is when everything has loaded.
    */
-  _loadingState() {
+  _loadingState(start) {
     const playing = Player.playing;
     if (!playing) {
-      return { video: 0, audio: 0, showVideo: false, showAudio: false, done: false };
+      return { video: 0, audio: 0, showVideo: false, showAudio: false, faded: false, done: false };
     }
     let track = Player.playlist._loading;
     if (!track || track.sound !== playing) {
-      track = Player.playlist._loading = { sound: playing, start: Date.now(), decided: false, video: false, audio: false };
+      track = Player.playlist._loading = { sound: playing, start: start || performance.now(), decided: false, video: false, audio: false, readyAt: {} };
+      Player.playlist._watchReady(track, 'audio', Player.audio);
+      Player.isVideo && Player.playlist._watchReady(track, 'video', Player.video);
     }
     const hasVideo = !!Player.isVideo;
     const video = hasVideo ? Player.playlist._loadedRatio(Player.video) : 0;
     const audio = Player.playlist._loadedRatio(Player.audio);
-    if (!track.decided && Date.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
+    if (!track.decided && performance.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
       track.decided = true;
-      track.video = hasVideo && video < 1 && Player.playlist._isDownloading(Player.video);
-      track.audio = audio < 1 && Player.playlist._isDownloading(Player.audio);
+      const fromNetwork = kind => !(track.readyAt[kind] - track.start < Player.playlist.CACHED_READY_MS);
+      track.video = hasVideo && video < 1 && fromNetwork('video');
+      track.audio = audio < 1 && fromNetwork('audio');
     }
     return {
       video,
       audio,
       showVideo: track.video,
       showAudio: track.audio,
+      faded: track.decided && (!track.video || video === 1) && (!track.audio || audio === 1),
       done: (!hasVideo || video === 1) && audio === 1
     };
   },
 
-  // How long after a sound starts to check whether its files are still downloading.
+  // How long after a sound starts to decide which lines to show.
   LOADING_GRACE_MS: 500,
+  // A file that can play within this long of being set didn't come from the network.
+  // (Decoder start-up alone takes 100ms or more, so a cache hit isn't instant.)
+  CACHED_READY_MS: 250,
 
   /**
-   * Whether a media element is still fetching its file, or hasn't got far enough to play.
+   * Note when a media element first has enough data to play, for _loadingState. The event's
+   * own timestamp is used, so a busy page doesn't make a cached file look slow.
    */
-  _isDownloading(media) {
-    return media.networkState === media.NETWORK_LOADING || media.readyState < media.HAVE_FUTURE_DATA;
+  _watchReady(track, kind, media) {
+    if (!media) {
+      return;
+    }
+    if (media.readyState >= media.HAVE_FUTURE_DATA) {
+      track.readyAt[kind] = performance.now();
+      return;
+    }
+    media.addEventListener('canplay', e => {
+      Player.playlist._loading === track && track.readyAt[kind] === undefined && (track.readyAt[kind] = e.timeStamp);
+    }, { once: true });
   },
 
   /**
@@ -4694,6 +4846,8 @@ module.exports = {
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
+    // Hiding clears the search, so clear the box too rather than show a query that isn't applied.
+    !show && (input.value = '');
     input.style.display = show ? null : 'none';
     show && input.focus();
   },
@@ -4932,7 +5086,7 @@ module.exports = (data = {}) => `<a
 	<img class="${ns}-background-image"></img>
 	<div class="${ns}-image-transparent-bg"></div>
 	<img id="fcspImage" class="${ns}-image" src="data:image/svg+xml;base64,${btoa(Icons.fcSounds)}"></img>
-	<video class="${ns}-video" @play='controls.sync' @pause='controls.sync' loop="true"></video>
+	<video class="${ns}-video" @playing='controls.syncVideo' loop="true"></video>
 </a>
 ${Player.controls.template({
 	audio: Player.audio,
@@ -5087,7 +5241,10 @@ module.exports = {
 	 * Applies a max width to posts next to the player so they don't get hidden behind it.
 	 */
   setPostWidths() {
-    const enabled = !Player.isHidden && Player.config.limitPostWidths;
+    // Posts start at the left, so narrowing them only moves them out from under a player on
+    // the right. With the player on the left it squeezed them and they stayed covered.
+    const rect = !Player.isHidden && Player.config.limitPostWidths && Player.container.getBoundingClientRect();
+    const enabled = !!rect && rect.left + rect.width / 2 > document.documentElement.clientWidth / 2;
     const posts = document.querySelectorAll(selectors.limitWidthOf);
     let limits = [];
     let maxWidthCss = '';
@@ -5103,9 +5260,7 @@ module.exports = {
       // Coerce a bare number/numeric-string to a px value; pass through any string that
       // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
       // numbers as raw CSS which browsers reject.
-      minWidthCss = minWidth == null || minWidth === ''
-        ? ''
-        : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+      minWidthCss = minWidth == null || minWidth === '' ? '' : String(_.cssLength(minWidth));
 
       // Read every position before writing any style. Interleaving them forced a layout
       // per post on each call, and this runs on scroll.
@@ -5354,16 +5509,19 @@ module.exports = {
     // the thread's standalone videos it no longer allows, then parse the posts again to add
     // newly allowed ones (posts already parsed are skipped).
     Player.on('config:addWebm', () => {
-      const setting = Player.config.addWebm;
-      const allowed = setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
+      const allowed = Player.posts.videosAllowed();
       if (!allowed) {
-        Player.sounds.filter(s => s.standaloneVideo && !s.local).forEach(s => Player.playlist.remove(s, { temporary: true }));
+        Player.playlist.removeAll(Player.sounds.filter(s => s.standaloneVideo && !s.local), { temporary: true });
         const filtered = Player.filteredSounds.filter(s => s.standaloneVideo && !s.local);
         // In place: applyFilters keeps this array's identity too.
         filtered.forEach(s => Player.filteredSounds.splice(Player.filteredSounds.indexOf(s), 1));
         filtered.forEach(s => Player.posts.updateButtons(s.post));
       }
+      // Removed videos can only be restored while videos are included: update their posts'
+      // links and the removed count.
+      Player.playlist._removed.forEach(s => s.standaloneVideo && s.post && Player.posts.updateButtons(s.post));
       Player.posts.addPosts(document.body, true);
+      Player.trigger('filters-applied');
     });
     Player.on('config:fatboxRerouter', () => {
       // Re-derive src from each sound's stored original. Idempotent and safe to repeat.
@@ -5430,6 +5588,11 @@ module.exports = {
 
   addPost(post, skipRender) {
     try {
+      // Posts inside the player are its own (the threads view's board layout shows other
+      // threads' OPs), not this thread's.
+      if (Player.container && Player.container.contains(post)) {
+        return;
+      }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
       let parent = post.parentElement;
       let parentParent = parent && parent.parentElement;
@@ -5497,7 +5660,8 @@ module.exports = {
       const sounds = parsed.sounds.filter(sound => !Player.playlist._removed.has(sound.id));
       const filtered = parsed.filtered;
 
-      if (sounds.length || filtered.length) {
+      // A post rebuilt after its sounds were removed still needs its restore link.
+      if (sounds.length || filtered.length || sounds.length !== parsed.sounds.length) {
         sounds.forEach(sound => Player.add(sound, skipRender));
         filtered.forEach(sound => Player.filteredSounds.push(sound));
         Player.posts.updateButtons(postID);
@@ -5519,15 +5683,28 @@ module.exports = {
     // Best quality image. For webms this has to be the thumbnail still. SAD!
     const imageOrThumb = image.match(/(webm|mp4)$/i) ? thumb : image;
     // matchAll isolates regex state per call instead of relying on filenameRE.lastIndex.
-    const matches = Array.from(filename.matchAll(filenameRE));
+    // The tag syntax also matches ordinary bracketed text ("clip (sound on).webm",
+    // "song (audio only)"), so drop a "link" without a dot or with spaces in it, and keep
+    // its text as part of the next sound's name.
+    let carried = '';
+    const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
+      const src = match[3].trim();
+      if (!src.includes('.') || /\s/.test(src)) {
+        carried += match[0];
+        return valid;
+      }
+      valid.push([ match[0], carried + match[1], match[2], src ]);
+      carried = '';
+      return valid;
+    }, []);
     // Add webms without a sound filename as a standalone video if enabled. The synthetic
     // match must align with the regex's capture groups: [full, name, host, src].
-    if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.match(/\.(webm|mp4)$/i)) {
+    if (!matches.length && Player.posts.videosAllowed() && filename.match(/\.(webm|mp4)$/i)) {
       // `.webm` is 5 chars, `.mp4` is 4 — strip the actual extension instead of a
       // fixed-width slice that truncates an extra char for .mp4 titles.
       matches.push([null, filename.replace(/\.(webm|mp4)$/i, ''), 'sound', image]);
     }
-    const defaultName = matches[0] && matches[0][1] || post || 'Local Sound ' + localCounter;
+    const defaultName = matches[0] && matches[0][1].trim() || post || 'Local Sound ' + localCounter;
     matches.length && !post && localCounter++;
 
     return matches.reduce(({ sounds, filtered }, match, i) => {
@@ -5572,6 +5749,14 @@ module.exports = {
       }
       return { sounds, filtered };
     }, { sounds: [], filtered: [] });
+  },
+
+  /**
+	 * Whether videos without a sound are added to the playlist here (Include Video).
+	 */
+  videosAllowed() {
+    const setting = Player.config.addWebm;
+    return setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
   },
 
   /**
@@ -5910,6 +6095,20 @@ module.exports = {
 (module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+// The form data must send the file somewhere: a "$file" value in a JSON object.
+function validData(data) {
+  return !!data && typeof data === 'object' && !Array.isArray(data) && Object.values(data).includes('$file');
+}
+
+// A response match must compile and capture the link.
+function validMatch(value) {
+  try {
+    return new RegExp(`${value}|`).exec('').length > 1;
+  } catch (err) {
+    return false;
+  }
+}
+
 function validURL(value) {
   try {
     // Regex was missing the `:` so it never matched a real protocol — it would
@@ -5933,11 +6132,22 @@ module.exports = {
   },
 
   parse(newValue, hosts, e) {
-    hosts = { ...hosts };
     const container = e.currentTarget.closest(`.${ns}-host-input`);
     let name = container.getAttribute('data-host-name');
-    let host = hosts[name] = { ...hosts[name] };
     const changedField = e.currentTarget.getAttribute('name');
+    // Settings save on every focusout: leaving a field without editing it isn't a change.
+    // (Writing it back anyway, as name or an empty string, made a built-in host a stored
+    // custom copy.)
+    const current = hosts[name] || {};
+    const shown = changedField === 'name' ? name
+      : changedField === 'data' ? JSON.stringify(current.data, null, 4)
+        : changedField === 'headers' ? (current.headers ? JSON.stringify(current.headers, null, 4) : '')
+          : current[changedField] == null ? '' : String(current[changedField]);
+    if (newValue === shown) {
+      return hosts;
+    }
+    hosts = { ...hosts };
+    let host = hosts[name] = { ...hosts[name] };
 
     try {
       // If the name was changed then reassign in hosts and update the data-host-name attribute.
@@ -5963,6 +6173,15 @@ module.exports = {
       if ((changedField === 'url' || changedField === 'soundUrl' && newValue) && !validURL(newValue)) {
         throw new PlayerError('The value must be a valid URL.', 'warning');
       }
+      // Uploads go to the URL as given, so store it with its scheme: without one it was read
+      // relative to the page.
+      if (changedField === 'url' && !/^https?:\/\//i.test(newValue)) {
+        newValue = `https://${newValue.replace(/^\/\//, '')}`;
+        e.currentTarget.value = newValue;
+      }
+      if (changedField === 'responseMatch' && newValue && !validMatch(newValue)) {
+        throw new PlayerError('The response match must be a regular expression with a capture group, ( ), around the link.', 'warning');
+      }
 
       // Parse the data
       if (changedField === 'data') {
@@ -5970,6 +6189,9 @@ module.exports = {
           newValue = JSON.parse(newValue);
         } catch (err) {
           throw new PlayerError('The data must be valid JSON.', 'warning');
+        }
+        if (!validData(newValue)) {
+          throw new PlayerError('The data must be a JSON object with "$file" as the value of the file\'s field.', 'warning');
         }
       }
 
@@ -5986,18 +6208,23 @@ module.exports = {
       throw err;
     }
 
-    if (newValue === undefined) {
-      delete host[changedField];
-    } else {
-      host[changedField] = newValue;
+    // The name is the key, not a field; an emptied optional field is left out.
+    if (changedField !== 'name') {
+      if (newValue === undefined || newValue === '') {
+        delete host[changedField];
+      } else {
+        host[changedField] = newValue;
+      }
     }
 
     try {
       const soundUrlValue = container.querySelector('[name=soundUrl]').value;
       const headersValue = container.querySelector('[name=headers]').value;
+      const matchValue = container.querySelector('[name=responseMatch]').value;
       if (name
-				&& JSON.parse(container.querySelector('[name=data]').value)
+				&& validData(JSON.parse(container.querySelector('[name=data]').value))
 				&& validURL(container.querySelector('[name=url]').value)
+				&& (!matchValue || validMatch(matchValue))
 				&& (!soundUrlValue || validURL(soundUrlValue))
 				&& (!headersValue || JSON.parse(headersValue))) {
 
@@ -6045,7 +6272,7 @@ module.exports = {
     }
 
     Object.keys(Player.config.uploadHosts).forEach(name => {
-      const checkbox = Player.$(`.${ns}-host-input[data-host-name="${name}"] input[data-property="defaultUploadHost"]`);
+      const checkbox = Player.$(`.${ns}-host-input[data-host-name="${CSS.escape(name)}"] input[data-property="defaultUploadHost"]`);
       checkbox && (checkbox.checked = name === selected);
     });
     return selected;
@@ -6069,6 +6296,7 @@ module.exports = {
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 const settingsConfig = __webpack_require__(/*! config */ "./src/config/index.js");
 const migrations = __webpack_require__(/*! ../../migrations */ "./src/migrations.js");
+const settingTpl = __webpack_require__(/*! ./templates/setting.tpl */ "./src/components/settings/templates/setting.tpl");
 
 const hosts = __webpack_require__(/*! ./hosts */ "./src/components/settings/hosts.js");
 
@@ -6078,7 +6306,20 @@ module.exports = {
   hosts,
 
   template: __webpack_require__(/*! ./templates/settings.tpl */ "./src/components/settings/templates/settings.tpl"),
-  settingTemplate: __webpack_require__(/*! ./templates/setting.tpl */ "./src/components/settings/templates/setting.tpl"),
+  // A setting that can't be shown (a bad imported value) gets a row with a Reset link
+  // instead of stopping the whole settings view, and the player with it, from rendering.
+  settingTemplate(setting) {
+    try {
+      return settingTpl(setting);
+    } catch (err) {
+      console.error('[4chan sounds player] Could not show setting', setting && setting.property, err);
+      const prop = setting && setting.property;
+      return `<div class="${ns}-row ${ns}-setting" data-property="${_.escAttr(prop || '')}">`
+        + `<div class="${ns}-col">${_.escHTML((setting && setting.title) || prop || 'A setting')} couldn't be shown.`
+        + (prop ? ` <a href="#" @click.prevent='settings.reset("${_.escAttr(prop, true)}")'>Reset it</a>` : '')
+        + '</div></div>';
+    }
+  },
   inputTemplates: {
     checkbox: __webpack_require__(/*! ./templates/inputs/checkbox.tpl */ "./src/components/settings/templates/inputs/checkbox.tpl"),
     input: __webpack_require__(/*! ./templates/inputs/input.tpl */ "./src/components/settings/templates/inputs/input.tpl"),
@@ -6114,10 +6355,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.584") {
+    if (storedVersion !== "3.7.2.590") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.584"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.590"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6355,6 +6596,10 @@ module.exports = {
     if (Array.isArray(def)) {
       return Array.isArray(value) ? value : undefined;
     }
+    // A keybind needs its key: rendering the keybinds threw on anything else.
+    if (typeof def.key === 'string') {
+      return value && typeof value === 'object' && !Array.isArray(value) && typeof value.key === 'string' ? value : undefined;
+    }
     return value && typeof value === 'object' && !Array.isArray(value) ? value : undefined;
   },
 
@@ -6416,7 +6661,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.584";
+      settings.VERSION = "3.7.2.590";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6432,7 +6677,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.584") {
+    if (!fromVersion || fromVersion === "3.7.2.590") {
       return {};
     }
     const changes = {};
@@ -6647,7 +6892,16 @@ module.exports = {
 	 * Converts a key event in an input to a string representation set as the input value.
 	 */
   handleKeyChange(e) {
+    // Tab and Shift+Tab move focus as usual (a field that captured them trapped keyboard
+    // users, and a Tab binding then took over Tab on the page).
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      return;
+    }
     e.preventDefault();
+    // Keys still being composed (an IME, a dead key) aren't a key to bind.
+    if (e.isComposing || e.key === 'Process' || e.key === 'Dead' || e.key === 'Unidentified') {
+      return;
+    }
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'AltGraph') {
       return;
     }
@@ -6923,7 +7177,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.584"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.590"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -7370,7 +7624,7 @@ module.exports = (data = {}) => [ 'Default' ].concat(Player.config.savedThemesOr
 			<input
 				type="text"
 				@keydown="settings.handleKeyChange"
-				value="${_.escAttr(Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def.themeName === name) || { key: '' }))}"
+				value="${_.escAttr(Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def && def.themeName === name) || { key: '' }))}"
 				data-property="hotkey_bindings.switchTheme"
 			/>
 		</div>
@@ -7592,6 +7846,8 @@ module.exports = {
 	 * Fetch the catalog for each selected board and search for sounds in OPs.
 	 */
   async fetch() {
+    // Only the latest fetch shows its results.
+    const token = Player.threads._fetching = {};
     Player.threads.loading = true;
     Player.threads.render();
     if (!Player.threads.boardList) {
@@ -7600,28 +7856,47 @@ module.exports = {
       } catch (err) {
         return Player.logError('Failed fetching the boards list.', err);
       }
+      // fetchBoards ends by showing the idle view, but the catalogs are still to come.
+      if (Player.threads._fetching !== token) {
+        return;
+      }
+      Player.threads.loading = true;
+      Player.threads.render();
     }
-    const allThreads = [];
     const failedBoards = [];
+    const boards = Player.threads.selectedBoards.slice();
+    const byBoard = new Array(boards.length);
+    const fetchBoard = async (board, i) => {
+      const boardConf = Player.threads.boardList.find(boardConf => boardConf.board === board);
+      if (!boardConf) {
+        return;
+      }
+      // Catch per board so one failing catalog doesn't discard every other board's threads.
+      let pages;
+      try {
+        pages = await get(catalogURL.replace('%s', board));
+      } catch (err) {
+        console.error('[4chan sounds player]', err);
+        failedBoards.push(board);
+        return;
+      }
+      byBoard[i] = (pages || []).flatMap(({ page, threads }) => threads.map(thread => Object.assign(thread, { board, page, ws_board: boardConf.ws_board })));
+    };
     try {
-      await Promise.all(Player.threads.selectedBoards.map(async board => {
-        const boardConf = Player.threads.boardList.find(boardConf => boardConf.board === board);
-        if (!boardConf) {
-          return;
+      // A couple of catalogs at a time (4chan's API asks clients not to flood it), kept in
+      // the order the boards are selected rather than the order they arrive.
+      let next = 0;
+      const worker = async () => {
+        while (next < boards.length) {
+          const i = next++;
+          await fetchBoard(boards[i], i);
         }
-        // Catch per board so one failing catalog doesn't discard every other board's threads.
-        let pages;
-        try {
-          pages = await get(catalogURL.replace('%s', board));
-        } catch (err) {
-          console.error('[4chan sounds player]', err);
-          failedBoards.push(board);
-          return;
-        }
-        (pages || []).forEach(({ page, threads }) => {
-          allThreads.push(...threads.map(thread => Object.assign(thread, { board, page, ws_board: boardConf.ws_board })));
-        });
-      }));
+      };
+      await Promise.all([ worker(), worker() ]);
+      if (Player.threads._fetching !== token) {
+        return;
+      }
+      const allThreads = byBoard.flat().filter(Boolean);
       failedBoards.length && Player.logError(`Failed fetching the catalog for /${failedBoards.map(_.escHTML).join('/, /')}/.`, null, 'warning');
 
       Player.threads.soundThreads = allThreads.filter(thread => {
@@ -8015,7 +8290,10 @@ const createTool = module.exports = {
         try {
           soundURLs = await Promise.all(sounds.map(async sound => Player.tools.postFile(sound, host)));
         } catch (err) {
-          throw new PlayerError('Upload failed.', 'error', err);
+          // Say why where we know: a misconfigured host, or the host's answer.
+          const why = err instanceof PlayerError ? ` ${err.reason}`
+            : err && err.status ? ` The host answered ${err.status}${err.statusText ? ` ${err.statusText}` : ''}.` : '';
+          throw new PlayerError(`Upload failed.${why}`, 'error', err);
         }
       }
 
@@ -8023,10 +8301,18 @@ const createTool = module.exports = {
         throw new PlayerError('No sounds selected.', 'warning');
       }
 
-      // Create a new file that includes [sound=url] in the name.
+      // Create a new file that includes [sound=url] in the name. encodeURIComponent leaves
+      // ( and ) alone, but a tag can also end at ")", so "song(1).mp3" cut the link short.
+      const encodeLink = url => encodeURIComponent(url.replace(/^(https?:)?\/\//, '')).replace(/\(/g, '%28').replace(/\)/g, '%29');
       let filename = '';
       for (let i = 0; i < soundURLs.length; i++) {
-        filename += (names[i] || '') + '[sound=' + encodeURIComponent(soundURLs[i].replace(/^(https?:)?\/\//, '')) + ']';
+        filename += (names[i] || '') + '[sound=' + encodeLink(soundURLs[i]) + ']';
+      }
+      // Read it back as the player will, so a name that reads as a sound link of its own
+      // ("[sound=x.mp3]" typed into the name) is caught here rather than in the thread.
+      const readBack = Player.posts.getSounds(filename + '.png', 'created.png', 'created', null, null, true).sounds;
+      if (readBack.length !== soundURLs.length) {
+        throw new PlayerError('The name contains text that reads as a sound link. Change the name and try again.', 'warning');
       }
       // The checks above estimate the URL lengths before uploading; check the real name.
       // 4chan cuts longer names, which loses the last [sound=] tag.
@@ -8091,10 +8377,19 @@ const createTool = module.exports = {
 
     createTool.status.innerHTML += `<br><span class="${ns}-upload-status-${idx}">Uploading ${_.escHTML(file.name)}</span>`;
 
+    // Responses are matched as text: compile the pattern up front so a broken one is reported.
+    let responseRE;
+    try {
+      responseRE = host.responseMatch && new RegExp(host.responseMatch);
+    } catch (err) {
+      throw new PlayerError('The host\'s response match isn\'t a valid regular expression.', 'error');
+    }
+
     return new Promise((resolve, reject) => {
       GM.xmlHttpRequest({
         method: 'POST',
-        url: host.url,
+        // A URL saved without its scheme would be read relative to the page.
+        url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
         responseType: host.responsePath ? 'json' : 'text',
         // Like the form data, leave out headers set to null (the default hosts' empty
@@ -8109,8 +8404,8 @@ const createTool = module.exports = {
           try {
             const responseVal = host.responsePath
               ? _.get(response.response, host.responsePath)
-              : host.responseMatch
-                ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
+              : responseRE
+                ? (response.responseText.match(responseRE) || [])[1]
                 : response.responseText;
             // A host that answers 200 with an error body has no link at the expected place.
             // (A number is fine, e.g. a file id used with the file URL format.)
@@ -8210,6 +8505,14 @@ const videoUtil = __webpack_require__(/*! ./video-util */ "./src/components/tool
 
 // File types that run or render as code when opened.
 const RISKY_EXTENSIONS = /\.(exe|com|bat|cmd|scr|pif|cpl|msi|msp|hta|html?|xhtml|mht|svg|js|jse|vbs|vbe|wsf|wsh|ps1|psm1|lnk|url|reg|jar|sh|app|dmg|pkg|deb|rpm|apk)$/i;
+
+// A file name that can't be saved as something that runs: posts choose both the name and
+// the link, so either can carry the extension. Windows drops trailing dots and spaces
+// ("invoice.exe." saves as invoice.exe), so those go first; a risky extension gets .bin.
+function safeFileName(name) {
+  name = String(name || '').replace(/[. ]+$/, '') || 'download';
+  return RISKY_EXTENSIONS.test(name) ? `${name}.bin` : name;
+}
 
 const get = (src, opts) => {
   let xhr;
@@ -8313,7 +8616,7 @@ const downloadTool = module.exports = {
       const urlExt = (String(src).split(/[?#]/)[0].match(/\.([a-z0-9]{1,5})$/i) || [])[1];
       name = String(name || 'download');
       const base = name.replace(/\.[a-z0-9]{1,5}$/i, '') || 'download';
-      name = urlExt ? `${base}.${urlExt}` : RISKY_EXTENSIONS.test(name) ? base : name;
+      name = safeFileName(urlExt ? `${base}.${urlExt}` : name);
       const blob = await get(src);
       const a = _.element(`<a href="${URL.createObjectURL(blob)}" download="${_.escAttr(name)}" rel="noopener" target="_blank"></a>`);
       a.click();
@@ -8396,6 +8699,7 @@ const downloadTool = module.exports = {
     // names), so number repeats. Case-insensitive, as most file systems are.
     const usedNames = new Set();
     const addFile = (name, content) => {
+      name = safeFileName(name);
       let unique = name;
       for (let n = 2; usedNames.has(unique.toLowerCase()); n++) {
         unique = name.replace(/(\.[^./]*)?$/, ext => ` (${n})${ext}`);
@@ -8494,7 +8798,7 @@ const downloadTool = module.exports = {
           // Add the downloaded files to the zip, and record what arrived (the getArgs
           // catch resolves failures to undefined) so "skip downloaded" retries the rest.
           // Every sound of a multi-sound post brings the same post image: add it once.
-          imageRsp && !usedNames.has(`${prefix}${sound.filename}`.toLowerCase()) && addFile(`${prefix}${sound.filename}`, imageRsp);
+          imageRsp && !usedNames.has(safeFileName(`${prefix}${sound.filename}`).toLowerCase()) && addFile(`${prefix}${sound.filename}`, imageRsp);
           soundRsp && addFile(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
           imageRsp && markDownloaded(sound, ...(standalone ? [ 'image', 'sound' ] : [ 'image' ]));
           soundRsp && markDownloaded(sound, 'sound');
@@ -9705,7 +10009,7 @@ module.exports = [
     tplName: 'restore',
     action: 'playlist.restoreRemoved()',
     actionMods: '.prevent',
-    showIf: () => Player.playlist._removed.size > 0,
+    showIf: () => Player.playlist.removedCount() > 0,
     icon: Icons.arrowCounterclockwise,
     attrs: [ 'title="Add the sounds you removed back to the playlist."' ]
   },
@@ -9827,7 +10131,7 @@ module.exports = {
       // runs when a template actually contains a d:{ } block, so the per-sound row
       // template — built once per sound — doesn't pay an O(n) scan on every render.
       .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
-      .replace(removedRE, (m, inner) => Player.playlist._removed.size ? inner : '')
+      .replace(removedRE, (m, inner) => Player.playlist.removedCount() ? inner : '')
       .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
@@ -9893,9 +10197,9 @@ module.exports = {
       // templates without the token (e.g. the per-sound row template) skip the scan.
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
-      .replace(removedCountRE, () => Player.playlist._removed.size)
+      .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.584"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.590"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -11504,8 +11808,9 @@ module.exports = (data = {}) => `.dialog {
 /*!****************************!*\
   !*** ./src/scss/root.scss ***!
   \****************************/
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 module.exports = (data = {}) => `:root {
   --fcsp-text: ${Player.config.colors.text};
   --fcsp-background: ${Player.config.colors.background};
@@ -11522,7 +11827,7 @@ module.exports = (data = {}) => `:root {
   --fcsp-loading-video: ${Player.config.colors.loading_video};
   --fcsp-loading-audio: ${Player.config.colors.loading_audio};
   --fcsp-muted: #909090;
-  --fcsp-max-pip-size: ${Player.config.maxPIPWidth};
+  --fcsp-max-pip-size: ${_.cssLength(Player.config.maxPIPWidth)};
 }`
 
 /***/ },
@@ -12161,7 +12466,7 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
   display: flex;
 }
 
-[\\\@pointdrag], .no-touch-action {
+.no-touch-action {
   touch-action: none;
 }
 
