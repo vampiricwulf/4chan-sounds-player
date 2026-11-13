@@ -26,6 +26,10 @@ function paint() {
   });
 }
 
+// GM.xmlHttpRequest calls onload for HTTP errors too. Reject those so a dead link is
+// reported as a failed fetch rather than an error page being decoded as media.
+const httpError = r => Object.assign(new Error(`Request failed with status ${r.status}.`), { status: r.status });
+
 // Fetch a URL as raw bytes. Remote -> GM.xmlHttpRequest (avoids CORS); local blob: -> fetch.
 // Always resolves a Uint8Array (never a GM Blob — cross-realm .arrayBuffer() can be undefined).
 // onProgress (if given) receives a 0-1 ratio while downloading.
@@ -39,7 +43,7 @@ function fetchBytes(url, onProgress) {
       url,
       responseType: 'arraybuffer',
       onprogress: onProgress && (r => r.total > 0 && onProgress(r.loaded / r.total)),
-      onload: r => resolve(new Uint8Array(r.response)),
+      onload: r => r.status >= 400 ? reject(httpError(r)) : resolve(new Uint8Array(r.response)),
       onerror: reject,
       onabort: () => reject(Object.assign(new Error('aborted'), { aborted: true }))
     });
@@ -53,7 +57,7 @@ function fetchText(url) {
       method: 'GET',
       url,
       responseType: 'text',
-      onload: r => resolve(r.responseText),
+      onload: r => r.status >= 400 ? reject(httpError(r)) : resolve(r.responseText),
       onerror: reject
     });
   });

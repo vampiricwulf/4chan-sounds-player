@@ -9,7 +9,8 @@ const get = (src, opts) => {
       method: 'GET',
       url: src,
       responseType: 'blob',
-      onload: response => resolve(response.response),
+      // Reject HTTP errors so an error page isn't saved (or zipped) as the file.
+      onload: response => response.status >= 400 ? reject(response) : resolve(response.response),
       onerror: response => reject(response),
       onabort: response => {
         response.aborted = true;
@@ -68,8 +69,10 @@ const downloadTool = module.exports = {
       ignoreDownloaded: Player.$('.download-all-ignore-downloaded').checked,
       maxSounds: +Player.$('.download-all-max-sounds').value || 0,
       // One ffmpeg instance muxes serially, so force single concurrency when combining.
-      concurrency: combineVideo ? 1 : Math.max(1, +Player.$('.download-all-concurrency').value || 1),
-      compression: Math.max(0, Math.min(+Player.$('.download-all-compression').value || 0, 9)),
+      // Number inputs accept fractions despite step=1; both values must be integers
+      // (new Array(1.5) throws, and the zip compressor has no level 1.5).
+      concurrency: combineVideo ? 1 : Math.max(1, Math.floor(+Player.$('.download-all-concurrency').value) || 1),
+      compression: Math.max(0, Math.min(Math.round(+Player.$('.download-all-compression').value) || 0, 9)),
       combineVideo,
       status: Player.$(`.${ns}-download-all-status`)
     }).catch(() => { /* it's logged */ });
@@ -139,6 +142,10 @@ const downloadTool = module.exports = {
     status && (status.innerHTML = `Downloading ${count} sound images.<br><br>
 			This may take a while. You can leave it running in the background, but if you background the tab your browser will slow it down.
 			You'll be prompted to download the zip file once complete.<br><br>`);
+    // Skip/failure messages go here. They used to be inserted before the first worker's
+    // progress element, which is removed when that worker runs out of sounds, so later
+    // messages from the other workers were lost.
+    const messages = status && _.element('<div></div>', status);
 
     const elementsArr = new Array(concurrency).fill(0).map(() => {
       // Show currently downloading files with progress bars.
@@ -170,7 +177,7 @@ const downloadTool = module.exports = {
           console.error('[4chan sounds player] Download failed', err);
           // Escape title — it's parsed from arbitrary post filenames. Text-node
           // context, so escHTML (no `;`/`\`/quote handling needed).
-          status && _.element(`<p>Failed to download ${_.escHTML(sound.title)} ${type}!</p>`, elementsArr[0].el, 'beforebegin');
+          status && _.element(`<p>Failed to download ${_.escHTML(sound.title)} ${type}!</p>`, messages);
         }
       }
     });
@@ -207,7 +214,7 @@ const downloadTool = module.exports = {
       if (!Player.tools._downloadAllCanceled) {
         if (imageRsp === 'aborted' || soundRsp === 'aborted') {
           // Show which sounds were individually aborted.
-          status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, elementsArr[0].el, 'beforebegin');
+          status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, messages);
         } else if (combineVideo) {
           // Mux this sound's visual + audio into a single looping mp4.
           try {
@@ -223,7 +230,7 @@ const downloadTool = module.exports = {
           } catch (err) {
             if (!Player.tools._downloadAllCanceled) {
               console.error('[4chan sounds player] Mux failed', err);
-              status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, elementsArr[0].el, 'beforebegin');
+              status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, messages);
               // A failed job can dirty the wasm heap; reset for the next sound.
               Player.tools.terminate();
             }
@@ -232,8 +239,11 @@ const downloadTool = module.exports = {
           // Add the downloaded files to the zip.
           imageRsp && zip.file(`${prefix}${sound.filename}`, imageRsp);
           soundRsp && zip.file(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
-          // Flag the sound as downloaded.
-          sound.downloaded = true;
+          // Flag the sound as downloaded only if every requested file arrived (the getArgs
+          // catch resolves failures to undefined), so "skip downloaded" retries the rest.
+          if ((!includeImages || imageRsp) && (!includeSounds || soundRsp)) {
+            sound.downloaded = true;
+          }
         }
       }
       // Move on to the next sound.
