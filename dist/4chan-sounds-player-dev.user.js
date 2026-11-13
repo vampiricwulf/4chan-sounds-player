@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.600
+// @version      3.7.2.602
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1566,6 +1566,10 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
+    // Hide controls that don't fit once the player is shown: on the first show nothing
+    // could be measured when it rendered, so they wrapped onto a second line.
+    Player.on('show', () => Player.controls.preventWrapping());
+
     // Only poll for the loaded data when the player is open.
     Player.on('show', () => Player._hiddenWhilePolling && Player.controls.pollForLoading());
     Player.on('hide', () => {
@@ -1811,7 +1815,9 @@ module.exports = {
     const vol = audio.volume;
     // Store volume of the main player.
     if (audio === Player.audio) {
-      vol > 0 && (Player._lastVolume = vol);
+      // Not while dragging the bar: dragging to 0 passed through near-zero volumes, and
+      // unmuting then restored one of those.
+      vol > 0 && !Player.controls._volumeDragging && (Player._lastVolume = vol);
       saveVolume(vol);
     }
     controls && controls.querySelectorAll(`.${ns}-volume-button[data-audio="${audio.dataset.id}"]`).forEach(el => {
@@ -1847,6 +1853,18 @@ module.exports = {
   },
 
   /**
+	 * Volume bar drags: the volume to unmute to is the one the drag ends on.
+	 */
+  volumeDragStart() {
+    Player.controls._volumeDragging = true;
+  },
+
+  volumeDragEnd() {
+    Player.controls._volumeDragging = false;
+    Player.audio && Player.audio.volume > 0 && (Player._lastVolume = Player.audio.volume);
+  },
+
+  /**
 	 * Handle the user interacting with the volume bar.
 	 */
   handleVolume(e, audioId) {
@@ -1856,7 +1874,8 @@ module.exports = {
 
   _getBarXRatio(e) {
     const offset = 0.4 * Player.remSize;
-    const offsetX = e.offsetX || (e.targetTouches[0].pageX - e.currentTarget.getBoundingClientRect().left);
+    // offsetX is 0 on the bar's first pixel, so test for it rather than falling through.
+    const offsetX = typeof e.offsetX === 'number' ? e.offsetX : (e.targetTouches[0].pageX - e.currentTarget.getBoundingClientRect().left);
     return Math.max(0, Math.min(1, (offsetX - offset) / (parseInt(getComputedStyle(e.currentTarget).width, 10) - (2 * offset))));
   },
 
@@ -1953,7 +1972,7 @@ module.exports = (data = {}) => `<div class="${ns}-controls ${ns}-row ${data.inl
 			${Icons.volumeMute} ${Icons.volumeMuteFill}
 			${Icons.volumeUp} ${Icons.volumeUpFill}
 		</div>
-		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' data-hide-id="volume-bar">
+		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' @pointdragstart="controls.volumeDragStart" @pointdragend="controls.volumeDragEnd" data-hide-id="volume-bar">
 			<div class="${ns}-full-bar">
 				<div class="${ns}-current-bar" style="width: ${Player.audio.volume * 100}%"></div>
 			</div>
@@ -2114,6 +2133,12 @@ module.exports = {
       // Create the main player. For native threads put it in the threads to get free quote previews.
       const parent = Thread && !isChanX && document.body.querySelector('.board') || document.body;
       Player.container = _.element(Player.display.template(), parent);
+      // That's inside 4chan's post form (#delform): Enter in one of the player's text fields
+      // submitted it, clicking the player's first button (Create, which uploads) or the
+      // form's Delete button. Enter in a field does nothing beyond the field's own handling.
+      Player.container.addEventListener('keydown', e => {
+        e.key === 'Enter' && e.target.nodeName === 'INPUT' && e.target.form && e.preventDefault();
+      });
 
       await Player.trigger('rendered');
     } catch (err) {
@@ -4059,7 +4084,8 @@ module.exports = {
       Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
-      container.href = '#';
+      // No link (with target _blank, "#" opened the thread again in a new tab).
+      container.removeAttribute('href');
       document.querySelector(`.${ns}-background-image`).src = Player.video.src = '';
       document.querySelector(`.${ns}-image`).src =
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
@@ -5275,6 +5301,10 @@ module.exports = {
       }
     });
 
+    // Put the saved size back after a temporary one, when the view or theme changes (the
+    // Fixed Playlist width handle's size carried over to the default layout, cut off).
+    Player.on([ 'view', 'config:selectedTheme' ], Player.position.restoreSize);
+
     // Remove post width limiting when the player is hidden.
     Player.on('hide', function () {
       Player.position.setPostWidths();
@@ -5447,12 +5477,27 @@ module.exports = {
 
     const { width, height } = Player.container.getBoundingClientRect();
 
+    // A handle that doesn't save (the Fixed Playlist theme's width handle) only sizes the
+    // player for the current layout: note it, so the saved size comes back on a change.
+    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true';
     if (Player._resizeTarget.dataset.bypassSave !== 'true') {
       GM.setValue('size', width + ':' + height);
       if (Player._resizeMoveX || Player._resizeMoveY) {
         GM.setValue('position', parseInt(Player.container.style.left, 10) + ':' + parseInt(Player.container.style.top, 10));
       }
     }
+  },
+
+  /**
+	 * Go back to the saved size (or the default one) after a temporary resize.
+	 */
+  async restoreSize() {
+    if (!Player.position._temporarySize || !Player.container) {
+      return;
+    }
+    Player.position._temporarySize = false;
+    const [ width, height ] = (await GM.getValue('size') || '').split(':');
+    +width && +height ? Player.position.resize(+width, +height, true) : Player.position.resize(360, 360, true);
   },
 
   /**
@@ -6413,6 +6458,12 @@ module.exports = {
     }
     container.parentNode.removeChild(container);
     Player.settings.set('uploadHosts', hosts, { bypassValidation: true, bypassRender: true });
+    // The default can't be a host that's gone: make the first remaining one the default.
+    if (Player.config.defaultUploadHost === name) {
+      const next = Object.keys(hosts).find(key => hosts[key]);
+      next && Player.set('defaultUploadHost', next);
+      Player.settings.renderSetting(Player.settings.findDefault('uploadHosts'));
+    }
   },
 
   setDefault(_new, _current, e) {
@@ -6505,10 +6556,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.600") {
+    if (storedVersion !== "3.7.2.602") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.600"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.602"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6819,11 +6870,12 @@ module.exports = {
         }
         return settings;
       }, {});
-      // Show the playlist or image view on load, whichever was last shown.
-      // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
-      settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
+      // Show the playlist or image view on load, whichever was last shown. The current view
+      // when it's one of them (the 'view' event that records it comes after this save).
+      const view = Player.config.viewStyle;
+      settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.600";
+      settings.VERSION = "3.7.2.602";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6839,7 +6891,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.600") {
+    if (!fromVersion || fromVersion === "3.7.2.602") {
       return {};
     }
     const changes = {};
@@ -7045,6 +7097,10 @@ module.exports = {
         // Update the setting.
         Player.set(property, newValue, { bypassValidation: true, bypassRender: 'self', settingConfig });
       }
+      // The field isn't re-rendered, so show a number setting's kept value ("abc" became 0
+      // but stayed in the box).
+      const kept = _.get(Player.config, property);
+      typeof settingConfig.default === 'number' && input.value !== String(kept) && (input.value = kept);
     } catch (err) {
       Player.logError('There was an error updating the setting.', err);
     }
@@ -7111,7 +7167,7 @@ module.exports = (data = {}) => `<div class="${ns}-colorpicker ${ns}-dialog dial
 			`).join('')}
 		</table>
 
-		<button @click.stop.prevent="colorpicker.apply">Apply</button><br>
+		<button type="button" @click.stop.prevent="colorpicker.apply">Apply</button><br>
 	</div>
 </div>`
 
@@ -7339,7 +7395,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.600"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.602"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -7689,6 +7745,16 @@ module.exports = {
     Player.$(`.${ns}-save-theme`).innerHTML = Player.config.savedThemes[e.currentTarget.value] ? 'Update' : 'Create';
   },
 
+  /**
+	 * Enter in the theme name box saves, like the Create/Update link.
+	 */
+  handleNameKey(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      Player.theme.save();
+    }
+  },
+
   save() {
     const name = Player.$(`.${ns}-save-theme-name`).value;
     if (!name) {
@@ -7721,7 +7787,7 @@ module.exports = {
 module.exports = (data = {}) => `<div class="${ns}-theme-save-options ${ns}-dialog fields-collapsed dialog" data-allow-click="true" style="top: 0px; left: 0px;">
 	<div class="${ns}-row ${ns}-align-center">
 		<div class="${ns}-col">
-			<input type="text" class="${ns}-save-theme-name" @input="theme.toggleSaveButtonText" placeholder="Name">
+			<input type="text" class="${ns}-save-theme-name" @input="theme.toggleSaveButtonText" @keydown="theme.handleNameKey" placeholder="Name">
 		</div>
 		<div class="${ns}-col">
 			<a class="${ns}-save-theme" @click.prevent="theme.save" href="#">Create</a>
@@ -8088,8 +8154,9 @@ module.exports = {
 	 * Apply the filter input to the already fetched threads.
 	 */
   filter(search, skipRender) {
-    search = search.toLowerCase();
+    // The box shows what was typed; matching ignores case.
     Player.threads.filterValue = search || '';
+    search = (search || '').toLowerCase();
     if (Player.threads.soundThreads === null) {
       return;
     }
@@ -8416,7 +8483,11 @@ const createTool = module.exports = {
           // URLs (files.catbox.moe/x.mp3) are the format sound filenames use, so accept them.
           soundURLs = soundURLs.map(url => {
             const bare = url.replace(/^(https?:)?\/\//, '');
-            new URL('https://' + bare);
+            // Browsers accept a lot as a URL ("not a url at all" included): require a host
+            // with a dot and no spaces.
+            if (/\s/.test(bare) || !new URL('https://' + bare).hostname.includes('.')) {
+              throw new Error('Invalid URL');
+            }
             return bare;
           });
         } catch (err) {
@@ -9238,7 +9309,7 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined">
 
 		<div class="${ns}-row mt-4">
 			<div class="${ns}-col-auto">
-				<button class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
+				<button type="button" class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
 			</div>
 		</div>
 	</div>
@@ -9327,9 +9398,9 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined mt-5">Download 
 	</div>
 	<div class="${ns}-download-all-status" style="display: none;"></div>
 	<div class="${ns}-row mt-4 ${ns}-align-center">
-		<button @click.prevent="tools._handleDownload" class="${ns}-download-all-start">Download</button>
-		<button @click.prevent="tools._handleDownloadCancel" class="${ns}-download-all-cancel">Cancel</button>
-		<button @click.prevent="tools.saveThreadDownload" class="${ns}-download-all-save ml-2 ${ns}-popover" @click="tools.saveThreadDownload" data-content="Save the last download.">Save</button>
+		<button type="button" @click.prevent="tools._handleDownload" class="${ns}-download-all-start">Download</button>
+		<button type="button" @click.prevent="tools._handleDownloadCancel" class="${ns}-download-all-cancel">Cancel</button>
+		<button type="button" @click.prevent="tools.saveThreadDownload" class="${ns}-download-all-save ml-2 ${ns}-popover" @click="tools.saveThreadDownload" data-content="Save the last download.">Save</button>
 		<div class="${ns}-download-all-clear ml-2">
 			<a href="#" @click.prevent="tools.clearDownloadBlob">Clear</a><i class="${ns}-info-circle ${ns}-popover ml-1" data-content="Clear the last download to free memory.">${Icons.infoCircle}</i>
 		</div>
@@ -10391,7 +10462,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.600"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.602"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -11370,8 +11441,7 @@ module.exports = [
 			+ '		post-link\n'
 			+ '		Open [ image-link sound-link ]\n'
 			+ '		Download [ dl-image-button dl-sound-button dl-video-button ]\n'
-			+ '}\n'
-			+ `<div class="${ns}-expander" data-direction="se"></div>\n`,
+			+ '}\n',
     displayGroup: 'Theme',
     displayMethod: 'textarea',
     attrs: 'rows="10"',
