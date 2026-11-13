@@ -6,7 +6,13 @@ module.exports = {
     filename: {
       '.fileText .file-info .fnfull': 'textContent',
       '.fileText .file-info > a': 'textContent',
-      '.fileText > a': 'title',
+      // Native puts the full name of a truncated file in the link's title and of a
+      // spoilered file in the .fileText title. 4chan X keeps the native link in a hidden
+      // .fileText-original, which matters for file info formats without a filename link
+      // (reading all of .fileText would see both copies and add every sound twice).
+      '.fileText > a[title], .fileText-original > a[title]': 'title',
+      '.fileText[title]': 'title',
+      '.fileText > a, .fileText-original > a': 'textContent',
       '.fileText': 'textContent'
     },
     thumb: '.fileThumb',
@@ -15,7 +21,9 @@ module.exports = {
     playLink: {
       class: '',
       text: Icons.playFill,
-      relative: '.fileText a',
+      // In priority order. With 4chan X go after its whole .file-info: inside it the link
+      // can sit in a hidden span or after other icons, and StyleChan can hide .file-info.
+      relative: [ '.fileText .file-info', '.fileText a' ],
       position: 'afterend',
       prependText: ' ',
       unfilterText: Icons.filter

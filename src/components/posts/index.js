@@ -102,6 +102,14 @@ module.exports = {
         return;
       }
 
+      // Only parse this page's own posts. 4chan X clones (inline quotes, including posts
+      // fetched from other threads) get an "_N" suffix on every id, and 4chan-neXT's
+      // comment preview is a fake .post#p-preview. Parsing those added stray sounds, and
+      // a new duplicate each time an inline quote was re-expanded.
+      if (Site === '4chan' && !/^\d+$/.test(postID)) {
+        return;
+      }
+
       let filename = null;
       let filenameLocations = selectors.filename;
 
@@ -116,8 +124,12 @@ module.exports = {
 
       selectors.filenameParser && (filename = selectors.filenameParser(filename));
 
-      const fileThumb = post.querySelector(selectors.thumb).closest('a');
+      const thumbContainer = post.querySelector(selectors.thumb);
+      const fileThumb = thumbContainer && thumbContainer.closest('a');
       const imageSrc = fileThumb && fileThumb.href;
+      if (!imageSrc) {
+        return;
+      }
       // 4chan X's "Replace WEBM" swaps a video's thumbnail <img> for a <video> that keeps
       // the thumbnail as its poster and the MD5 in data-md5. Only looking for an <img>
       // left webm sounds with a null thumbnail, shown as a broken image.
@@ -224,7 +236,11 @@ module.exports = {
 
     if (postEl) {
       const linkInfo = selectors.playLink;
-      const relative = linkInfo.relative && postEl.querySelector(linkInfo.relative);
+      // relative may be a list of selectors in priority order.
+      const relative = [].concat(linkInfo.relative || []).map(sel => postEl.querySelector(sel)).find(Boolean);
+      if (!relative) {
+        return;
+      }
 
       // Create/update the unfilter button, or remove it.
       let addLink = relative.parentNode.querySelector(`.${ns}-unfilter-link`);
