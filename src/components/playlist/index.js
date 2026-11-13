@@ -321,17 +321,32 @@ module.exports = {
       const canvas = document.createElement('canvas');
       const video = document.createElement('video');
       const context = canvas.getContext('2d');
+      let added = false;
       video.addEventListener('seeked', function () {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-        thumbSrc = canvas.toDataURL();
+        if (video.videoWidth && video.videoHeight) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+          thumbSrc = canvas.toDataURL();
+        } else {
+          thumbSrc = null;
+        }
         _continue();
-      });
+      }, { once: true });
+      // A video the browser can't decode never seeks, which silently dropped the file.
+      // Add it anyway, just without a thumbnail.
+      video.addEventListener('error', () => {
+        thumbSrc = null;
+        _continue();
+      }, { once: true });
       video.src = imageSrc;
       video.currentTime = 0.001;
 
       function _continue() {
+        if (added) {
+          return;
+        }
+        added = true;
         const { sounds } = Player.posts.getSounds(
           file.name,
           imageSrc,
@@ -340,7 +355,11 @@ module.exports = {
           null,
           true,
         );
-        sounds.forEach((sound) => Player.add({ ...sound, local: true, type }));
+        // getSounds only picks the thumbnail for URLs ending in .webm/.mp4, and a blob:
+        // URL doesn't, so a local video's image would be the video itself, which an <img>
+        // shows as broken. Use the extracted frame (or the placeholder without one).
+        const isVideoFile = type === 'video/webm' || type === 'video/mp4';
+        sounds.forEach((sound) => Player.add({ ...sound, local: true, type, ...(isVideoFile && { imageOrThumb: thumbSrc, thumb: thumbSrc }) }));
       }
     });
   },
@@ -759,10 +778,14 @@ module.exports = {
    */
   expandImageStart(e) {
     if (
-      e.button === 0 &&
-      !Player.isHidden &&
-      Player.config.viewStyle === 'playlist'
+      e.button !== 0 ||
+      Player.isHidden ||
+      Player.config.viewStyle !== 'playlist'
     ) {
+      // Don't start a drag: expandImage would resize from stale or undefined start values
+      // (e.g. a right-button drag).
+      e.preventDrag = true;
+    } else {
       Player.$(`.${ns}-image-link`).style.cursor = 'ns-resize';
       Player._imageResizeStartY = ((e.touches && e.touches[0]) || e).clientY;
       Player._imageResizeStartHeight = Player.config.imageHeight;
