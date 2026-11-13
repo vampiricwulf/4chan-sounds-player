@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.612
+// @version      3.7.2.614
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1758,7 +1758,10 @@ module.exports = {
     // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
     // again. A shorter follower that loops is compared within its loop (one that doesn't
     // loop, like an inline player's audio following its video, has to be sent back).
-    if (from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
+    // Not while the user holds the video's own seek bar: the seek they're making is passed
+    // to the sound, and pulling the video back to the sound's older position fought it.
+    const userHolding = to._inlinePlayer && to._inlinePlayer.pressing && to === to._inlinePlayer.video;
+    if (!userHolding && from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
       if ((to.loop ? Math.min(drift, to.duration - drift) : drift) > 0.15) {
@@ -3674,12 +3677,25 @@ module.exports = {
             // Held down (scrubbing the seek bar) counts the whole time, and a second after.
             node._inlinePlayer.lastPress = 0;
             node._inlinePlayer.pressing = false;
+            const endPress = () => {
+              node._inlinePlayer.lastPress = performance.now();
+              node._inlinePlayer.pressing = false;
+            };
             node._inlinePlayer.markPress = e => {
               node._inlinePlayer.lastPress = performance.now();
-              node._inlinePlayer.pressing = e.type === 'pointerdown';
+              // Held with the main button: the release can happen anywhere (dragged off the
+              // video), or never reach the page (a context menu), so end it from the window,
+              // or after a while at the latest.
+              node._inlinePlayer.pressing = e.type === 'pointerdown' && e.button === 0;
+              if (node._inlinePlayer.pressing) {
+                window.addEventListener('pointerup', endPress, { capture: true, once: true });
+                window.addEventListener('pointercancel', endPress, { capture: true, once: true });
+                clearTimeout(node._inlinePlayer.pressTimeout);
+                node._inlinePlayer.pressTimeout = setTimeout(endPress, 10000);
+              }
             };
             if (ownControls) {
-              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
+              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
             }
             const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
             node._inlinePlayer.resync = () => audio.paused && byUser()
@@ -3857,8 +3873,9 @@ module.exports = {
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
-    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ]
+    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ]
       .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
+    clearTimeout(node._inlinePlayer.pressTimeout);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
@@ -5941,7 +5958,9 @@ module.exports = {
       // Posts inside the player are its own (the threads view's board layout shows other
       // threads' OPs), not this thread's. FoolFuuka shows quote previews, including other
       // threads' posts, in #backlink.
-      if ((Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
+      // And posts no longer on the page by the time they're read (a preview already
+      // closed again: new nodes are read in batches, 100ms later).
+      if (!post.isConnected || (Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
         return;
       }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
@@ -6755,10 +6774,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.612") {
+    if (storedVersion !== "3.7.2.614") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.612"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.614"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7074,7 +7093,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.612";
+      settings.VERSION = "3.7.2.614";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7090,7 +7109,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.612") {
+    if (!fromVersion || fromVersion === "3.7.2.614") {
       return {};
     }
     const changes = {};
@@ -7594,7 +7613,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.612"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.614"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10710,7 +10729,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.612"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.614"));
 
     // Apply any specific replacements
     if (data.replacements) {
