@@ -234,6 +234,12 @@ const createTool = module.exports = {
       for (let i = 0; i < soundURLs.length; i++) {
         filename += (names[i] || '') + '[sound=' + encodeURIComponent(soundURLs[i].replace(/^(https?:)?\/\//, '')) + ']';
       }
+      // The checks above estimate the URL lengths before uploading; check the real name.
+      // 4chan cuts longer names, which loses the last [sound=] tag.
+      if (filename.length > maxFilenameLength) {
+        throw new PlayerError(`The generated image filename is too long (${filename.length} of ${maxFilenameLength} characters). `
+          + 'Use a shorter name or fewer sounds. The uploaded links are listed above and can be reused with the URL option.', 'warning');
+      }
       // Match-then-[1] would throw on extension-less filenames; fall back gracefully.
       const extMatch = image.name.match(/\.([^/.]+)$/);
       const ext = extMatch ? extMatch[1] : (image.type.split('/')[1] || 'bin');
@@ -297,7 +303,9 @@ const createTool = module.exports = {
         url: host.url,
         data: formData,
         responseType: host.responsePath ? 'json' : 'text',
-        headers: host.headers,
+        // Like the form data, leave out headers set to null (the default hosts' empty
+        // token): they'd be sent as the text "null".
+        headers: Object.fromEntries(Object.entries(host.headers || {}).filter(([ , value ]) => value != null)),
         onload: response => {
           if (response.status < 200 || response.status >= 300) {
             return reject(response);

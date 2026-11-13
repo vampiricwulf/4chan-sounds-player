@@ -120,7 +120,12 @@ const downloadTool = module.exports = {
     const zip = new JSZip();
 
     !(maxSounds > 0) && (maxSounds = Infinity);
-    const toDownload = Player.sounds.filter(s => s.post && (!ignoreDownloaded || !s.downloaded)).slice(0, maxSounds);
+    // What was already downloaded is tracked per kind, so skipping only skips sounds that
+    // already have everything this run asks for (combining to mp4, then downloading the
+    // images and audio, used to find "nothing to download").
+    const wanted = combineVideo ? [ 'video' ] : [ includeImages && 'image', includeSounds && 'sound' ].filter(Boolean);
+    const alreadyDone = s => s.downloaded && wanted.every(kind => s.downloaded[kind]);
+    const toDownload = Player.sounds.filter(s => s.post && (!ignoreDownloaded || !alreadyDone(s))).slice(0, maxSounds);
     const count = toDownload.length;
 
     status && (status.style.display = 'block');
@@ -152,16 +157,38 @@ const downloadTool = module.exports = {
       const el = status && _.element(progressBarsTemplate({ includeSounds: includeSounds || combineVideo, includeImages: includeImages && !combineVideo }), status);
       const dlRef = [];
       Player.tools._downloading.push(dlRef);
-      // Allow each download to be canceled individually. In case there's a huge download you don't want to include.
-      el && (el.querySelector(`.${ns}-cancel-download`).onclick = () => dlRef.forEach(dl => dl && dl.abort()));
-      return {
+      const data = {
         dlRef,
         el,
         status: el && el.querySelector(`.${ns}-current-status`),
         image: el && el.querySelector(`.${ns}-image-bar`),
         sound: el && el.querySelector(`.${ns}-sound-bar`)
       };
+      // Allow each download to be canceled individually. In case there's a huge download you don't want to include.
+      // skipped also stops a combine job, which has no request here to abort.
+      el && (el.querySelector(`.${ns}-cancel-download`).onclick = () => {
+        data.skipped = true;
+        dlRef.forEach(dl => dl && dl.abort());
+      });
+      return data;
     });
+
+    // Two entries with the same path silently overwrite each other (two sounds in a post
+    // with the same title, or names differing only in characters stripped from file
+    // names), so number repeats. Case-insensitive, as most file systems are.
+    const usedNames = new Set();
+    const addFile = (name, content) => {
+      let unique = name;
+      for (let n = 2; usedNames.has(unique.toLowerCase()); n++) {
+        unique = name.replace(/(\.[^./]*)?$/, ext => ` (${n})${ext}`);
+      }
+      usedNames.add(unique.toLowerCase());
+      zip.file(unique, content);
+    };
+    const markDownloaded = (sound, ...kinds) => {
+      sound.downloaded = { ...(sound.downloaded || {}) };
+      kinds.forEach(kind => sound.downloaded[kind] = true);
+    };
 
     let running = 0;
 
@@ -190,6 +217,7 @@ const downloadTool = module.exports = {
         return;
       }
       const i = ++running;
+      data.skipped = false;
       // Show the name and reset the progress bars.
       if (data.el) {
         data.status.textContent = `${i} / ${count}: ${sound.title}`;
@@ -203,32 +231,41 @@ const downloadTool = module.exports = {
       // across posts, so a flat layout would silently overwrite same-named images from
       // different posts (data loss). Sounds keep a unique encoded-src key, so a
       // sounds-only download stays flat.
-      const prefix = includeImages && sound.post ? sound.post + '/' : '';
+      // A standalone video is its own sound: fetch it once, as the image, and never
+      // re-encode it when combining (it was fetched twice, and re-encoded at a loss).
+      const standalone = sound.standaloneVideo;
+      const prefix = (includeImages || standalone) && sound.post ? sound.post + '/' : '';
       // Download image and sound as selected.
       const [ imageRsp, soundRsp ] = await Promise.all([
-        data.dlRef[0] = !combineVideo && includeImages && get(sound.image, getArgs(data, sound, 'image')),
-        data.dlRef[1] = !combineVideo && includeSounds && get(soundSrc, getArgs(data, sound, 'sound'))
+        data.dlRef[0] = (combineVideo ? standalone : includeImages || (standalone && includeSounds)) && get(sound.image, getArgs(data, sound, 'image')),
+        data.dlRef[1] = !combineVideo && includeSounds && !standalone && get(soundSrc, getArgs(data, sound, 'sound'))
       ]);
 
       // No post-handling if the whole download was canceled.
       if (!Player.tools._downloadAllCanceled) {
-        if (imageRsp === 'aborted' || soundRsp === 'aborted') {
+        if (imageRsp === 'aborted' || soundRsp === 'aborted' || data.skipped) {
           // Show which sounds were individually aborted.
           status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, messages);
+        } else if (combineVideo && standalone) {
+          imageRsp && addFile(`${prefix}${sound.filename}`, imageRsp);
+          imageRsp && markDownloaded(sound, 'video', 'image', 'sound');
         } else if (combineVideo) {
           // Mux this sound's visual + audio into a single looping mp4.
           try {
             const blob = await Player.tools.mux(sound, {
-              onProgress: data.sound && (p => data.sound.style.width = (p * 100) + '%')
+              onProgress: data.sound && (p => data.sound.style.width = (p * 100) + '%'),
+              isCanceled: () => Player.tools._downloadAllCanceled || data.skipped
             });
             // Always folder combined videos per-post: muxFileName (from the title) is
             // NOT unique across posts, so a flat layout would silently overwrite
             // same-named mp4s from different posts.
             const vidPrefix = sound.post ? sound.post + '/' : '';
-            zip.file(`${vidPrefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
-            sound.downloaded = true;
+            addFile(`${vidPrefix}${videoUtil.muxFileName(sound.title, sound.filename)}`, blob);
+            markDownloaded(sound, 'video');
           } catch (err) {
-            if (!Player.tools._downloadAllCanceled) {
+            if (err.canceled) {
+              !Player.tools._downloadAllCanceled && status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, messages);
+            } else if (!Player.tools._downloadAllCanceled) {
               console.error('[4chan sounds player] Mux failed', err);
               status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, messages);
               // A failed job can dirty the wasm heap; reset for the next sound.
@@ -236,22 +273,31 @@ const downloadTool = module.exports = {
             }
           }
         } else {
-          // Add the downloaded files to the zip.
-          imageRsp && zip.file(`${prefix}${sound.filename}`, imageRsp);
-          soundRsp && zip.file(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
-          // Flag the sound as downloaded only if every requested file arrived (the getArgs
-          // catch resolves failures to undefined), so "skip downloaded" retries the rest.
-          if ((!includeImages || imageRsp) && (!includeSounds || soundRsp)) {
-            sound.downloaded = true;
-          }
+          // Add the downloaded files to the zip, and record what arrived (the getArgs
+          // catch resolves failures to undefined) so "skip downloaded" retries the rest.
+          // Every sound of a multi-sound post brings the same post image: add it once.
+          imageRsp && !usedNames.has(`${prefix}${sound.filename}`.toLowerCase()) && addFile(`${prefix}${sound.filename}`, imageRsp);
+          soundRsp && addFile(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
+          imageRsp && markDownloaded(sound, ...(standalone ? [ 'image', 'sound' ] : [ 'image' ]));
+          soundRsp && markDownloaded(sound, 'sound');
         }
       }
       // Move on to the next sound.
       await downloadNext(data);
     }));
 
+    // Free the encoder's memory now the batch is done; the next use re-creates it from the
+    // cached core without downloading it again.
+    combineVideo && Player.tools.terminate();
     // Show where we canceled at, if we did cancel.
     Player.tools._downloadAllCanceled && _.element(`<span>Canceled at ${running} / ${count}.`, status);
+    // Nothing arrived (canceled straight away, or everything failed): don't offer an empty zip.
+    if (!usedNames.size) {
+      status && _.element('<div>Nothing was downloaded.</div>', status);
+      Player.tools._downloading = null;
+      Player.tools.resetDownloadButtons();
+      return;
+    }
     // Generate the zip file.
     const zipProgress = status && _.element('<div>Generating zip file...</div>', status);
     try {

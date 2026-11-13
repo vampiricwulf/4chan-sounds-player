@@ -12,5 +12,10 @@ module.exports = {
   STILL_SINGLE_FRAME: true,
   // Used when STILL_SINGLE_FRAME is false: one frame every 10s, so a 4 minute sound
   // is ~24 frames under a single keyframe. Raise toward '1' if a player struggles.
-  STILL_FPS: '1/10'
+  STILL_FPS: '1/10',
+  // Each encoding step runs on the main thread, so a step that never finishes freezes the
+  // tab for good: a "visual" that isn't really an image (an HTML error page served with
+  // status 200, a corrupt file) never yields a frame. Abort a step after this long; real
+  // encodes of 4chan-sized media finish well within it.
+  EXEC_TIMEOUT_MS: 10 * 60 * 1000
 };

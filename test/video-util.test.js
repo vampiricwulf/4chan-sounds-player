@@ -85,3 +85,8 @@ assert.strictEqual(loopMux[loopMux.indexOf('-t') + 1], '30', 'cut to audio durat
 assert.strictEqual(loopMux[loopMux.length - 1], 'out.mp4');
 
 console.log('video-util: all assertions passed');
+
+// A local GIF's image is a blob: URL with no extension: go by its type.
+assert.strictEqual(u.classifyVisual('blob:https://boards.4chan.org/abc', 'image/gif'), 'gif');
+assert.strictEqual(u.classifyVisual('blob:https://boards.4chan.org/abc', 'image/png'), 'still');
+console.log('video-util (local gif): all assertions passed');

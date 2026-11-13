@@ -63,6 +63,9 @@ function fetchText(url) {
   });
 }
 
+// Above this, measure the audio with the ffmpeg probe rather than a full WebAudio decode.
+const MAX_DECODE_BYTES = 20 * 1024 * 1024;
+
 const videoTool = module.exports = {
   _ffmpeg: null,
   _loaded: false,
@@ -246,6 +249,7 @@ const videoTool = module.exports = {
     try {
       core.exec('-i', 'audio');
     } catch (e) { /* `-i` with no output errors; we only want the logged Duration */ }
+    core.reset && core.reset();
     videoTool._capturingLog = false;
     for (const line of videoTool._captured) {
       const m = line.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
@@ -293,8 +297,17 @@ const videoTool = module.exports = {
       opts.onProgress && ratio != null && opts.onProgress(Math.max(0, Math.min(1, ratio)));
     };
 
+    // Let the caller (Download All's cancel) stop the job between steps; a running exec
+    // can't be interrupted.
+    const checkCanceled = () => {
+      if (opts.isCanceled && opts.isCanceled()) {
+        throw Object.assign(new PlayerError('Canceled.', 'info'), { canceled: true });
+      }
+    };
+
     report('Loading the video encoder', needsLoad ? 0 : W.load);
     await videoTool.loadFFmpeg(r => report('Loading the video encoder', r * W.load));
+    checkCanceled();
     const core = videoTool._ffmpeg;
     const kind = util.classifyVisual(sound.image, sound.type);
 
@@ -309,7 +322,9 @@ const videoTool = module.exports = {
       } catch (e) { /* non-URL src */ }
       throw new PlayerError(`Couldn't fetch the sound${host}.`, 'warning', err);
     }
+    checkCanceled();
     const visualBytes = await fetchBytes(sound.image, r => report('Downloading the image', W.load + W.fetch * 0.5 + r * W.fetch * 0.5));
+    checkCanceled();
     const encBase = W.load + W.fetch;
 
     // The core reports progress during exec, but nothing can repaint while exec
@@ -323,8 +338,15 @@ const videoTool = module.exports = {
         : 'visual.img';
     const written = [];
     const exec = args => {
-      core.setTimeout(-1);
-      core.exec(...args);
+      checkCanceled();
+      core.setTimeout(cfg.EXEC_TIMEOUT_MS);
+      // exec swallows ffmpeg aborts and returns the exit code: a failed step must not hand
+      // a broken file on as the result. reset() clears the code for the next run.
+      const ret = core.exec(...args);
+      core.reset && core.reset();
+      if (ret !== 0) {
+        throw new PlayerError(`The video encoder failed (exit code ${ret}).`, 'error');
+      }
     };
     const cleanup = () => {
       videoTool._progressCb = null;
@@ -340,10 +362,14 @@ const videoTool = module.exports = {
       core.FS.writeFile('audio', audioBytes); written.push('audio');
 
       // Duration: WebAudio primary, ffmpeg probe fallback (needs 'audio' in MEMFS).
+      // WebAudio decodes the whole track to measure it (hundreds of MB for a long mix),
+      // so leave very large files to the probe, which only reads the headers.
       let dur = 0;
-      try {
-        dur = await videoTool.audioDuration(audioBytes);
-      } catch (e) { /* fall back to the ffmpeg probe below */ }
+      if (audioBytes.length <= MAX_DECODE_BYTES) {
+        try {
+          dur = await videoTool.audioDuration(audioBytes);
+        } catch (e) { /* fall back to the ffmpeg probe below */ }
+      }
       if (!(dur > 0)) {
         dur = videoTool._probeDurationFFmpeg(core);
       }
@@ -404,6 +430,9 @@ const videoTool = module.exports = {
 
     try {
       const blob = await videoTool.mux(sound);
+      // Free the encoder's memory (it only grows); the next video re-creates it from the
+      // cached core without downloading it again.
+      videoTool.terminate();
       const url = URL.createObjectURL(blob);
       const a = _.element(`<a href="${url}" download="${_.escAttr(util.muxFileName(sound.title, sound.filename))}" rel="noopener" target="_blank"></a>`);
       a.click();

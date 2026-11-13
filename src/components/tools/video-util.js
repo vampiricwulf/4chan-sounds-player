@@ -13,7 +13,8 @@ function classifyVisual(image, type) {
   if (/\.(webm|mp4)(\?|$)/i.test(image) || type === 'video/webm' || type === 'video/mp4') {
     return 'video';
   }
-  if (/\.gif(\?|$)/i.test(image)) {
+  // A local file's image is a blob: URL with no extension, so also go by its type.
+  if (/\.gif(\?|$)/i.test(image) || type === 'image/gif') {
     return 'gif';
   }
   return 'still';
