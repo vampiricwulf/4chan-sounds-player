@@ -352,27 +352,36 @@ const createTool = module.exports = {
     if (!is4chan) {
       return;
     }
-    // Open the quick reply window.
-    const qrLink = document.querySelector(isChanX ? '.qr-link' : '.open-qr-link');
+    // 4chan X and its forks (XT, neXT): their QR takes files through the documented
+    // QRSetFile event, which also opens it. The old synthetic drop event carried the file
+    // in an expando that's invisible across script sandboxes and extension builds.
+    // Don't send a name: they assign it to file.name, which throws for a File.
+    if (isChanX && document.querySelector('.qr-link, #qr')) {
+      const detail = { file: Player.tools._createdImage };
+      document.dispatchEvent(new CustomEvent('QRSetFile', {
+        bubbles: true,
+        detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail
+      }));
+      return;
+    }
 
+    // Native: open the quick reply if there is one, otherwise the post form, and set the
+    // file input.
+    const qrLink = document.querySelector('.open-qr-link');
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(Player.tools._createdImage);
-
-    // 4chan X, drop the file on the qr window.
-    if (isChanX && qrLink) {
+    let fileInput;
+    if (qrLink) {
       qrLink.click();
-      const event = new CustomEvent('drop', { view: window, bubbles: true, cancelable: true });
-      event.dataTransfer = dataTransfer;
-      document.querySelector('#qr').dispatchEvent(event);
-
-      // Native, set the file input value. Check for a quick reply
-    } else if (qrLink) {
-      qrLink.click();
-      document.querySelector('#qrFile').files = dataTransfer.files;
+      fileInput = document.querySelector('#qrFile');
     } else {
       document.querySelector('#togglePostFormLink a').click();
-      document.querySelector('#postFile').files = dataTransfer.files;
+      fileInput = document.querySelector('#postFile');
       document.querySelector('.postForm').scrollIntoView();
     }
+    fileInput.files = dataTransfer.files;
+    // Let scripts with their own file box (StyleChan) see the file. Deliberately not
+    // 'change': StyleChan's "Randomize filename" renames on change, dropping [sound=].
+    fileInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
 };

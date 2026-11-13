@@ -204,11 +204,14 @@ const Player =
        */
       alert(content, type = 'info', lifetime = 5) {
         if (isChanX) {
-          content = _.element(`<span>${content}</span>`);
+          // Send plain text: an Element in the detail doesn't survive the trip between
+          // separate script sandboxes (or 4chan X's extension build), so the notice never
+          // appeared there. 4chan X renders string content as text.
+          const detail = { content: _.element(`<span>${content}</span>`).textContent, type, lifetime };
           document.dispatchEvent(
             new CustomEvent('CreateNotification', {
               bubbles: true,
-              detail: { content, type, lifetime },
+              detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail,
             }),
           );
         } else if (typeof Feedback !== 'undefined') {

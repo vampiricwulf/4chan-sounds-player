@@ -38,6 +38,8 @@ module.exports = [
 
         // GM API
         unsafeWindow: 'readonly',
+        // Firefox userscript sandboxes: copies an object into the page's scope.
+        cloneInto: 'readonly',
         GM: 'readonly',
         GM_getValue: 'readonly',
         GM_setValue: 'readonly',
