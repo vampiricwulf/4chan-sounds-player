@@ -35,7 +35,7 @@ The default playlist.
 
 ![Default Playlist UI](./images/playlist-default.png)
 
-The fixed playlist fixes the playlist to the right of the page at full height. With this theme every but the playlist is hidden, with the header showing if you hover over the top. You can expand the playlist by dragging the left side of the header.
+The fixed playlist fixes the playlist to the right of the page at full height. With this theme everything but the playlist and its search box is hidden, with the header showing if you hover over the strip above the search box. You can expand the playlist by dragging the left side of the header.
 
 ![Fixed Playlist UI](./images/playlist-fixed.png)
 

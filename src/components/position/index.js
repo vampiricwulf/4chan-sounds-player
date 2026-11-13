@@ -104,6 +104,75 @@ module.exports = {
       const [ width, height ] = (value || '').split(':');
       +width && +height && Player.position.resize(width, height, true);
     });
+
+    // Fit what's laid out around the player (see fitAround) when its size, place or styling
+    // changes. A theme's CSS sizes and places it too, so watch the elements themselves.
+    const observer = new ResizeObserver(Player.position.scheduleFit);
+    Player.on('rendered', () => {
+      observer.disconnect();
+      [ Player.container, Player.$(`.${ns}-header`), Player.$(`.${ns}-under-image`) ].forEach(el => el && observer.observe(el));
+    });
+    Player.on([ 'show', 'hide', 'view', 'config:customCSS', 'config:showPlaylistSearch' ], Player.position.scheduleFit);
+    window.addEventListener('resize', Player.position.scheduleFit);
+    // 4chan X adds its navigation buttons when it's done loading.
+    document.addEventListener('4chanXInitFinished', () => setTimeout(Player.position.scheduleFit));
+  },
+
+  /**
+   * Run fitAround at most once a frame (dragging moves the player on every pointermove).
+   */
+  scheduleFit() {
+    Player.position._fitFrame = Player.position._fitFrame || requestAnimationFrame(() => {
+      Player.position._fitFrame = null;
+      Player.position.fitAround();
+    });
+  },
+
+  /**
+   * Keep things clear of each other around the player.
+   */
+  fitAround() {
+    Player.position.fitNavLinks();
+    Player.playlist.fitSearch();
+  },
+
+  /**
+   * 4chan X's Reply/Index Navigation buttons are fixed to the page's top right, so they
+   * covered the player whenever it was there (Fixed Playlist always is). Move them beside it.
+   */
+  fitNavLinks() {
+    const nav = document.getElementById('navlinks');
+    if (!nav) {
+      return;
+    }
+    const set = (prop, value) => nav.style.setProperty(prop, value, 'important');
+    // Back where 4chan X puts them, to see whether that's under the player.
+    if (nav._fcspMoved) {
+      nav._fcspMoved = false;
+      [ 'top', 'right', 'bottom' ].forEach(prop => nav.style.removeProperty(prop));
+    }
+    const p = Player.container && !Player.isHidden && Player.container.getBoundingClientRect();
+    const n = nav.getBoundingClientRect();
+    if (!p || !p.width || !n.width || n.left >= p.right || n.right <= p.left || n.top >= p.bottom || n.bottom <= p.top) {
+      return;
+    }
+    const gap = 10;
+    const viewWidth = document.documentElement.clientWidth;
+    const viewHeight = document.documentElement.clientHeight;
+    nav._fcspMoved = true;
+    if (p.left >= n.width + gap * 2) {
+      // To its left, at the same height.
+      set('right', (viewWidth - p.left + gap) + 'px');
+    } else if (viewHeight - p.bottom >= n.height + gap * 2) {
+      // A player as wide as the window (phones): below it, or above it.
+      set('top', (p.bottom + gap) + 'px');
+      set('bottom', 'auto');
+    } else if (p.top - Player.position.getHeaderOffset().top >= n.height + gap * 2) {
+      set('top', (p.top - gap - n.height) + 'px');
+      set('bottom', 'auto');
+    } else {
+      nav._fcspMoved = false;
+    }
   },
 
   /**
@@ -337,6 +406,7 @@ module.exports = {
     if (Player.config.limitPostWidths) {
       Player.position._scheduleWidths();
     }
+    Player.position.scheduleFit();
   },
 
   /**

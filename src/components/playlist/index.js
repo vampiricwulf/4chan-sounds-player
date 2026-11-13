@@ -972,6 +972,29 @@ module.exports = {
     return ratio > 0.995 ? 1 : Math.max(0, ratio);
   },
 
+  /**
+   * Keep the search box out from under a header that a theme lays over the playlist. Fixed
+   * Playlist does, hidden until hovered: hovering the search box showed the header instead,
+   * so the box could never be clicked.
+   */
+  fitSearch() {
+    const search = Player.$(`.${ns}-playlist-search`);
+    const header = Player.$(`.${ns}-header`);
+    if (!search || !header) {
+      return;
+    }
+    const margin = parseFloat(search.style.marginTop) || 0;
+    let needed = 0;
+    if (!Player.isHidden && search.getClientRects().length && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+      const h = header.getBoundingClientRect();
+      const s = search.getBoundingClientRect();
+      // Where the box would be, scrolled to the top and without the space it's been given.
+      const top = s.top + search.parentNode.scrollTop - margin;
+      needed = h.top < top + s.height && h.bottom > top && h.left < s.right && h.right > s.left ? Math.ceil(h.bottom - top) : 0;
+    }
+    needed !== margin && (search.style.marginTop = needed ? needed + 'px' : null);
+  },
+
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
