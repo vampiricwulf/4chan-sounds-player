@@ -52,14 +52,26 @@ module.exports = {
         }
         sound.playing = true;
         Player.playing = sound;
-        // Cancel any pending rerouter swap on the audio element so its onLoad/
+        const previousMedia = Player.audio;
+        // Cancel any pending rerouter swap on the outgoing element so its onLoad/
         // onError listeners can't fire against the new src and revert it.
-        Player.audio._pendingReroute && Player.audio._pendingReroute();
-        Player.audio.src = sound.src;
+        previousMedia._pendingReroute && previousMedia._pendingReroute();
         Player.isVideo = sound.image.match(/\.(webm|mp4)$/i) || sound.type === 'video/webm' || sound.type === 'video/mp4';
         Player.isStandalone = sound.standaloneVideo;
         Player.video.loop = !Player.isStandalone;
+        // Standalone videos play through the video element, everything else through the
+        // audio element. Pick the element before setting src: setting it on the outgoing
+        // element left the audio element with the previous sound after a standalone video.
         Player.audio = sound.standaloneVideo ? Player.video : Player.controls._audio;
+        if (Player.audio !== previousMedia) {
+          // Silence the outgoing element and keep the user's volume and playback rate.
+          previousMedia.pause();
+          Player.audio.volume = previousMedia.volume;
+          Player.audio.defaultPlaybackRate = previousMedia.defaultPlaybackRate;
+        }
+        // A standalone video's source is the post's video, which playlist.showImage sets
+        // on 'playsound'.
+        sound.standaloneVideo || (Player.audio.src = sound.src);
         Player.audio._linked = Player.isVideo && !Player.isStandalone && Player.video;
         Player.video._linked = Player.isVideo && !Player.isStandalone && Player.audio;
         Player.container.classList[Player.isVideo ? 'add' : 'remove']('playing-video');

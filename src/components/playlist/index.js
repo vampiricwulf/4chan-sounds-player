@@ -360,6 +360,9 @@ module.exports = {
     // If the playing sound is being removed then play the next sound.
     if (Player.playing === sound) {
       Player.next({ force: true, paused: Player.audio.paused });
+      // Nothing else to move to (it was the only sound, the last one with repeat off, or
+      // every other sound is dead). Stop instead of playing a sound that's left the list.
+      Player.playing === sound && Player.stop();
     }
     // Remove the sound from the the list and play order.
     index > -1 && Player.sounds.splice(index, 1);
