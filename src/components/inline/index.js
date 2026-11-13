@@ -354,6 +354,14 @@ module.exports = {
             e.preventDefault();
             e.stopPropagation();
           });
+          // 4chan neXT handles a click on the expanded media's link before it gets here (on its
+          // way down), so that didn't stop it and every click on these closed the media. Like
+          // 4chan X it leaves alone clicks on a video's own controls, which it knows by their
+          // `controls` property: mark these the same way. (The icons are all there from the
+          // start, only shown or hidden, so marking them now covers whatever gets clicked.)
+          [ controls, ...controls.querySelectorAll('*') ].forEach(el => {
+            el.controls = true;
+          });
           audio.volumeBar = controls.querySelector(`.${ns}-volume-bar .${ns}-current-bar`);
           audio.currentTimeBar = controls.querySelector(`.${ns}-seek-bar .${ns}-current-bar`);
           Player.controls.updateProgressBarPosition(audio.volumeBar, audio.volume, 1);

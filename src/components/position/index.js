@@ -9,6 +9,15 @@ module.exports = {
     // And keep them current: the header's height changes (the player's own controls in it,
     // the window narrowing), and themes like Fixed Playlist place the player by them.
     window.addEventListener('resize', _.debounce(Player.position.updateHeaderOffsets, 150));
+    // It also changes on its own (4chan X adding its icons, 4chan-neXT's phone header filling
+    // in after the player was placed, which then covered the player's header).
+    const headerObserver = new ResizeObserver(Player.position.updateHeaderOffsets);
+    const watchHeader = () => {
+      const header = document.getElementById('header-bar');
+      header && headerObserver.observe(header);
+    };
+    watchHeader();
+    document.addEventListener('4chanXInitFinished', watchHeader);
 
     // Apply the last position/size, and post width limiting, when the player is shown.
     Player.on('show', async function () {
@@ -308,8 +317,15 @@ module.exports = {
 	 */
   updateHeaderOffsets() {
     const { top, bottom } = Player.position.getHeaderOffset();
+    if (Player.config.offsetTop === top + 'px' && Player.config.offsetBottom === bottom + 'px') {
+      return;
+    }
     Player.config.offsetTop !== top + 'px' && Player.set('offsetTop', top + 'px', { bypassSave: true });
     Player.config.offsetBottom !== bottom + 'px' && Player.set('offsetBottom', bottom + 'px', { bypassSave: true });
+    // Keep the player clear of it (not saved: the saved place comes back if there's room).
+    if (Player.container && !Player.isHidden && Player.config.viewStyle !== 'fullscreen') {
+      Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
+    }
   },
 
   /**
@@ -430,7 +446,10 @@ module.exports = {
         rect.top + rect.height / 2 < window.innerHeight / 2 ? (top += rect.height) : (bottom += rect.height);
       }
     };
-    docClasses.contains('fixed') && reserve(document.querySelector('#header-bar'));
+    // Also when it's fixed without the class: 4chan-neXT's phone layouts fix it whatever the
+    // Fixed Header setting.
+    const header = document.querySelector('#header-bar');
+    header && (docClasses.contains('fixed') || getComputedStyle(header).position === 'fixed') && reserve(header);
     // 4chan-neXT's mobile bar, and native 4chan's mobile nav (which covered the player's
     // header, leaving no way to drag it out).
     [ 'mobile-bar', 'boardNavMobile' ].forEach(id => {

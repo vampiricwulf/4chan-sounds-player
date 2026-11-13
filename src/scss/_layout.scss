@@ -1,5 +1,9 @@
 ##{$ns}-container {
 	position: fixed;
+	// Above the page's own content: 4chan-neXT lifts expanded images (1) and its scrollbar
+	// markers (4) over everything at the default level, which covered the player. Still
+	// under the 4chan X / neXT header (8 or 35), quick reply, menus and previews.
+	z-index: 5;
 	display: flex;
 	flex-direction: column;
 	background: var(--fcsp-background);
