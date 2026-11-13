@@ -1,0 +1,84 @@
+name: Build Scripts
+
+# Builds the beta and dev userscripts on every push to master, and the release and
+# Greasy Fork scripts only when package.json's version is higher than the released one.
+# Tests and lint are deliberately not run here: the builds are published either way.
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Only the newest push needs publishing. A cancelled run loses nothing: the next one
+# rebuilds beta/dev, and the version check compares against dist/, not the last commit.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Tree
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install packages
+        run: npm ci --no-audit --no-fund
+
+      - name: Build beta script
+        run: npm run build-beta
+
+      - name: Build dev script
+        run: npm run build-dev
+
+      - name: Check for a version increase
+        id: version
+        run: |
+          node -e '
+            const fs = require("fs");
+            const current = require("./package.json").version;
+            let released = "0.0.0";
+            try {
+              const meta = fs.readFileSync("dist/4chan-sounds-player.meta.js", "utf8");
+              released = (meta.match(/@version\s+(\S+)/) || [])[1] || released;
+            } catch (err) { /* no release build yet */ }
+            const parts = v => v.split("-")[0].split(".").map(n => +n || 0);
+            const [a, b] = [parts(current), parts(released)];
+            const diff = [0, 1, 2].map(i => (a[i] || 0) - (b[i] || 0)).find(d => d !== 0) || 0;
+            console.log(`package.json: ${current}, released: ${released}, increased: ${diff > 0}`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `increased=${diff > 0}\nversion=${current}\n`);
+          '
+
+      - name: Build release and Greasy Fork scripts
+        if: steps.version.outputs.increased == 'true'
+        run: npm run build
+
+      - name: Commit and push the builds
+        env:
+          RELEASE: ${{ steps.version.outputs.increased == 'true' && format(' and v{0} release', steps.version.outputs.version) || '' }}
+        run: |
+          git add dist
+          if git diff --cached --quiet; then
+            echo "The builds are unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build: compile beta/dev${RELEASE} for ${GITHUB_SHA::7} [skip ci]"
+          if ! git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"; then
+            # A newer push landed mid-build; its own run publishes builds for it.
+            git fetch --depth=1 origin "${GITHUB_REF_NAME}"
+            if [ "$(git rev-parse FETCH_HEAD)" != "${GITHUB_SHA}" ]; then
+              echo "::notice::${GITHUB_REF_NAME} moved during the build; leaving it to the newer run."
+              exit 0
+            fi
+            exit 1
+          fi
