@@ -168,7 +168,7 @@ module.exports = {
     Player.settings.set('uploadHosts', hosts, { bypassValidation: true, bypassRender: true });
     // The default can't be a host that's gone: make the first remaining one the default.
     if (Player.config.defaultUploadHost === name) {
-      const next = Object.keys(hosts).find(key => hosts[key]);
+      const next = Object.keys(hosts).find(key => hosts[key] && !hosts[key].invalid);
       next && Player.set('defaultUploadHost', next);
       Player.settings.renderSetting(Player.settings.findDefault('uploadHosts'));
     }

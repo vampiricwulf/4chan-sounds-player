@@ -152,7 +152,8 @@ module.exports = {
     if (name !== 'Default' && !Player.config.savedThemes[name]) {
       return Player.logError(`Theme '${_.escHTML(name)}' does not exist.`, null, 'warning');
     }
-    const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
+    // Only what switching to it could have set.
+    const previous = Player.theme._themeFieldsOf(Player.config.savedThemes[Player.config.selectedTheme]);
     // Apply only the settings a theme can hold. Themes can be imported or shared, and one
     // with other settings (the allow list, upload hosts) would change those too.
     const next = name === 'Default' ? {} : Player.theme._themeFieldsOf(Player.config.savedThemes[name]);
@@ -165,7 +166,8 @@ module.exports = {
     const props = new Set(name === 'Default' ? [ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ] : []);
     settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
       const themeValue = s.property && _.get(previous, s.property);
-      themeValue !== undefined && _.get(next, s.property) === undefined
+      // Keybinds a theme brought stay: resetting them stopped Next Theme after one press.
+      themeValue !== undefined && !s.property.startsWith('hotkey_bindings.') && _.get(next, s.property) === undefined
         && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
     });
     props.forEach(prop => {
@@ -323,7 +325,8 @@ module.exports = {
 	 * Enter in the theme name box saves, like the Create/Update link.
 	 */
   handleNameKey(e) {
-    if (e.key === 'Enter') {
+    // Not the Enter that confirms an IME conversion.
+    if (e.key === 'Enter' && !e.isComposing) {
       e.preventDefault();
       Player.theme.save();
     }

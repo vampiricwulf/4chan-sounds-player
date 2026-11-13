@@ -224,7 +224,8 @@ module.exports = {
 	 * Go back to the saved size (or the default one) after a temporary resize.
 	 */
   async restoreSize() {
-    if (!Player.position._temporarySize || !Player.container) {
+    // Not in fullscreen, where resizing does nothing: keep the note for leaving it.
+    if (!Player.position._temporarySize || !Player.container || Player.config.viewStyle === 'fullscreen') {
       return;
     }
     Player.position._temporarySize = false;

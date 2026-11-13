@@ -181,8 +181,9 @@ const createTool = module.exports = {
           soundURLs = soundURLs.map(url => {
             const bare = url.replace(/^(https?:)?\/\//, '');
             // Browsers accept a lot as a URL ("not a url at all" included): require a host
-            // with a dot and no spaces.
-            if (/\s/.test(bare) || !new URL('https://' + bare).hostname.includes('.')) {
+            // with a dot and no spaces (spaces in the path are fine).
+            const host = bare.split(/[/?#]/)[0];
+            if (/\s/.test(host) || !host.includes('.') || !new URL('https://' + bare).hostname) {
               throw new Error('Invalid URL');
             }
             return bare;

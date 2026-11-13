@@ -12,7 +12,8 @@ const deadRE = /d: ?{([^}]*)}/g;
 // Render the inner content only when the user has removed sounds from the playlist.
 const removedRE = /\br: ?{([^}]*)}/g;
 // Any block whose content holds no other block: applied innermost first, so blocks can nest.
-const innermostBlockRE = /\b([pdhr]): ?{([^{}]*)}/g;
+// (r:{ has to start a word; the others never did, so "sound-titleh:{…}" keeps working.)
+const innermostBlockRE = /(?:\b(r)|([pdh])): ?{([^{}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -84,9 +85,12 @@ module.exports = {
       let before;
       do {
         before = html;
-        html = html.replace(innermostBlockRE, (m, kind, inner) => kind === 'h'
-          ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
-          : shows[kind]() ? inner : '');
+        html = html.replace(innermostBlockRE, (m, r, other, inner) => {
+          const kind = r || other;
+          return kind === 'h'
+            ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
+            : shows[kind]() ? inner : '';
+        });
       } while (html !== before);
     }
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {

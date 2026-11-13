@@ -174,8 +174,15 @@ module.exports = {
             // Without the player's controls, the video's own controls are the only ones:
             // pressing play, pause or seeking on them acts on the sound. (Only for the user's
             // own presses: 4chan X pausing it off-screen shouldn't stop the sound.)
-            const ownControls = !(isExpandedImage && Player.config.expandedControls);
-            const byUser = () => ownControls && (!navigator.userActivation || navigator.userActivation.isActive);
+            const ownControls = isExpandedImage && !Player.config.expandedControls;
+            // A press on the video itself in the last moment: not the sync's own pauses, a
+            // loop wrapping round, or 4chan X pausing it (which a click anywhere else
+            // shortly before used to count as).
+            node._inlinePlayer.lastPress = 0;
+            node._inlinePlayer.markPress = () => node._inlinePlayer.lastPress = performance.now();
+            ownControls && node.addEventListener('pointerdown', node._inlinePlayer.markPress);
+            ownControls && node.addEventListener('keydown', node._inlinePlayer.markPress);
+            const byUser = () => ownControls && performance.now() - node._inlinePlayer.lastPress < 1000;
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
@@ -329,6 +336,8 @@ module.exports = {
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
+    node._inlinePlayer.markPress && node.removeEventListener('pointerdown', node._inlinePlayer.markPress);
+    node._inlinePlayer.markPress && node.removeEventListener('keydown', node._inlinePlayer.markPress);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);

@@ -140,8 +140,16 @@ module.exports = {
       // That's inside 4chan's post form (#delform): Enter in one of the player's text fields
       // submitted it, clicking the player's first button (Create, which uploads) or the
       // form's Delete button. Enter in a field does nothing beyond the field's own handling.
-      Player.container.addEventListener('keydown', e => {
-        e.key === 'Enter' && e.target.nodeName === 'INPUT' && e.target.form && e.preventDefault();
+      // Stopped on keypress, where browsers submit, so keydown still reaches hotkeys (an
+      // Enter binding in the search box), and only for text fields (Enter opens a file
+      // picker). The change Enter would have made is still sent.
+      const textTypes = [ 'text', 'search', 'number', 'url', 'email', 'password', 'tel' ];
+      Player.container.addEventListener('keypress', e => {
+        const input = e.target;
+        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && textTypes.includes(input.type)) {
+          e.preventDefault();
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       });
 
       await Player.trigger('rendered');

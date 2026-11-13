@@ -67,6 +67,9 @@ assert.strictEqual(build('color:{x} r: {y}'), 'color:{x} y', 'r:{ } only matches
 // Nested blocks are applied innermost first: no stray "}" when the outer one is hidden.
 assert.strictEqual(build('a p:{ b h:{c} } d', { sound: dead }), 'a  d', 'hidden outer block takes its inner block with it');
 assert.strictEqual(build('p:{ x d:{y} }'), ' x y ', 'shown outer and inner blocks');
+// p:{ d:{ h:{ may follow a word, as they always could; r:{ has to start one.
+assert.strictEqual(build('ah:{b}'), 'a<span class="fcsp-hover-display ">b</span>', 'h:{ right after a word');
+assert.strictEqual(build('xd:{y}'), 'xy', 'd:{ right after a word (a dead sound exists)');
 Player.playlist._removed.clear();
 assert.strictEqual(build('v%v'), 'v9.9.9');
 
