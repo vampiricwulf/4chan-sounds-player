@@ -463,8 +463,10 @@ module.exports = {
     if (!Player.display._noSleepVisibility) {
       Player.display._noSleepVisibility = true;
       document.addEventListener('visibilitychange', () => {
+        // Not when NoSleep still holds a lock: its own handler takes that back, and taking
+        // another here would leave one that disable() doesn't release.
         document.visibilityState === 'visible' && Player.display._noSleepEnabled && Player.audio && !Player.audio.paused
-          && !noSleep.isEnabled && Promise.resolve(noSleep.enable()).catch(() => {});
+          && !noSleep.isEnabled && !noSleep._wakeLock && Promise.resolve(noSleep.enable()).catch(() => {});
       });
     }
   },

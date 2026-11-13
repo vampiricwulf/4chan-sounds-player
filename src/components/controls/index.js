@@ -167,25 +167,33 @@ module.exports = {
 	 *
 	 * The audio leads: while it's paused, ended or stalled waiting for data, the video
 	 * waits too. (This used to do nothing unless both were fully ready, so a stalled audio
-	 * left the video running ahead, and an ended one left it looping.)
+	 * left the video running ahead, and an ended one left it looping.) Positions are lined
+	 * up whether or not it's playing, so seeking while paused moves the picture too.
 	 */
   sync(from) {
     const to = from && from._linked;
     if (!to) {
       return;
     }
-    if (from.paused || from.ended || from.readyState < from.HAVE_FUTURE_DATA) {
-      !to.paused && to.pause();
-      return;
+    const leading = !from.paused && !from.ended && from.readyState >= from.HAVE_FUTURE_DATA;
+    if (leading) {
+      to.playbackRate = from.playbackRate;
+      to.defaultPlaybackRate = from.defaultPlaybackRate;
     }
-    to.playbackRate = from.playbackRate;
-    to.defaultPlaybackRate = from.defaultPlaybackRate;
     // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
-    // again. A shorter video loops, so compare positions within its loop.
-    if (to.duration > 0 && isFinite(to.duration)) {
+    // again. A shorter follower that loops is compared within its loop (one that doesn't
+    // loop, like an inline player's audio following its video, has to be sent back).
+    if (from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
-      Math.min(drift, to.duration - drift) > 0.15 && (to.currentTime = target);
+      if ((to.loop ? Math.min(drift, to.duration - drift) : drift) > 0.15) {
+        to.currentTime = target;
+        to._syncSeekAt = performance.now();
+      }
+    }
+    if (!leading) {
+      !to.paused && to.pause();
+      return;
     }
     // play() rejects when a newer load or pause interrupts it; that's expected here.
     to.paused && to.play().catch(() => {});
@@ -197,7 +205,17 @@ module.exports = {
 	 */
   syncVideo(e) {
     const video = e.currentTarget;
-    video._linked && video._linked === Player.audio && Player.controls.sync(Player.audio);
+    if (!video._linked || video._linked !== Player.audio) {
+      return;
+    }
+    // The 'playing' that ends a seek sync made lags the audio by however long the seek
+    // took. Seeking again would chase the audio for as long as each seek takes, with the
+    // picture frozen, so let that one be.
+    if (video._syncSeekAt && performance.now() - video._syncSeekAt < 3000) {
+      video._syncSeekAt = 0;
+      return;
+    }
+    Player.controls.sync(Player.audio);
   },
 
   /**
