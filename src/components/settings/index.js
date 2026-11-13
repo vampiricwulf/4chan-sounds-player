@@ -122,6 +122,52 @@ module.exports = {
   },
 
   /**
+	 * Whether a page script may change a setting through the PlayerEvent API, and the
+	 * value it gives is valid: only switches, numbers and choices. Templates, CSS,
+	 * colours, hosts, filters and the allow list are HTML/CSS or decide where requests
+	 * go, so they're never changed that way.
+	 */
+  _apiAllows(property, value) {
+    const conf = Player.settings.findDefault(property);
+    if (!conf || conf.runtime || conf.default === undefined) {
+      return false;
+    }
+    if (conf.options) {
+      return Object.prototype.hasOwnProperty.call(conf.options, value);
+    }
+    if (typeof conf.default === 'boolean') {
+      return typeof value === 'boolean';
+    }
+    if (typeof conf.default === 'number') {
+      return typeof value === 'number' && isFinite(value);
+    }
+    return false;
+  },
+
+  /**
+	 * Player.set for the PlayerEvent API, limited to what _apiAllows.
+	 */
+  setPublic(property, value, opts) {
+    if (!Player.settings._apiAllows(property, value)) {
+      return console.warn('[4chan sounds player] PlayerEvent: setting not allowed:', property);
+    }
+    return Player.set(property, value, { bypassValidation: !!(opts && opts.bypassValidation) });
+  },
+
+  /**
+	 * settings.load for the PlayerEvent API: only the settings _apiAllows, and never
+	 * resetting the others (applyDefault would wipe the user's customisations).
+	 */
+  loadPublic(settings) {
+    const allowed = {};
+    settingsConfig.flatMap(s => s.settings || [ s ]).forEach(({ property }) => {
+      const value = property && _.get(settings || {}, property);
+      value !== undefined && Player.settings._apiAllows(property, value) && _.set(allowed, property, value);
+    });
+    return Player.settings.load(allowed);
+  },
+
+  /**
 	 * Reset a setting to the default value
 	 */
   reset(property, opts) {
@@ -174,6 +220,15 @@ module.exports = {
         return;
       }
       let value = _.get(settings, setting.property, opts.applyDefault ? setting.default : undefined);
+      // Values from storage, imports and other tabs must match the setting's type: a
+      // string where a list belongs ("allow": "x") crashed rendering on every page load.
+      if (value !== undefined) {
+        const valid = Player.settings._coerce(value, setting.default);
+        if (valid === undefined) {
+          console.warn('[4chan sounds player] Ignoring a setting of the wrong type:', setting.property, value);
+        }
+        value = valid !== undefined ? valid : opts.applyDefault ? setting.default : undefined;
+      }
       if (value !== undefined) {
         // Mix in default.
         // An import merges into the current value instead, so it doesn't drop the user's own
@@ -211,6 +266,30 @@ module.exports = {
   },
 
   /**
+	 * A value converted to its setting's type (from the default), or undefined if it can't
+	 * be. Booleans and numbers may arrive as strings from hand-edited or older exports.
+	 */
+  _coerce(value, def) {
+    if (def === undefined || def === null) {
+      return value;
+    }
+    if (typeof def === 'boolean') {
+      return value === true || value === 'true' ? true : value === false || value === 'false' ? false : undefined;
+    }
+    if (typeof def === 'number') {
+      const n = typeof value === 'string' && value.trim() !== '' ? +value : value;
+      return typeof n === 'number' && isFinite(n) ? n : undefined;
+    }
+    if (typeof def === 'string') {
+      return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : undefined;
+    }
+    if (Array.isArray(def)) {
+      return Array.isArray(value) ? value : undefined;
+    }
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : undefined;
+  },
+
+  /**
 	 * Re-render the settings in a set of changes, except one being edited.
 	 */
   _renderChanged(changes) {
@@ -218,7 +297,15 @@ module.exports = {
       return;
     }
     const focused = document.activeElement;
+    // Settings without a row of their own show up in another one, and some rows depend on
+    // other settings (dependentRender).
+    const shownIn = { selectedTheme: 'savedThemes', savedThemesOrder: 'savedThemes', defaultUploadHost: 'uploadHosts' };
+    const props = new Set();
     Object.keys(changes || {}).forEach(prop => {
+      props.add(shownIn[prop] || prop);
+      (Player.settings.findDefault(prop).dependentRender || []).forEach(dep => props.add(dep));
+    });
+    props.forEach(prop => {
       const row = Player.$(`.${ns}-setting[data-property="${prop}"]`);
       if (row && !row.contains(focused)) {
         Player.settings.renderSetting(Player.settings.findDefault(prop));
@@ -417,7 +504,7 @@ module.exports = {
       try {
         config = JSON.parse(await fileInput.files[0].text());
       } catch (err) {
-        Player.logError(`Expected a JSON config file and got ${fileInput.files[0].type}.`, err, 'warning');
+        Player.logError(`Expected a JSON config file and got ${_.escHTML(fileInput.files[0].type)}.`, err, 'warning');
       }
       fileInput.removeEventListener('change', _import);
       // Keep the current view (exports include viewStyle), merge themes and hosts into the

@@ -19,7 +19,10 @@ module.exports = {
     // Ignore the player's own stylesheets: applyBoardTheme rewrites them, and reacting to
     // that re-ran it (and re-rendered the settings) every 500ms, forever.
     const applyBoardTheme = _.debounce(() => Player.theme.applyBoardTheme(), 500);
-    const isOwn = node => node && [ Player.stylesheet, Player.varsCSS, Player.userStylesheet ].some(el => el && (el === node || el.contains(node)));
+    // Also ignore the title and favicon, which 4chan X rewrites for every new post.
+    const isOwn = node => node && ([ Player.stylesheet, Player.varsCSS, Player.userStylesheet ].some(el => el && (el === node || el.contains(node)))
+      || node.nodeName === 'TITLE' || (node.parentNode && node.parentNode.nodeName === 'TITLE')
+      || (node.nodeName === 'LINK' && /icon/i.test(node.getAttribute('rel') || '')));
     const observer = new MutationObserver(mutations => {
       const external = mutations.some(m => !isOwn(m.target)
         && !(m.type === 'childList' && [ ...m.addedNodes, ...m.removedNodes ].every(isOwn)));
@@ -147,23 +150,51 @@ module.exports = {
 	 */
   switch(name) {
     if (name !== 'Default' && !Player.config.savedThemes[name]) {
-      return Player.logError(`Theme '${name}' does not exist.`, null, 'warning');
+      return Player.logError(`Theme '${_.escHTML(name)}' does not exist.`, null, 'warning');
     }
     const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
     Player.set('selectedTheme', name);
     if (name === 'Default') {
       // Reset everything the previous theme set, not just the templates (switching back
       // from Fixed Playlist kept its 4chan X header controls setting, for example).
+      // Other settings only while they still have the theme's value, so edits made after
+      // selecting the theme (e.g. new theme keybinds) are kept.
       const props = new Set([ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ]);
-      settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => s.property && _.get(previous, s.property) !== undefined && props.add(s.property));
+      settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
+        const themeValue = s.property && _.get(previous, s.property);
+        themeValue !== undefined && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
+      });
       props.forEach(prop => {
         Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
       });
       Player.settings.render();
       Player.display.updateCSSVars();
     } else {
-      Player.settings.load(Player.config.savedThemes[name]);
+      // Apply only the settings a theme can hold. Themes can be imported or shared, and one
+      // with other settings (the allow list, upload hosts) would change those too.
+      Player.settings.load(Player.theme._themeFieldsOf(Player.config.savedThemes[name]));
     }
+  },
+
+  /**
+	 * The part of a theme's data that themes are allowed to set.
+	 */
+  _themeFieldsOf(theme) {
+    const fields = {};
+    (function collect(settings, parent) {
+      settings.forEach(s => {
+        if (s.settings) {
+          return collect(s.settings, s);
+        }
+        const allowed = s.themeField || (s.allowInTheme !== undefined ? s.allowInTheme : parent && parent.allowInTheme);
+        if (!allowed || !s.property) {
+          return;
+        }
+        const value = _.get(theme || {}, s.property);
+        value !== undefined && _.set(fields, s.property, value);
+      });
+    })(settingsConfig);
+    return fields;
   },
 
   /**
@@ -181,7 +212,7 @@ module.exports = {
     bindings = [ ...bindings ];
     const themeName = e.currentTarget.parentNode.dataset.name;
     if (themeName !== 'Default' && !Player.config.savedThemes[themeName]) {
-      Player.logError(`No theme named '${themeName}'.`, null, 'warning');
+      Player.logError(`No theme named '${_.escHTML(themeName)}'.`, null, 'warning');
     }
     const keyDef = Player.hotkeys.parseKey(newValue);
     if (!keyDef.key) {
@@ -236,7 +267,10 @@ module.exports = {
     row.parentNode.removeChild(row);
     Player.settings.set('savedThemes', themes, { bypassValidation: true, bypassRender: true });
     // A removed theme can't stay selected (next/previous would start from a missing entry).
-    Player.config.selectedTheme === name && Player.set('selectedTheme', 'Default');
+    if (Player.config.selectedTheme === name) {
+      Player.set('selectedTheme', 'Default');
+      Player.settings.renderSetting(Player.settings.findDefault('savedThemes'));
+    }
     // Its row in the theme keybinds list goes too.
     Player.settings.renderSetting(Player.settings.findDefault('hotkey_bindings.switchTheme'));
     // Remove hotkey binding. The previous code used `.find()` (which returns the
