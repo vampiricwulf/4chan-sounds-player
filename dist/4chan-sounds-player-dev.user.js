@@ -1754,6 +1754,7 @@ module.exports = (data = {}) => `<div class="${ns}-controls ${ns}-row ${data.inl
 (module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
+/* provided dependency */ var Icons = __webpack_require__(/*! ./src/icons */ "./src/icons.js");
 const cssTemplate = __webpack_require__(/*! ../../scss/style.scss */ "./src/scss/style.scss");
 const cssVarsTemplate = __webpack_require__(/*! ../../scss/root.scss */ "./src/scss/root.scss");
 const css4chanXPolyfillTemplate = __webpack_require__(/*! ../../scss/4chan-x-polyfill.scss */ "./src/scss/4chan-x-polyfill.scss");
@@ -1840,9 +1841,18 @@ module.exports = {
       }
     } else {
       // Add a [Sounds] link in the top and bottom nav for native 4chan.
-      document.querySelectorAll('#settingsWindowLink, #settingsWindowLinkBot').forEach(function (link) {
-        _.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', link, 'beforebegin');
+      const links = [ ...document.querySelectorAll('#settingsWindowLink, #settingsWindowLinkBot') ].map(function (link) {
+        const soundsLink = _.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', link, 'beforebegin');
         link.parentNode.insertBefore(document.createTextNode('] ['), link);
+        return soundsLink;
+      });
+      // Those links live in the desktop nav bars, which 4chan's mobile view and StyleChan's
+      // "Show Navigation Links" option hide, leaving no way to open the player. Fall back to
+      // a small fixed button then. Checked after layout so stylesheets have applied.
+      requestAnimationFrame(() => {
+        if (!links.some(link => link.getClientRects().length)) {
+          _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
+        }
       });
     }
   },
@@ -2075,10 +2085,11 @@ module.exports = {
     const menu = e.currentTarget.closest('.dialog');
     const currentFocus = menu.querySelectorAll('.focused');
     currentFocus.forEach(el => {
-      el.classList.remove('focused');
+      el.classList.remove('focused', 'submenu-open');
       el.dispatchEvent(new CustomEvent('entry-blur'));
     });
-    e.currentTarget.classList.add('focused');
+    // 4chan-neXT's mobile layout restyles #menu and only opens a submenu on .submenu-open.
+    e.currentTarget.classList.add('focused', 'submenu-open');
     // Move the menu to the other side if there isn't room.
     if (submenu && submenu.getBoundingClientRect().right > document.documentElement.clientWidth) {
       submenu.style.inset = '0px 100% auto auto';
@@ -2944,7 +2955,20 @@ module.exports = {
     if (Player.isHidden && (Player.config.hotkeys !== 'always' || !Player.sounds.length)) {
       return;
     }
-    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA' ].includes(e.target.nodeName);
+    // Leave keys another handler already used (e.g. Space on a script's button-like
+    // control), and synthetic events without a key (browser autofill).
+    if (e.defaultPrevented || !e.key) {
+      return;
+    }
+    // 4chan X/XT/neXT's gallery binds the arrow keys while it's open. This listener is on
+    // body, so it runs before theirs and they can't stop it skipping tracks.
+    if (document.getElementById('a-gallery') || document.documentElement.classList.contains('gallery-open')) {
+      return;
+    }
+    const target = e.target;
+    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA', 'BUTTON' ].includes(target.nodeName)
+      || target.isContentEditable
+      || (target.getAttribute && target.getAttribute('role') === 'button');
     const k = e.key.toLowerCase();
     const bindings = Player.config.hotkey_bindings || {};
 
@@ -2955,6 +2979,8 @@ module.exports = {
       }
       const bindingConfig = k === keyDef.key
 				&& (!!keyDef.shiftKey === !!e.shiftKey) && (!!keyDef.ctrlKey === !!e.ctrlKey) && (!!keyDef.metaKey === !!e.metaKey)
+				// Bindings can't include Alt, so Alt combos (Alt+Left/Right is browser back/forward) pass through.
+				&& (!!keyDef.altKey === !!e.altKey)
 				&& (!keyDef.ignoreRepeat || !e.repeat)
 				&& keyConfigs[name];
 
@@ -3110,6 +3136,19 @@ module.exports = {
         if (!sounds.length) {
           return;
         }
+        // 4chan XT/neXT's "sound posts" (on by default) put their own autoplaying <audio>
+        // right after an expanded [sound=] image, so the sound played twice. It's added in
+        // the same task as the image, before it can start: silence and remove it, and give
+        // a video back the controls it would have had.
+        const otherAudio = isChanX && isExpandedImage && node.nextElementSibling;
+        if (otherAudio && otherAudio.nodeName === 'AUDIO') {
+          otherAudio.autoplay = false;
+          otherAudio.pause();
+          otherAudio.removeAttribute('src');
+          otherAudio.load();
+          otherAudio.remove();
+          isVideo && (node.controls = otherAudio.controls);
+        }
         // Create a new audio element.
         const audio = new Audio(sounds[0].src);
         const aId = audio.dataset.id = Player.inline.idx++;
@@ -3134,6 +3173,13 @@ module.exports = {
         if (isVideo) {
           node._linked = audio;
           audio._linked = node;
+          // 4chan X (and forks) pause an expanded video without sound of its own while it's
+          // off-screen or the tab is hidden, then resume it from where it stopped. When the
+          // audio leads, re-sync the video whenever something starts it.
+          if (master === audio) {
+            node._inlinePlayer.resync = () => Player.controls.sync(audio);
+            node.addEventListener('play', node._inlinePlayer.resync);
+          }
         }
 
         // Start from the beginning taking the volume from the main player.
@@ -3224,6 +3270,7 @@ module.exports = {
     node.controlsObserver && node.controlsObserver.disconnect();
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
+    node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     // Remove controls.
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {
@@ -4841,6 +4888,14 @@ module.exports = {
         return;
       }
 
+      // Only parse this page's own posts. 4chan X clones (inline quotes, including posts
+      // fetched from other threads) get an "_N" suffix on every id, and 4chan-neXT's
+      // comment preview is a fake .post#p-preview. Parsing those added stray sounds, and
+      // a new duplicate each time an inline quote was re-expanded.
+      if (Site === '4chan' && !/^\d+$/.test(postID)) {
+        return;
+      }
+
       let filename = null;
       let filenameLocations = selectors.filename;
 
@@ -4855,8 +4910,12 @@ module.exports = {
 
       selectors.filenameParser && (filename = selectors.filenameParser(filename));
 
-      const fileThumb = post.querySelector(selectors.thumb).closest('a');
+      const thumbContainer = post.querySelector(selectors.thumb);
+      const fileThumb = thumbContainer && thumbContainer.closest('a');
       const imageSrc = fileThumb && fileThumb.href;
+      if (!imageSrc) {
+        return;
+      }
       // 4chan X's "Replace WEBM" swaps a video's thumbnail <img> for a <video> that keeps
       // the thumbnail as its poster and the MD5 in data-md5. Only looking for an <img>
       // left webm sounds with a null thumbnail, shown as a broken image.
@@ -4963,7 +5022,11 @@ module.exports = {
 
     if (postEl) {
       const linkInfo = selectors.playLink;
-      const relative = linkInfo.relative && postEl.querySelector(linkInfo.relative);
+      // relative may be a list of selectors in priority order.
+      const relative = [].concat(linkInfo.relative || []).map(sel => postEl.querySelector(sel)).find(Boolean);
+      if (!relative) {
+        return;
+      }
 
       // Create/update the unfilter button, or remove it.
       let addLink = relative.parentNode.querySelector(`.${ns}-unfilter-link`);
@@ -7244,28 +7307,37 @@ const createTool = module.exports = {
     if (!is4chan) {
       return;
     }
-    // Open the quick reply window.
-    const qrLink = document.querySelector(isChanX ? '.qr-link' : '.open-qr-link');
+    // 4chan X and its forks (XT, neXT): their QR takes files through the documented
+    // QRSetFile event, which also opens it. The old synthetic drop event carried the file
+    // in an expando that's invisible across script sandboxes and extension builds.
+    // Don't send a name: they assign it to file.name, which throws for a File.
+    if (isChanX && document.querySelector('.qr-link, #qr')) {
+      const detail = { file: Player.tools._createdImage };
+      document.dispatchEvent(new CustomEvent('QRSetFile', {
+        bubbles: true,
+        detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail
+      }));
+      return;
+    }
 
+    // Native: open the quick reply if there is one, otherwise the post form, and set the
+    // file input.
+    const qrLink = document.querySelector('.open-qr-link');
     const dataTransfer = new DataTransfer();
     dataTransfer.items.add(Player.tools._createdImage);
-
-    // 4chan X, drop the file on the qr window.
-    if (isChanX && qrLink) {
+    let fileInput;
+    if (qrLink) {
       qrLink.click();
-      const event = new CustomEvent('drop', { view: window, bubbles: true, cancelable: true });
-      event.dataTransfer = dataTransfer;
-      document.querySelector('#qr').dispatchEvent(event);
-
-      // Native, set the file input value. Check for a quick reply
-    } else if (qrLink) {
-      qrLink.click();
-      document.querySelector('#qrFile').files = dataTransfer.files;
+      fileInput = document.querySelector('#qrFile');
     } else {
       document.querySelector('#togglePostFormLink a').click();
-      document.querySelector('#postFile').files = dataTransfer.files;
+      fileInput = document.querySelector('#postFile');
       document.querySelector('.postForm').scrollIntoView();
     }
+    fileInput.files = dataTransfer.files;
+    // Let scripts with their own file box (StyleChan) see the file. Deliberately not
+    // 'change': StyleChan's "Randomize filename" renames on change, dropping [sound=].
+    fileInput.dispatchEvent(new Event('input', { bubbles: true }));
   }
 };
 
@@ -10300,11 +10372,14 @@ const Player =
        */
       alert(content, type = 'info', lifetime = 5) {
         if (isChanX) {
-          content = _.element(`<span>${content}</span>`);
+          // Send plain text: an Element in the detail doesn't survive the trip between
+          // separate script sandboxes (or 4chan X's extension build), so the notice never
+          // appeared there. 4chan X renders string content as text.
+          const detail = { content: _.element(`<span>${content}</span>`).textContent, type, lifetime };
           document.dispatchEvent(
             new CustomEvent('CreateNotification', {
               bubbles: true,
-              detail: { content, type, lifetime },
+              detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail,
             }),
           );
         } else if (typeof Feedback !== 'undefined') {
@@ -10829,8 +10904,8 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
   min-width: 100%;
 }
 #${ns}-container input[type=text], #${ns}-container input[type=number], #${ns}-container select, #${ns}-container .${ns}-file-overlay {
-  background: white;
-  color: black;
+  background: white !important;
+  color: black !important;
   height: 1.5rem !important;
   padding: 2px 4px 3px;
   box-sizing: border-box;
@@ -11066,6 +11141,26 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 
 .${ns}-menu {
   z-index: 15;
+}
+
+.${ns}-launcher {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--fcsp-background);
+  color: var(--fcsp-text);
+  border: 1px solid var(--fcsp-border);
+  opacity: 0.6;
+}
+.${ns}-launcher:hover {
+  opacity: 1;
 }
 
 .${ns}-player {
@@ -11421,7 +11516,13 @@ module.exports = {
     filename: {
       '.fileText .file-info .fnfull': 'textContent',
       '.fileText .file-info > a': 'textContent',
-      '.fileText > a': 'title',
+      // Native puts the full name of a truncated file in the link's title and of a
+      // spoilered file in the .fileText title. 4chan X keeps the native link in a hidden
+      // .fileText-original, which matters for file info formats without a filename link
+      // (reading all of .fileText would see both copies and add every sound twice).
+      '.fileText > a[title], .fileText-original > a[title]': 'title',
+      '.fileText[title]': 'title',
+      '.fileText > a, .fileText-original > a': 'textContent',
       '.fileText': 'textContent'
     },
     thumb: '.fileThumb',
@@ -11430,7 +11531,9 @@ module.exports = {
     playLink: {
       class: '',
       text: Icons.playFill,
-      relative: '.fileText a',
+      // In priority order. With 4chan X go after its whole .file-info: inside it the link
+      // can sit in a hidden span or after other icons, and StyleChan can hide .file-info.
+      relative: [ '.fileText .file-info', '.fileText a' ],
       position: 'afterend',
       prependText: ' ',
       unfilterText: Icons.filter
@@ -11676,16 +11779,27 @@ async function doInit() {
 
 document.addEventListener('4chanXInitFinished', doInit);
 
-// The timeout makes sure 4chan X will have added it's classes and be identified.
-setTimeout(function () {
-  if (!initialized) {
-    if (document.readyState !== 'loading') {
-      doInit();
-    } else {
-      document.addEventListener('DOMContentLoaded', doInit);
-    }
+// Fallback for pages without 4chan X. The timeout makes sure 4chan X will have added
+// its classes and be identified.
+let waitedForChanX = false;
+function fallbackInit() {
+  if (initialized || initializing) {
+    return;
   }
-}, 1000);
+  if (document.readyState === 'loading') {
+    return document.addEventListener('DOMContentLoaded', fallbackInit, { once: true });
+  }
+  // 4chan X and its forks (XT, neXT) mark <html> as soon as they start, but on big
+  // threads their post processing runs well past a second. Starting mid-way puts play
+  // links next to file links they then move into hidden markup, so wait for their init
+  // event, with a safety net in case it never fires.
+  if (!waitedForChanX && document.documentElement.classList.contains('fourchan-x')) {
+    waitedForChanX = true;
+    return setTimeout(fallbackInit, 15000);
+  }
+  doInit();
+}
+setTimeout(fallbackInit, 1000);
 
 })();
 
