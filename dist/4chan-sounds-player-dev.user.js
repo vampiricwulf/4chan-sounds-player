@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.602
+// @version      3.7.2.604
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1171,6 +1171,10 @@ async function get(url) {
       url,
       headers,
       responseType: 'json',
+      // A request that never answers left the threads view loading, with no way to retry.
+      timeout: 30000,
+      ontimeout: () => reject(new Error(`Request for ${url} timed out.`)),
+      onabort: () => reject(new Error(`Request for ${url} was aborted.`)),
       onload: response => {
         if (response.status === 304 && cache[url]) {
           return resolve(cache[url].response);
@@ -1566,6 +1570,9 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
+    // Sounds marked dead while the connection was down are worth trying again.
+    window.addEventListener('online', () => Player.controls.clearDeadMarks());
+
     // Hide controls that don't fit once the player is shown: on the first show nothing
     // could be measured when it rendered, so they wrapped onto a second line.
     Player.on('show', () => Player.controls.preventWrapping());
@@ -1638,6 +1645,17 @@ module.exports = {
       Player.actions._pendingPlay && Player.pause();
       // It isn't playing (the element still says it is): show the play button, which retries.
       Player.controls.setPlayButtons(Player.audio, true);
+      // Nothing is loading now: stop asking how much has.
+      Player.controls.stopPollingForLoading();
+      // With no connection, or several failures in a row (a dropped connection, a blocked
+      // host), stop instead of marking the whole playlist dead one sound every 3 seconds.
+      Player._failStreak = (Player._failStreak || 0) + 1;
+      if (navigator.onLine === false || Player._failStreak >= 3) {
+        Player.logError(navigator.onLine === false
+          ? 'You seem to be offline, so the player stopped. Click a sound to try again once you\'re connected.'
+          : 'Several sounds in a row failed to load, so the player stopped. Check your connection (or try the Fatbox Rerouter), then click a sound to try again.', null, 'warning');
+        return;
+      }
       // Read when the timer fires: pausing in the meantime (pause() clears it) means the
       // next sound should start paused.
       Player._errorAdvanceWasPlaying = wasPlaying;
@@ -1654,11 +1672,29 @@ module.exports = {
     if (Player.controls._isStale(e)) {
       return;
     }
+    if (Player.playing) {
+      Player._failStreak = 0;
+      // It recovered (a retry, or the rerouter's swap): don't skip past it after all.
+      clearTimeout(Player._errorAdvanceTO);
+    }
     if (Player.playing && Player.playing.error) {
       delete Player.playing.error;
       Player.playlist.refreshRow(Player.playing);
       Player.trigger('dead-change');
     }
+  },
+
+  /**
+	 * Clear every dead mark, so sounds are tried again (back online, or their links changed).
+	 */
+  clearDeadMarks(sounds = Player.sounds) {
+    const dead = sounds.filter(sound => sound.error);
+    dead.forEach(sound => {
+      delete sound.error;
+      Player.playlist.refreshRow(sound);
+    });
+    Player._failStreak = 0;
+    dead.length && Player.trigger('dead-change');
   },
 
   /**
@@ -2014,7 +2050,10 @@ const noSleep = typeof NoSleep === 'function' && new NoSleep();
 // standalone video).
 // enable() returns a promise that rejects while the page is hidden (a track changing in a
 // background tab): it's taken again when the page is shown (see _initNoSleep).
-const enableNoSleep = e => e.currentTarget === Player.audio && Promise.resolve(noSleep.enable()).catch(() => {});
+// Not when it already holds one: NoSleep takes a new lock on every enable() and forgets
+// the old one, which then never gets released (every skip while playing leaked one).
+const enableNoSleep = e => e.currentTarget === Player.audio && !noSleep.isEnabled && !noSleep._wakeLock
+  && Promise.resolve(noSleep.enable()).catch(() => {});
 const disableNoSleep = e => e.currentTarget === Player.audio && noSleep.disable();
 
 module.exports = {
@@ -2457,6 +2496,9 @@ module.exports = {
       media[action]('play', enableNoSleep);
       media[action]('pause', disableNoSleep);
       media[action]('ended', disableNoSleep);
+      // A sound that fails, or a new one replacing it, fires neither of those.
+      media[action]('error', disableNoSleep);
+      media[action]('emptied', disableNoSleep);
     });
     if (enabled !== Player.display._noSleepEnabled && Player.audio && !Player.audio.paused) {
       Promise.resolve(noSleep[enabled ? 'enable' : 'disable']()).catch(() => {});
@@ -3561,6 +3603,10 @@ module.exports = {
           index: 0,
           expanded: isExpandedImage
         };
+        // A sound that fails to load moves on to the post's next one, once round.
+        audio._inlinePlayer.failed = 0;
+        audio.addEventListener('playing', () => audio._inlinePlayer && (audio._inlinePlayer.failed = 0));
+        !isVideo && audio.addEventListener('error', () => Player.inline._tryNextAfterError(audio));
         // One expanded image's sound at a time: 4chan X's Expand All Images expanded every
         // post at once, and every sound played over the others.
         // (Only if it's still playing when the event arrives: two started together would
@@ -3614,7 +3660,8 @@ module.exports = {
         // its controls taken away. Let it play on its own with its own controls instead.
         if (isVideo) {
           node._inlinePlayer.audioError = () => {
-            if (node._inlineAudio !== audio) {
+            // Another of the post's sounds is tried first (below).
+            if (node._inlineAudio !== audio || Player.inline._tryNextAfterError(audio)) {
               return;
             }
             node.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
@@ -3823,6 +3870,21 @@ module.exports = {
 	 */
   next(audioId) {
     Player.inline._movePlaying(audioId, 1);
+  },
+
+  /**
+	 * After a sound fails, play the post's next sound if there is one it hasn't tried since
+	 * one last played. Returns whether it did.
+	 */
+  _tryNextAfterError(audio) {
+    const data = audio._inlinePlayer;
+    if (!data || data.sounds.length < 2 || ++data.failed >= data.sounds.length
+      // With Repeat off there's nothing after the last one.
+      || (Player.config.expandedRepeat === 'none' && data.index + 1 >= data.sounds.length)) {
+      return false;
+    }
+    Player.inline._movePlaying(audio.dataset.id, 1);
+    return true;
   },
 
   _movePlaying(audioId, dir) {
@@ -4484,6 +4546,8 @@ module.exports = {
       sound.playing = false;
       // The Fatbox rerouter may have been turned on or off since it was removed.
       typeof sound._origSrc === 'string' && (sound.src = Player.posts.rerouteSrc(sound._origSrc));
+      // Coming back is a fresh try.
+      delete sound.error;
       // Filters or allowed hosts changed since then apply as they would to a new post.
       sound.disallow = Player.disallowedSound(sound);
       if (!sound.disallow) {
@@ -5703,16 +5767,21 @@ module.exports = {
       // Re-derive src from each sound's stored original. Idempotent and safe to repeat.
       // fatbox is a byte-identical mirror so sound.tags (ID3) stays valid; no cache wipe.
       let changed = false;
+      let deadCleared = false;
       Player.allSounds(sound => {
         if (typeof sound._origSrc !== 'string') return;
         const newSrc = rerouteSrc(sound._origSrc);
         if (sound.src !== newSrc) {
           sound.src = newSrc;
+          // A new link deserves a new try: dead marks are often what the rerouter fixes.
+          sound.error && (delete sound.error, deadCleared = true);
           changed = true;
         }
       });
       // Skip the downstream cascade when nothing was actually rerouted (no catbox sounds).
       if (!changed) return;
+      Player._failStreak = 0;
+      deadCleared && Player.trigger('dead-change');
       // Re-bucket sounds between sounds/filteredSounds (recomputes sound.disallow
       // against the new hostname, calls Player.posts.updateButtons, emits
       // 'filters-applied'). applyFilters internally sets Player._applyingFilters
@@ -6556,10 +6625,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.602") {
+    if (storedVersion !== "3.7.2.604") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.602"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.604"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6875,7 +6944,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.602";
+      settings.VERSION = "3.7.2.604";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6891,7 +6960,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.602") {
+    if (!fromVersion || fromVersion === "3.7.2.604") {
       return {};
     }
     const changes = {};
@@ -7395,7 +7464,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.602"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.604"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8629,6 +8698,10 @@ const createTool = module.exports = {
         // A URL saved without its scheme would be read relative to the page.
         url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
+        // A host that never answers left Create disabled until a reload.
+        timeout: 5 * 60 * 1000,
+        ontimeout: () => reject(new PlayerError(`The upload host didn't answer for ${file.name}.`, 'error')),
+        onabort: () => reject(new PlayerError(`The upload of ${file.name} was stopped.`, 'error')),
         responseType: host.responsePath ? 'json' : 'text',
         // Like the form data, leave out headers set to null (the default hosts' empty
         // token): they'd be sent as the text "null".
@@ -9038,6 +9111,12 @@ const downloadTool = module.exports = {
           } catch (err) {
             if (err.canceled) {
               !Player.tools._downloadAllCanceled && status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, messages);
+            } else if (err.encoderLoad) {
+              // Without the encoder nothing can be combined: stop, and say why once.
+              if (!Player.tools._downloadAllCanceled) {
+                status && _.element(`<p>${_.escHTML(err.reason || 'Couldn\'t load the video encoder.')} Stopped combining.</p>`, messages);
+                Player.tools._downloadAllCanceled = true;
+              }
             } else if (!Player.tools._downloadAllCanceled) {
               console.error('[4chan sounds player] Mux failed', err);
               status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, messages);
@@ -9810,7 +9889,12 @@ const videoTool = module.exports = {
     } catch (err) {
       // Allow a later retry after a transient failure.
       videoTool._loadingPromise = null;
-      throw err;
+      // Mark it as the encoder not loading, so a batch stops instead of retrying the
+      // download for every sound.
+      const error = err instanceof PlayerError ? err
+        : new PlayerError(`Couldn't download the video encoder${err && err.status ? ` (the server answered ${err.status})` : ''}.`, 'error', err);
+      error.encoderLoad = true;
+      throw error;
     }
   },
 
@@ -10462,7 +10546,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.602"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.604"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12002,6 +12086,15 @@ const Player =
             type === 'info' ? 'notify' : 'error',
             lifetime * 1000,
           );
+        } else {
+          // The archives have neither: show a notice of our own (as text, like 4chan X).
+          const parsed = document.createElement('template');
+          parsed.innerHTML = content;
+          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, document.body);
+          notice.textContent = parsed.content.textContent;
+          const close = () => notice.remove();
+          notice.addEventListener('click', close);
+          setTimeout(close, lifetime * 1000);
         }
       },
     });
@@ -12778,6 +12871,27 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 }
 .${ns}-launcher:hover {
   opacity: 1;
+}
+
+.${ns}-notice {
+  position: fixed;
+  left: 3.5rem;
+  bottom: 10px;
+  z-index: 20;
+  max-width: 25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--fcsp-border);
+  border-left-width: 0.25rem;
+  border-radius: 0.25rem;
+  background: var(--fcsp-background);
+  color: var(--fcsp-text);
+  cursor: pointer;
+}
+.${ns}-notice.${ns}-notice-warning {
+  border-left-color: #e0a800;
+}
+.${ns}-notice.${ns}-notice-error {
+  border-left-color: #d9534f;
 }
 
 .${ns}-player {
