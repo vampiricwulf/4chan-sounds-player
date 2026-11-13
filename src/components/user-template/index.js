@@ -93,7 +93,10 @@ module.exports = {
       buttonConf.action && attrs.push(`@click${buttonConf.actionMods || ''}='${_confFuncOrText(buttonConf.action)}'`);
 
       // Replace spaces with non breaking spaces in user text to prevent collapsing.
-      return insert(`<a ${attrs.join(' ')}>${text && text.replace(/ /g, ' ') || _confFuncOrText(buttonConf.icon) || _confFuncOrText(buttonConf.text)}</a>`);
+      // Only the attributes (handlers and links embedding sound values) are protected; the
+      // text still goes through the token passes, since templates put tokens in button
+      // text on purpose (the default footer's playing-button:"sound-index /").
+      return `<a ${insert(attrs.join(' '))}>${text && text.replace(/ /g, ' ') || _confFuncOrText(buttonConf.icon) || _confFuncOrText(buttonConf.text)}</a>`;
     }));
     // Escape the sound name — it comes from the filename regex in posts.getSounds
     // (and the [futari no christmas] hardcoded match) and can contain arbitrary

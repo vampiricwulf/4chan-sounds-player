@@ -85,3 +85,13 @@ console.log('user-template (placeholders): all assertions passed');
   assert(!out.includes('truncate-text') && !out.includes('9.9.9'), 'no title markup or version inside the handler: ' + out);
 }
 console.log('user-template (buttons): all assertions passed');
+
+// --- tokens inside a button's own text are still replaced (the default footer) ---
+{
+  Player.userTemplate = userTemplate;
+  const footer = require('../src/config/theme.js').find(s => s.property === 'footerTemplate').default.split('\n')[0];
+  const out = userTemplate.build({ template: footer, sound });
+  assert(!out.includes('sound-index') && !out.includes('sound-count'), 'tokens replaced in the footer: ' + out);
+  assert(/>1[ \u00a0]\/&nbsp;<\/a>/.test(out), 'playing index shown in the button text: ' + out);
+}
+console.log('user-template (button text tokens): all assertions passed');
