@@ -173,7 +173,7 @@ module.exports = {
 	 * Poll for how much has loaded. I know there's the progress event but it unreliable.
 	 */
   pollForLoading() {
-    Player._loadingPoll = Player._loadingPoll || setInterval(Player.controls.updateLoaded, 1000);
+    Player._loadingPoll = Player._loadingPoll || setInterval(Player.controls.updateLoaded, 500);
   },
 
   /**

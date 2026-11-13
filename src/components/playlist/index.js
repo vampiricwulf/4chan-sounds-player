@@ -36,6 +36,8 @@ module.exports = {
 
     // Various things to do when a new sound plays.
     Player.on('playsound', (sound) => {
+      // Start the loading bars afresh, even for the same sound played again.
+      Player.playlist._loading = null;
       // Update the image/video.
       Player.playlist.showImage(sound);
       // Update the previously and the new playing rows.
@@ -67,6 +69,7 @@ module.exports = {
         el.classList.remove('playing'),
       );
       Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
+      Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
       container.href = '#';
@@ -762,10 +765,11 @@ module.exports = {
     if (!Player.config.rowLoadingBars) {
       return '';
     }
-    const { video, audio, done } = Player.playlist._loadingState();
-    return `<div class="${ns}-row-loading ${done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
-      + `<div class="${ns}-row-loading-video" style="width: ${video * 100}%"></div>`
-      + `<div class="${ns}-row-loading-audio" style="width: ${audio * 100}%"></div>`
+    const state = Player.playlist._loadingState();
+    const hidden = `${ns}-row-loading-hidden`;
+    return `<div class="${ns}-row-loading ${state.done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+      + `<div class="${ns}-row-loading-video ${state.showVideo ? '' : hidden}" style="width: ${state.video * 100}%"></div>`
+      + `<div class="${ns}-row-loading-audio ${state.showAudio ? '' : hidden}" style="width: ${state.audio * 100}%"></div>`
       + '</div>';
   },
 
@@ -776,21 +780,59 @@ module.exports = {
     const state = Player.playlist._loadingState();
     const bars = Player.container && Player.$(`.${ns}-list-item.playing .${ns}-row-loading`);
     if (bars) {
-      bars.children[0].style.width = `${state.video * 100}%`;
-      bars.children[1].style.width = `${state.audio * 100}%`;
+      const [ video, audio ] = bars.children;
+      video.style.width = `${state.video * 100}%`;
+      audio.style.width = `${state.audio * 100}%`;
+      video.classList[state.showVideo ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
+      audio.classList[state.showAudio ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
       bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
     }
     return state.done;
   },
 
   /**
-   * How much of the playing sound's video and audio have loaded, from 0 to 1. A standalone
-   * video is both. A sound without a video only has audio.
+   * How much of the playing sound's video and audio have loaded, from 0 to 1, and which of
+   * the two bars to show. A standalone video is both. A sound without a video only has audio.
+   *
+   * A bar only shows if its file is still downloading a moment after the sound started:
+   * one loading from the cache (or already preloaded) has finished by then. The choice is
+   * made once per sound, so a cached video's bar doesn't appear later when the browser
+   * reads further into it.
    */
   _loadingState() {
-    const video = Player.playing && Player.isVideo ? Player.playlist._loadedRatio(Player.video) : 0;
-    const audio = Player.playing ? Player.playlist._loadedRatio(Player.audio) : 0;
-    return { video, audio, done: !!Player.playing && (!Player.isVideo || video === 1) && audio === 1 };
+    const playing = Player.playing;
+    if (!playing) {
+      return { video: 0, audio: 0, showVideo: false, showAudio: false, done: false };
+    }
+    let track = Player.playlist._loading;
+    if (!track || track.sound !== playing) {
+      track = Player.playlist._loading = { sound: playing, start: Date.now(), decided: false, video: false, audio: false };
+    }
+    const hasVideo = !!Player.isVideo;
+    const video = hasVideo ? Player.playlist._loadedRatio(Player.video) : 0;
+    const audio = Player.playlist._loadedRatio(Player.audio);
+    if (!track.decided && Date.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
+      track.decided = true;
+      track.video = hasVideo && video < 1 && Player.playlist._isDownloading(Player.video);
+      track.audio = audio < 1 && Player.playlist._isDownloading(Player.audio);
+    }
+    return {
+      video,
+      audio,
+      showVideo: track.video,
+      showAudio: track.audio,
+      done: (!hasVideo || video === 1) && audio === 1
+    };
+  },
+
+  // How long after a sound starts to check whether its files are still downloading.
+  LOADING_GRACE_MS: 500,
+
+  /**
+   * Whether a media element is still fetching its file, or hasn't got far enough to play.
+   */
+  _isDownloading(media) {
+    return media.networkState === media.NETWORK_LOADING || media.readyState < media.HAVE_FUTURE_DATA;
   },
 
   /**

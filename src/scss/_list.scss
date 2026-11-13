@@ -60,8 +60,8 @@
 	}
 }
 
-// How much of the playing sound has loaded: the video along the top half and the audio
-// along the bottom half, behind the row's text.
+// How much of the playing sound has loaded: a thin line along the top edge for the video
+// and along the bottom edge for the audio, behind the row's text.
 .#{$ns}-row-loading {
 	position: absolute;
 	top: 0;
@@ -75,7 +75,7 @@
 	& > div {
 		position: absolute;
 		left: 0;
-		height: 50%;
+		height: 2px;
 		max-width: 100%;
 		transition: width 0.3s linear;
 	}
@@ -86,6 +86,10 @@
 	& .#{$ns}-row-loading-audio {
 		bottom: 0;
 		background: var(--fcsp-loading-audio);
+	}
+	// Files that loaded straight away (cached) don't get a line.
+	& .#{$ns}-row-loading-hidden {
+		display: none;
 	}
 	// Fade out once everything has loaded.
 	&.#{$ns}-row-loaded {

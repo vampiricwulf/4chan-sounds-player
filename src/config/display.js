@@ -25,7 +25,7 @@ module.exports = [
     property: 'rowLoadingBars',
     default: true,
     title: 'Playlist Loading Bars',
-    description: 'Show how much of the playing sound has loaded behind its playlist row: the video along the top half and the audio along the bottom half. They fade out once everything has loaded.',
+    description: 'Show how much of the playing sound has loaded with thin lines on its playlist row: the video along the top edge and the audio along the bottom edge. Files that load straight away (cached) don\'t get a line, and the lines fade out once everything has loaded.',
     displayGroup: 'Display',
     allowInTheme: true
   },
@@ -230,16 +230,16 @@ module.exports = [
       },
       {
         property: 'colors.loading_video',
-        default: 'rgba(46, 204, 64, 0.65)',
+        default: '#107c10',
         title: 'Row Video Loading',
-        description: 'The top half of the playing row\'s loading bars, for the video.',
+        description: 'The line along the top of the playing row while the video loads.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_video")', mods: '.prevent' } ],
       },
       {
         property: 'colors.loading_audio',
-        default: 'rgba(255, 65, 54, 0.65)',
+        default: '#e81123',
         title: 'Row Audio Loading',
-        description: 'The bottom half of the playing row\'s loading bars, for the audio.',
+        description: 'The line along the bottom of the playing row while the audio loads.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_audio")', mods: '.prevent' } ],
       },
       // Not configurable but here for access in templates.
