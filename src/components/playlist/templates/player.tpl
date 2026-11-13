@@ -23,7 +23,7 @@ ${Player.controls.template({
 	<input
 		type="input"
 		class="${ns}-playlist-search"
-		@keyup="playlist._handleSearch"
+		@input="playlist._handleSearch"
 		style="min-width: 100%; box-sizing: border-box; ${!Player.config.showPlaylistSearch ? 'display: none;' : ''}"
 		placeholder="Search"
 	/>
