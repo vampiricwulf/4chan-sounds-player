@@ -3,11 +3,18 @@ const hosts = require('../../hosts');
 
 const protocolRE = /^(https?:)?\/\//;
 // A tag closes with the bracket it opened with, so "[sound=…song(1).mp3]" keeps the ")" in
-// its link. (Any closing bracket ended it before.) Mismatched ones ("[sound=…)") are still
-// read, as a last resort. Groups: name, then host and link for [ ], ( ), { } or mismatched.
+// its link. (Any closing bracket ended it before.) Inside, other brackets only come in
+// balanced pairs, so a body can't run past a stray closer or into the next tag; failing that
+// the first closing bracket of any kind ends it, as before. Groups: name, then host and
+// link for [ ], ( ), { } or mismatched.
 const hostAlternatives = Object.keys(hosts).join('|');
-const filenameRE = new RegExp(`(.*?)(?:\\[(${hostAlternatives})[ =:|$](.*?)\\]|\\((${hostAlternatives})[ =:|$](.*?)\\)`
-  + `|\\{(${hostAlternatives})[ =:|$](.*?)\\}|[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
+const noBrackets = '[^\\[\\](){}]';
+const tagRE = (open, close, others) => `\\${open}(${hostAlternatives})[ =:|$]((?:${noBrackets}|${others.map(([ o, c ]) => `\\${o}${noBrackets}*\\${c}`).join('|')})*)\\${close}`;
+const filenameRE = new RegExp('(.*?)(?:'
+  + tagRE('[', ']', [ [ '(', ')' ], [ '{', '}' ] ]) + '|'
+  + tagRE('(', ')', [ [ '[', ']' ], [ '{', '}' ] ]) + '|'
+  + tagRE('{', '}', [ [ '[', ']' ], [ '(', ')' ] ]) + '|'
+  + `[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
 // Hostname-anchored: requires // (or userinfo@) immediately before the matched
 // catbox.moe, and a path/port/query/fragment/end immediately after. So substrings
 // in paths or query strings don't match, and `xcatbox.moe` doesn't either.
@@ -338,7 +345,7 @@ module.exports = {
 						+ (linkInfo.prependText || '')
 						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-kind="${kind}" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkText}</a>`
 						+ (linkInfo.appendText || '')
-						+ '</span>', relative, linkInfo.position);
+						+ '</span>', relative, Player.posts._linkPosition(relative));
         }
       } else {
         // Nothing filtered or removed, so remove the add link.
@@ -356,7 +363,7 @@ module.exports = {
 					+ (linkInfo.prependText || '')
 					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='posts.playPost("${_.escAttr(postId, true)}")'>${linkInfo.text || ''}</a>`
 					+ (linkInfo.appendText || '')
-					+ '</span>', relative, linkInfo.position);
+					+ '</span>', relative, Player.posts._linkPosition(relative));
       }
     }
   },
@@ -377,10 +384,22 @@ module.exports = {
 	 */
   _linkAnchor(post) {
     const { relative, position } = selectors.playLink;
-    const candidates = [].concat(relative || []).map(sel => post.querySelector(sel)).filter(Boolean);
+    // The post's own, not one in a post inlined inside it (4chan X puts inlined backlinks
+    // before the file), where the link would be lost.
+    const own = sel => Array.from(post.querySelectorAll(sel)).find(el => el.closest(selectors.posts) === post);
+    const candidates = [].concat(relative || []).map(own).filter(Boolean);
     // Links go inside the anchor (FoolFuuka) or beside it, in its parent.
     const holder = el => position === 'beforeend' || position === 'afterbegin' ? el : el.parentNode;
     return candidates.find(el => holder(el).getClientRects().length) || candidates[0];
+  },
+
+  /**
+	 * Where a link goes relative to its anchor. Before a thumbnail, not after it: native
+	 * 4chan finds the thumbnail to show again when closing an expanded webm as the element
+	 * just before the video.
+	 */
+  _linkPosition(anchor) {
+    return anchor.matches('a.fileThumb') ? 'beforebegin' : selectors.playLink.position;
   },
 
   /**

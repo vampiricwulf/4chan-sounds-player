@@ -167,8 +167,31 @@ module.exports = {
           // off-screen or the tab is hidden, then resume it from where it stopped. When the
           // audio leads, re-sync the video whenever something starts it.
           if (master === audio) {
-            node._inlinePlayer.resync = () => Player.controls.sync(audio);
+            // Without the player's controls, the video's own controls are the only ones:
+            // pressing play, pause or seeking on them acts on the sound. (Only for the user's
+            // own presses: 4chan X pausing it off-screen shouldn't stop the sound.)
+            const ownControls = !(isExpandedImage && Player.config.expandedControls);
+            const byUser = () => ownControls && (!navigator.userActivation || navigator.userActivation.isActive);
+            node._inlinePlayer.resync = () => audio.paused && byUser()
+              ? audio.play().catch(() => {})
+              : Player.controls.sync(audio);
             node.addEventListener('play', node._inlinePlayer.resync);
+            if (ownControls) {
+              node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
+              node._inlinePlayer.forwardSeek = () => {
+                // Not the seeks the sync makes.
+                if (!byUser() || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                  return;
+                }
+                // The video loops under a longer sound: keep the sound in the same loop.
+                const d = node.duration;
+                audio.currentTime = d > 0 && isFinite(d) && audio.duration > d
+                  ? Math.floor(audio.currentTime / d) * d + node.currentTime
+                  : node.currentTime;
+              };
+              node.addEventListener('pause', node._inlinePlayer.forwardPause);
+              node.addEventListener('seeked', node._inlinePlayer.forwardSeek);
+            }
           }
         }
 
@@ -270,6 +293,9 @@ module.exports = {
       }
       audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       data.video && data.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      // A video still loading gets its controls when it's ready to play; it won't now, so
+      // give them to it here.
+      data.pendingControls && data.pendingControls();
       const master = data.master || audio;
       !master.paused && master.pause();
     });
@@ -296,6 +322,8 @@ module.exports = {
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
+    node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
+    node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);

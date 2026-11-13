@@ -36,6 +36,11 @@ assert.deepStrictEqual(parse('two[sound=files.catbox.moe%2Ff.mp3](sound=files.ca
 assert.deepStrictEqual(parse('a[sound=files.catbox.moe%2Fsong(1).mp3].png'), [ [ 'a', catbox('song(1).mp3'), false ] ]);
 assert.deepStrictEqual(parse('a[sound=files.catbox.moe%2Fsong%281%29.mp3].png'), [ [ 'a', catbox('song(1).mp3'), false ] ]);
 assert.deepStrictEqual(parse('mismatch[sound=files.catbox.moe%2Fe.mp3).png'), [ [ 'mismatch', catbox('e.mp3'), false ] ]);
+// A body can't run past a stray closer, or into the next tag.
+assert.deepStrictEqual(parse('a[sound=x.com%2Fa.mp3)b[sound=y.com%2Fb.mp3].png'), [ [ 'a', 'https://x.com/a.mp3', false ], [ 'b', 'https://y.com/b.mp3', false ] ]);
+assert.deepStrictEqual(parse('n(sound=files.catbox.moe%2Fa.mp3] (2).png'), [ [ 'n', catbox('a.mp3'), false ] ]);
+assert.deepStrictEqual(parse('a[sound=files.catbox.moe%2Fa.mp3}[x].png'), [ [ 'a', catbox('a.mp3'), false ] ]);
+assert.deepStrictEqual(parse('a[sound=files.catbox.moe%2F(x)y.mp3].png'), [ [ 'a', catbox('(x)y.mp3'), false ] ]);
 
 // --- bracketed text that isn't a tag stays part of the name ---
 assert.deepStrictEqual(parse('my song (audio only) [sound=files.catbox.moe%2Fabc.mp3].png'), [ [ 'my song (audio only)', catbox('abc.mp3'), false ] ]);
