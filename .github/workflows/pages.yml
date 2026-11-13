@@ -1,0 +1,54 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches: [ "master" ]
+    paths:
+      - "docs/**"
+      - "images/**"
+      - "assets/icon.svg"
+      - "scripts/build-docs.js"
+      - "scripts/docs-coverage.js"
+      - "src/config/**"
+      - "package.json"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-progress deployment finish; queue the latest one behind it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Tree
+        uses: actions/checkout@v6
+
+      - name: Build site
+        run: node scripts/build-docs.js _site
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

@@ -7,6 +7,8 @@ If you have [4chan External Sounds](https://greasyfork.org/en/scripts/31045-4cha
 ## Install
 [Stable](https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player.user.js).
 
+For a step-by-step installation guide and an explanation of every setting, see the [online guide](https://vampiricwulf.github.io/4chan-sounds-player/).
+
 ## Contents
 - [Sound Player UI](#sound-player-ui)
 - [Creating Sound Images](#creating-sound-images)

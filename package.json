@@ -10,7 +10,8 @@
     "build-dev": "node build.js --mode development --env gitcdn",
     "lint": "eslint .",
     "test:util": "node test/video-util.test.js",
-    "test": "node test/video-util.test.js && node test/parse-action.test.js"
+    "test": "node test/video-util.test.js && node test/parse-action.test.js && node test/docs-coverage.test.js",
+    "docs": "node scripts/build-docs.js"
   },
   "author": "rcc11",
   "license": "CC0-1.0",
