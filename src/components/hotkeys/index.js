@@ -141,7 +141,20 @@ module.exports = {
     if (Player.isHidden && (Player.config.hotkeys !== 'always' || !Player.sounds.length)) {
       return;
     }
-    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA' ].includes(e.target.nodeName);
+    // Leave keys another handler already used (e.g. Space on a script's button-like
+    // control), and synthetic events without a key (browser autofill).
+    if (e.defaultPrevented || !e.key) {
+      return;
+    }
+    // 4chan X/XT/neXT's gallery binds the arrow keys while it's open. This listener is on
+    // body, so it runs before theirs and they can't stop it skipping tracks.
+    if (document.getElementById('a-gallery') || document.documentElement.classList.contains('gallery-open')) {
+      return;
+    }
+    const target = e.target;
+    const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA', 'BUTTON' ].includes(target.nodeName)
+      || target.isContentEditable
+      || (target.getAttribute && target.getAttribute('role') === 'button');
     const k = e.key.toLowerCase();
     const bindings = Player.config.hotkey_bindings || {};
 
@@ -152,6 +165,8 @@ module.exports = {
       }
       const bindingConfig = k === keyDef.key
 				&& (!!keyDef.shiftKey === !!e.shiftKey) && (!!keyDef.ctrlKey === !!e.ctrlKey) && (!!keyDef.metaKey === !!e.metaKey)
+				// Bindings can't include Alt, so Alt combos (Alt+Left/Right is browser back/forward) pass through.
+				&& (!!keyDef.altKey === !!e.altKey)
 				&& (!keyDef.ignoreRepeat || !e.repeat)
 				&& keyConfigs[name];
 
