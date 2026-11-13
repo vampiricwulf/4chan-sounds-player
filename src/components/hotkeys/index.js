@@ -41,12 +41,18 @@ module.exports = {
         }
       }
 
-      // Keep the media metadata updated.
-      Player.audio.addEventListener('pause', () => navigator.mediaSession.playbackState = 'paused');
-      Player.audio.addEventListener('ended', () => navigator.mediaSession.playbackState = 'paused');
-      Player.audio.addEventListener('play', Player.hotkeys.setMediaMetadata);
-      Player.audio.addEventListener('ratechange', Player.hotkeys.setMediaPosition);
-      Player.audio.addEventListener('seeked', Player.hotkeys.setMediaPosition);
+      // Keep the media metadata updated. Standalone videos play through the video
+      // element, so listen on both and only act for whichever is currently playing.
+      const paused = () => navigator.mediaSession.playbackState = 'paused';
+      const listen = media => [
+        [ 'pause', paused ],
+        [ 'ended', paused ],
+        [ 'play', Player.hotkeys.setMediaMetadata ],
+        [ 'ratechange', Player.hotkeys.setMediaPosition ],
+        [ 'seeked', Player.hotkeys.setMediaPosition ]
+      ].forEach(([ evt, fn ]) => media.addEventListener(evt, e => e.currentTarget === Player.audio && fn()));
+      listen(Player.audio);
+      Player.on('rendered', () => Player.video && listen(Player.video));
       Player.on('tags-loaded', sound => sound === Player.playing && Player.hotkeys.setMediaMetadata());
     }
   },
@@ -95,11 +101,17 @@ module.exports = {
   },
 
   setMediaPosition() {
-    navigator.mediaSession.setPositionState({
-      duration: Player.audio.duration || 0,
-      playbackRate: Player.audio.playbackRate,
-      position: Player.audio.currentTime
-    });
+    const { duration, playbackRate, currentTime } = Player.audio;
+    // setPositionState throws unless 0 <= position <= a finite duration and the rate is
+    // non-zero, e.g. before metadata has loaded.
+    if (!isFinite(duration) || !(duration > 0) || !playbackRate) {
+      return;
+    }
+    try {
+      navigator.mediaSession.setPositionState({ duration, playbackRate, position: Math.min(currentTime, duration) });
+    } catch (err) {
+      // Not supported in this browser.
+    }
   },
 
   addHandler: () => {
