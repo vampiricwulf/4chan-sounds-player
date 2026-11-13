@@ -227,7 +227,9 @@ module.exports = {
 
   updateFullScreenDetails() {
     const tags = Player.playing.tags || {};
-    document.querySelector('.fullscreen-details').innerHTML = [
+    // textContent, not innerHTML: the name comes from the post filename and the tags
+    // from ID3 data in the hosted file, both of which are untrusted.
+    document.querySelector('.fullscreen-details').textContent = [
       Player.playing.name,
       [ tags.title, tags.artist ].filter(Boolean).join(' - ')
     ].filter(Boolean).join(' • ') || Player.playing.title;

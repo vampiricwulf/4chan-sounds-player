@@ -82,7 +82,8 @@ module.exports = {
       return;
     }
     if (Player.playing) {
-      Player.logError(`Failed to play ${Player.playing.title}. Please check the console for details.`, err, 'warning');
+      // Notifications are rendered as HTML and the title comes from the post filename.
+      Player.logError(`Failed to play ${_.escHTML(Player.playing.title)}. Please check the console for details.`, err, 'warning');
       Player.playing.error = err;
       // Mark the row dead so it's visible and skipped during playlist traversal, and
       // refresh count templates (sound-count drops it; dead-count / d:{ } surface it).

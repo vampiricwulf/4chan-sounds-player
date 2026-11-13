@@ -229,8 +229,12 @@ module.exports = {
         postEl.classList.add('filtered-sound');
         // There is a filtered sound for the post so create/update the add link,
         const filtered = [allFilters.image && 'image', allFilters.sound.length && 'sound'].filter(Boolean).join(' and ');
-        const hint = (allFilters.host.length > 1 ? `The hosts ${allFilters.host.join(', ')} are not allowed` : '')
-					+ (allFilters.host.length === 1 ? `The host ${allFilters.host[0]} is not allowed` : '')
+        // Hosts come from post filenames and the URL parser keeps characters like `"`,
+        // `=` and `(` in hostnames. The hint is rendered as HTML by the popover, so
+        // escape the hosts here and escape the whole hint again for the attribute below.
+        const hosts = allFilters.host.map(_.escHTML);
+        const hint = (hosts.length > 1 ? `The hosts ${hosts.join(', ')} are not allowed` : '')
+					+ (hosts.length === 1 ? `The host ${hosts[0]} is not allowed` : '')
 					+ (filtered ? `${allFilters.host.length ? ', and the' : 'The'} player filters disallow this ${filtered}` : '')
 					+ '. Click to allow and add to the player.';
 
@@ -239,7 +243,7 @@ module.exports = {
         } else {
           _.element('<span>'
 						+ (linkInfo.prependText || '')
-						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${hint}" @click='posts.allowPost("${postId}")'>${linkInfo.unfilterText || ''}</a>`
+						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${postId}")'>${linkInfo.unfilterText || ''}</a>`
 						+ (linkInfo.appendText || '')
 						+ '</span>', relative, linkInfo.position);
         }
