@@ -110,6 +110,19 @@ module.exports = {
         if (!sounds.length) {
           return;
         }
+        // 4chan XT/neXT's "sound posts" (on by default) put their own autoplaying <audio>
+        // right after an expanded [sound=] image, so the sound played twice. It's added in
+        // the same task as the image, before it can start: silence and remove it, and give
+        // a video back the controls it would have had.
+        const otherAudio = isChanX && isExpandedImage && node.nextElementSibling;
+        if (otherAudio && otherAudio.nodeName === 'AUDIO') {
+          otherAudio.autoplay = false;
+          otherAudio.pause();
+          otherAudio.removeAttribute('src');
+          otherAudio.load();
+          otherAudio.remove();
+          isVideo && (node.controls = otherAudio.controls);
+        }
         // Create a new audio element.
         const audio = new Audio(sounds[0].src);
         const aId = audio.dataset.id = Player.inline.idx++;
@@ -134,6 +147,13 @@ module.exports = {
         if (isVideo) {
           node._linked = audio;
           audio._linked = node;
+          // 4chan X (and forks) pause an expanded video without sound of its own while it's
+          // off-screen or the tab is hidden, then resume it from where it stopped. When the
+          // audio leads, re-sync the video whenever something starts it.
+          if (master === audio) {
+            node._inlinePlayer.resync = () => Player.controls.sync(audio);
+            node.addEventListener('play', node._inlinePlayer.resync);
+          }
         }
 
         // Start from the beginning taking the volume from the main player.
@@ -224,6 +244,7 @@ module.exports = {
     node.controlsObserver && node.controlsObserver.disconnect();
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
+    node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     // Remove controls.
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {
