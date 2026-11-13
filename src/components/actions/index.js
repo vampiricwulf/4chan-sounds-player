@@ -12,8 +12,9 @@ module.exports = {
 	 * Switching being playing and paused.
 	 */
   togglePlay() {
-    // A play waiting for a sound webm to load counts as playing, so this cancels it.
-    if (Player.audio.paused && !Player.actions._pendingPlay) {
+    // A play waiting for a sound webm to load counts as playing, so this cancels it. A sound
+    // that failed to load isn't playing, though the element doesn't say paused: play retries it.
+    if ((Player.audio.paused || Player.audio.error) && !Player.actions._pendingPlay) {
       Player.play();
     } else {
       Player.pause();
@@ -32,6 +33,11 @@ module.exports = {
         if (!sound) {
           return;
         }
+      }
+      // The play button (or a key) on a sound that failed to load: retry it, as clicking its
+      // row does. play() on the errored element would only reject.
+      if (!sound && Player.playing && Player.audio.error) {
+        sound = Player.playing;
       }
       // If nothing is currently selected to play start playing the first sound.
       if (!sound && !Player.playing && Player.sounds.length) {
@@ -159,6 +165,8 @@ module.exports = {
 	 * Pause playback.
 	 */
   pause() {
+    // Pausing during the wait before skipping a sound that failed: land on the next one paused.
+    Player._errorAdvanceWasPlaying = false;
     // Cancel a play still waiting for a sound webm's audio and video to load; otherwise it
     // would start anyway once they had.
     if (Player.actions._pendingPlay) {
@@ -267,13 +275,23 @@ module.exports = {
         nextSound = Player.sounds[newIndex];
       } while (
         nextSound && newIndex !== currentIndex
-        && ((group && (!nextSound.post || nextSound.post === Player.playing.post)) || nextSound.error)
+        // Also skip sounds being removed along with the playing one (playlist.removeAll).
+        && ((group && (!nextSound.post || nextSound.post === Player.playing.post)) || nextSound.error || nextSound._removing)
       );
+      // A group move back lands on the first sound of the previous post, as one forward
+      // lands on the first of the next. (It landed on the previous post's last sound.)
+      if (group && direction < 0 && nextSound && nextSound.post && newIndex !== currentIndex) {
+        let first = newIndex;
+        for (let i = newIndex - 1; i >= 0 && Player.sounds[i].post === nextSound.post; i--) {
+          !Player.sounds[i].error && (first = i);
+        }
+        nextSound = Player.sounds[first];
+      }
     }
     // Don't auto-play a dead sound: when the skip loop wrapped back to a dead current
     // (every other sound is dead too) stop rather than looping on the error. Manual
     // selection (handleSelect) bypasses this and still retries a dead link.
-    nextSound && !nextSound.error && Player.play(nextSound, { paused });
+    nextSound && !nextSound.error && !nextSound._removing && Player.play(nextSound, { paused });
   },
 
   /**

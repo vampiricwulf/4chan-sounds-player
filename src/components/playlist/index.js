@@ -39,10 +39,18 @@ module.exports = {
 
     // Various things to do when a new sound plays.
     Player.on('playsound', (sound) => {
-      // Start the loading bars afresh, even for the same sound played again.
+      // Handlers run one after another, so a stop or another play can come first: then this
+      // sound isn't the one to show.
+      if (sound !== Player.playing) {
+        return;
+      }
+      // Start the loading bars afresh, even for the same sound played again, timed from
+      // about when its files started loading.
       Player.playlist._loading = null;
+      const loadStart = performance.now();
       // Update the image/video.
       Player.playlist.showImage(sound);
+      Player.playlist._loadingState(loadStart);
       // Update the previously and the new playing rows.
       Player.$all(
         `.${ns}-list-item.playing, .${ns}-list-item[data-id="${Player.playing.id}"]`,
@@ -119,7 +127,8 @@ module.exports = {
         Player.sounds[
           (Player.sounds.indexOf(Player.playing) + 1) % Player.sounds.length
         ];
-      next && Player.playlist.preload(next);
+      // With a single sound the next one is the playing one, already loading.
+      next && next !== Player.playing && Player.playlist.preload(next);
     });
 
     // Maintain changes to the user templates it's dependent values
@@ -316,6 +325,16 @@ module.exports = {
     });
   },
 
+  /**
+   * The add-files input changed. Take the files and clear the input, so picking the same
+   * file again (after removing it) still fires a change.
+   */
+  handleFileSelect(e) {
+    const files = [ ...e.currentTarget.files ];
+    e.currentTarget.value = '';
+    Player.playlist.addFromFiles(files);
+  },
+
   addFromFiles(files) {
     // Check each of the files for sounds.
     [...files].forEach((file) => {
@@ -396,6 +415,19 @@ module.exports = {
   /**
    * Remove a sound
    */
+  /**
+   * Remove several sounds. If the playing one is among them, playback moves past all of
+   * them at once instead of onto another that's about to go.
+   */
+  removeAll(sounds, opts) {
+    sounds.forEach(sound => sound._removing = true);
+    try {
+      sounds.forEach(sound => Player.playlist.remove(sound, opts));
+    } finally {
+      sounds.forEach(sound => delete sound._removing);
+    }
+  },
+
   remove(sound, { temporary } = {}) {
     // Accept the sound object or id
     if (typeof sound !== 'object') {
@@ -440,7 +472,7 @@ module.exports = {
   restoreRemoved(postId) {
     const restored = [];
     Player.playlist._removed.forEach((sound, id) => {
-      if (postId == null || sound.post === String(postId)) {
+      if ((postId == null || sound.post === String(postId)) && Player.playlist._restorable(sound)) {
         Player.playlist._removed.delete(id);
         restored.push(sound);
       }
@@ -448,6 +480,8 @@ module.exports = {
     let filtered = false;
     restored.forEach(sound => {
       sound.playing = false;
+      // The Fatbox rerouter may have been turned on or off since it was removed.
+      typeof sound._origSrc === 'string' && (sound.src = Player.posts.rerouteSrc(sound._origSrc));
       // Filters or allowed hosts changed since then apply as they would to a new post.
       sound.disallow = Player.disallowedSound(sound);
       if (!sound.disallow) {
@@ -463,12 +497,19 @@ module.exports = {
   },
 
   /**
-   * How many of a post's sounds the user removed.
+   * How many sounds the user removed that can be restored: a post's, or all of them.
    */
   removedCount(postId) {
     let count = 0;
-    Player.playlist._removed.forEach(sound => sound.post === postId && count++);
+    Player.playlist._removed.forEach(sound => (postId == null || sound.post === postId) && Player.playlist._restorable(sound) && count++);
     return count;
+  },
+
+  /**
+   * A removed video without a sound only comes back while Include Video allows videos.
+   */
+  _restorable(sound) {
+    return !sound.standaloneVideo || sound.local || Player.posts.videosAllowed();
   },
 
   toggleRepeat() {
@@ -685,7 +726,9 @@ module.exports = {
       // Phase A: partition Player.sounds into kept / newly-filtered.
       const newlyFiltered = [];
       Player.sounds.forEach((sound) => {
-        sound.disallow = Player.disallowedSound(sound);
+        // Local files were added without these checks (a blob: URL has no host to allow),
+        // so filters and allowed hosts don't apply to them.
+        sound.disallow = !sound.local && Player.disallowedSound(sound);
         if (sound.disallow) {
           newlyFiltered.push(sound);
         }
@@ -707,9 +750,7 @@ module.exports = {
       // bookkeeping lives in playlist.remove). Don't call updateButtons yet —
       // getFilters reads Player.filteredSounds which won't include these sounds until
       // the rebuild below.
-      newlyFiltered.forEach((sound) => {
-        Player.playlist.remove(sound);
-      });
+      Player.playlist.removeAll(newlyFiltered);
 
       // Apply Phase B: add newlyAllowed back to Player.sounds.
       newlyAllowed.forEach((sound) => {
@@ -809,7 +850,7 @@ module.exports = {
     }
     const state = Player.playlist._loadingState();
     const hidden = `${ns}-row-loading-hidden`;
-    return `<div class="${ns}-row-loading ${state.done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+    return `<div class="${ns}-row-loading ${state.faded ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
       + `<div class="${ns}-row-loading-video ${state.showVideo ? '' : hidden}" style="width: ${state.video * 100}%"></div>`
       + `<div class="${ns}-row-loading-audio ${state.showAudio ? '' : hidden}" style="width: ${state.audio * 100}%"></div>`
       + '</div>';
@@ -827,54 +868,73 @@ module.exports = {
       audio.style.width = `${state.audio * 100}%`;
       video.classList[state.showVideo ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
       audio.classList[state.showAudio ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
-      bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
+      bars.classList[state.faded ? 'add' : 'remove'](`${ns}-row-loaded`);
     }
     return state.done;
   },
 
   /**
    * How much of the playing sound's video and audio have loaded, from 0 to 1, and which of
-   * the two bars to show. A standalone video is both. A sound without a video only has audio.
+   * the two lines to show. A standalone video is both. A sound without a video only has audio.
    *
-   * A bar only shows if its file is still downloading a moment after the sound started:
-   * one loading from the cache (or already preloaded) has finished by then. The choice is
-   * made once per sound, so a cached video's bar doesn't appear later when the browser
-   * reads further into it.
+   * A line only shows for a file that came from the network: one that could play within
+   * moments of being set (from the cache, or already preloaded) gets none. Whether the
+   * browser is still downloading can't tell them apart, since it also pauses a network
+   * download once it has enough buffered ahead. The choice is made once per sound.
+   *
+   * `faded` is when the shown lines are full; `done` is when everything has loaded.
    */
-  _loadingState() {
+  _loadingState(start) {
     const playing = Player.playing;
     if (!playing) {
-      return { video: 0, audio: 0, showVideo: false, showAudio: false, done: false };
+      return { video: 0, audio: 0, showVideo: false, showAudio: false, faded: false, done: false };
     }
     let track = Player.playlist._loading;
     if (!track || track.sound !== playing) {
-      track = Player.playlist._loading = { sound: playing, start: Date.now(), decided: false, video: false, audio: false };
+      track = Player.playlist._loading = { sound: playing, start: start || performance.now(), decided: false, video: false, audio: false, readyAt: {} };
+      Player.playlist._watchReady(track, 'audio', Player.audio);
+      Player.isVideo && Player.playlist._watchReady(track, 'video', Player.video);
     }
     const hasVideo = !!Player.isVideo;
     const video = hasVideo ? Player.playlist._loadedRatio(Player.video) : 0;
     const audio = Player.playlist._loadedRatio(Player.audio);
-    if (!track.decided && Date.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
+    if (!track.decided && performance.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
       track.decided = true;
-      track.video = hasVideo && video < 1 && Player.playlist._isDownloading(Player.video);
-      track.audio = audio < 1 && Player.playlist._isDownloading(Player.audio);
+      const fromNetwork = kind => !(track.readyAt[kind] - track.start < Player.playlist.CACHED_READY_MS);
+      track.video = hasVideo && video < 1 && fromNetwork('video');
+      track.audio = audio < 1 && fromNetwork('audio');
     }
     return {
       video,
       audio,
       showVideo: track.video,
       showAudio: track.audio,
+      faded: track.decided && (!track.video || video === 1) && (!track.audio || audio === 1),
       done: (!hasVideo || video === 1) && audio === 1
     };
   },
 
-  // How long after a sound starts to check whether its files are still downloading.
+  // How long after a sound starts to decide which lines to show.
   LOADING_GRACE_MS: 500,
+  // A file that can play within this long of being set didn't come from the network.
+  // (Decoder start-up alone takes 100ms or more, so a cache hit isn't instant.)
+  CACHED_READY_MS: 250,
 
   /**
-   * Whether a media element is still fetching its file, or hasn't got far enough to play.
+   * Note when a media element first has enough data to play, for _loadingState. The event's
+   * own timestamp is used, so a busy page doesn't make a cached file look slow.
    */
-  _isDownloading(media) {
-    return media.networkState === media.NETWORK_LOADING || media.readyState < media.HAVE_FUTURE_DATA;
+  _watchReady(track, kind, media) {
+    if (!media) {
+      return;
+    }
+    if (media.readyState >= media.HAVE_FUTURE_DATA) {
+      track.readyAt[kind] = performance.now();
+      return;
+    }
+    media.addEventListener('canplay', e => {
+      Player.playlist._loading === track && track.readyAt[kind] === undefined && (track.readyAt[kind] = e.timeStamp);
+    }, { once: true });
   },
 
   /**
@@ -897,6 +957,8 @@ module.exports = {
   toggleSearch(show) {
     const input = Player.$(`.${ns}-playlist-search`);
     !show && Player.playlist._lastSearch && Player.playlist.search();
+    // Hiding clears the search, so clear the box too rather than show a query that isn't applied.
+    !show && (input.value = '');
     input.style.display = show ? null : 'none';
     show && input.focus();
   },

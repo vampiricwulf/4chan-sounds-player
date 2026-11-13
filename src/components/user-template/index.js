@@ -76,7 +76,7 @@ module.exports = {
       // runs when a template actually contains a d:{ } block, so the per-sound row
       // template — built once per sound — doesn't pay an O(n) scan on every render.
       .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
-      .replace(removedRE, (m, inner) => Player.playlist._removed.size ? inner : '')
+      .replace(removedRE, (m, inner) => Player.playlist.removedCount() ? inner : '')
       .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
@@ -142,7 +142,7 @@ module.exports = {
       // templates without the token (e.g. the per-sound row template) skip the scan.
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
-      .replace(removedCountRE, () => Player.playlist._removed.size)
+      .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
     !data.ignoreVersion && (html = html.replace(/%v/g, VERSION));
 

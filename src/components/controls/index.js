@@ -9,6 +9,8 @@ module.exports = {
     ended: () => Player.config.autoplayNext && Player.next(),
     pause: 'controls.handleMediaEvent',
     play: 'controls.handleMediaEvent',
+    // After a stall ('waiting'), so the linked video restarts in step with the audio.
+    playing: 'controls.handleMediaEvent',
     seeked: 'controls.handleMediaEvent',
     waiting: 'controls.handleMediaEvent',
     ratechange: 'controls.handleMediaEvent',
@@ -104,7 +106,12 @@ module.exports = {
       // playback was requested: count it as playing, and cancel the wait.
       const wasPlaying = !!Player.actions._pendingPlay || (!!Player.audio && !Player.audio.paused);
       Player.actions._pendingPlay && Player.pause();
-      Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !wasPlaying }), 3000);
+      // It isn't playing (the element still says it is): show the play button, which retries.
+      Player.controls.setPlayButtons(Player.audio, true);
+      // Read when the timer fires: pausing in the meantime (pause() clears it) means the
+      // next sound should start paused.
+      Player._errorAdvanceWasPlaying = wasPlaying;
+      Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !Player._errorAdvanceWasPlaying }), 3000);
     }
   },
 
@@ -157,16 +164,40 @@ module.exports = {
 
   /**
 	 * Sync the webm to the audio. Matches the videos time and play state to the audios.
+	 *
+	 * The audio leads: while it's paused, ended or stalled waiting for data, the video
+	 * waits too. (This used to do nothing unless both were fully ready, so a stalled audio
+	 * left the video running ahead, and an ended one left it looping.)
 	 */
   sync(from) {
-    const to = from._linked;
-    if (from && from.readyState > 3 && to && to.readyState > 3) {
-      to.currentTime = from.currentTime % to.duration;
-      // play() rejects when a newer load or pause interrupts it; that's expected here.
-      from.paused ? to.pause() : to.play().catch(() => {});
-      to.playbackRate = from.playbackRate;
-      to.defaultPlaybackRate = from.defaultPlaybackRate;
+    const to = from && from._linked;
+    if (!to) {
+      return;
     }
+    if (from.paused || from.ended || from.readyState < from.HAVE_FUTURE_DATA) {
+      !to.paused && to.pause();
+      return;
+    }
+    to.playbackRate = from.playbackRate;
+    to.defaultPlaybackRate = from.defaultPlaybackRate;
+    // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
+    // again. A shorter video loops, so compare positions within its loop.
+    if (to.duration > 0 && isFinite(to.duration)) {
+      const target = from.currentTime % to.duration;
+      const drift = Math.abs(to.currentTime - target);
+      Math.min(drift, to.duration - drift) > 0.15 && (to.currentTime = target);
+    }
+    // play() rejects when a newer load or pause interrupts it; that's expected here.
+    to.paused && to.play().catch(() => {});
+  },
+
+  /**
+	 * The main player's video started again after waiting for data: bring it back in step
+	 * with the audio. (Only for a sound webm, where the video has a linked audio.)
+	 */
+  syncVideo(e) {
+    const video = e.currentTarget;
+    video._linked && video._linked === Player.audio && Player.controls.sync(Player.audio);
   },
 
   /**

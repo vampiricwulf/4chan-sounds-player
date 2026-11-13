@@ -199,7 +199,7 @@ module.exports = [
     tplName: 'restore',
     action: 'playlist.restoreRemoved()',
     actionMods: '.prevent',
-    showIf: () => Player.playlist._removed.size > 0,
+    showIf: () => Player.playlist.removedCount() > 0,
     icon: Icons.arrowCounterclockwise,
     attrs: [ 'title="Add the sounds you removed back to the playlist."' ]
   },

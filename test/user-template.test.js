@@ -28,7 +28,7 @@ global.Player = {
   sounds: [ sound, dead ],
   filteredSounds: [ {}, {}, {} ],
   playing: sound,
-  playlist: { _removed: new Map() }
+  playlist: { _removed: new Map(), removedCount: () => Player.playlist._removed.size }
 };
 
 const userTemplate = require('../src/components/user-template');

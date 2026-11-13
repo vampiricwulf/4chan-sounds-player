@@ -32,16 +32,19 @@ module.exports = {
     // the thread's standalone videos it no longer allows, then parse the posts again to add
     // newly allowed ones (posts already parsed are skipped).
     Player.on('config:addWebm', () => {
-      const setting = Player.config.addWebm;
-      const allowed = setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
+      const allowed = Player.posts.videosAllowed();
       if (!allowed) {
-        Player.sounds.filter(s => s.standaloneVideo && !s.local).forEach(s => Player.playlist.remove(s, { temporary: true }));
+        Player.playlist.removeAll(Player.sounds.filter(s => s.standaloneVideo && !s.local), { temporary: true });
         const filtered = Player.filteredSounds.filter(s => s.standaloneVideo && !s.local);
         // In place: applyFilters keeps this array's identity too.
         filtered.forEach(s => Player.filteredSounds.splice(Player.filteredSounds.indexOf(s), 1));
         filtered.forEach(s => Player.posts.updateButtons(s.post));
       }
+      // Removed videos can only be restored while videos are included: update their posts'
+      // links and the removed count.
+      Player.playlist._removed.forEach(s => s.standaloneVideo && s.post && Player.posts.updateButtons(s.post));
       Player.posts.addPosts(document.body, true);
+      Player.trigger('filters-applied');
     });
     Player.on('config:fatboxRerouter', () => {
       // Re-derive src from each sound's stored original. Idempotent and safe to repeat.
@@ -175,7 +178,8 @@ module.exports = {
       const sounds = parsed.sounds.filter(sound => !Player.playlist._removed.has(sound.id));
       const filtered = parsed.filtered;
 
-      if (sounds.length || filtered.length) {
+      // A post rebuilt after its sounds were removed still needs its restore link.
+      if (sounds.length || filtered.length || sounds.length !== parsed.sounds.length) {
         sounds.forEach(sound => Player.add(sound, skipRender));
         filtered.forEach(sound => Player.filteredSounds.push(sound));
         Player.posts.updateButtons(postID);
@@ -197,15 +201,28 @@ module.exports = {
     // Best quality image. For webms this has to be the thumbnail still. SAD!
     const imageOrThumb = image.match(/(webm|mp4)$/i) ? thumb : image;
     // matchAll isolates regex state per call instead of relying on filenameRE.lastIndex.
-    const matches = Array.from(filename.matchAll(filenameRE));
+    // The tag syntax also matches ordinary bracketed text ("clip (sound on).webm",
+    // "song (audio only)"), so drop a "link" without a dot or with spaces in it, and keep
+    // its text as part of the next sound's name.
+    let carried = '';
+    const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
+      const src = match[3].trim();
+      if (!src.includes('.') || /\s/.test(src)) {
+        carried += match[0];
+        return valid;
+      }
+      valid.push([ match[0], carried + match[1], match[2], src ]);
+      carried = '';
+      return valid;
+    }, []);
     // Add webms without a sound filename as a standalone video if enabled. The synthetic
     // match must align with the regex's capture groups: [full, name, host, src].
-    if (!matches.length && (Player.config.addWebm === 'always' || (Player.config.addWebm === 'soundBoards' && (Board === 'gif' || Board === 'wsg'))) && filename.match(/\.(webm|mp4)$/i)) {
+    if (!matches.length && Player.posts.videosAllowed() && filename.match(/\.(webm|mp4)$/i)) {
       // `.webm` is 5 chars, `.mp4` is 4 — strip the actual extension instead of a
       // fixed-width slice that truncates an extra char for .mp4 titles.
       matches.push([null, filename.replace(/\.(webm|mp4)$/i, ''), 'sound', image]);
     }
-    const defaultName = matches[0] && matches[0][1] || post || 'Local Sound ' + localCounter;
+    const defaultName = matches[0] && matches[0][1].trim() || post || 'Local Sound ' + localCounter;
     matches.length && !post && localCounter++;
 
     return matches.reduce(({ sounds, filtered }, match, i) => {
@@ -250,6 +267,14 @@ module.exports = {
       }
       return { sounds, filtered };
     }, { sounds: [], filtered: [] });
+  },
+
+  /**
+	 * Whether videos without a sound are added to the playlist here (Include Video).
+	 */
+  videosAllowed() {
+    const setting = Player.config.addWebm;
+    return setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
   },
 
   /**

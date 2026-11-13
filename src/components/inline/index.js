@@ -14,6 +14,7 @@ module.exports = {
     ended: evt => Player.inline._movePlaying((evt.currentTarget._inlineAudio || evt.currentTarget).dataset.id, +(Player.config.expandedRepeat !== 'one')),
     pause: 'controls.handleMediaEvent',
     play: 'controls.handleMediaEvent',
+    playing: 'controls.handleMediaEvent',
     seeked: 'controls.handleMediaEvent',
     waiting: 'controls.handleMediaEvent',
     timeupdate: 'controls.updateDuration',

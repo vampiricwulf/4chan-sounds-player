@@ -12,7 +12,7 @@
 	<img class="${ns}-background-image"></img>
 	<div class="${ns}-image-transparent-bg"></div>
 	<img id="fcspImage" class="${ns}-image" src="data:image/svg+xml;base64,${btoa(Icons.fcSounds)}"></img>
-	<video class="${ns}-video" @play='controls.sync' @pause='controls.sync' loop="true"></video>
+	<video class="${ns}-video" @playing='controls.syncVideo' loop="true"></video>
 </a>
 ${Player.controls.template({
 	audio: Player.audio,
