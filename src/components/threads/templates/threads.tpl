@@ -12,7 +12,7 @@
 	<input
 		type="text"
 		class="${ns}-threads-filter"
-		@keyup='threads.filter($event.target.value)'
+		@input='threads.filter($event.target.value)'
 		value="${_.escAttr(Player.threads.filterValue || '')}"
 	/>
 

@@ -129,7 +129,8 @@ module.exports = {
     const to = from._linked;
     if (from && from.readyState > 3 && to && to.readyState > 3) {
       to.currentTime = from.currentTime % to.duration;
-      to[from.paused ? 'pause' : 'play']();
+      // play() rejects when a newer load or pause interrupts it; that's expected here.
+      from.paused ? to.pause() : to.play().catch(() => {});
       to.playbackRate = from.playbackRate;
       to.defaultPlaybackRate = from.defaultPlaybackRate;
     }

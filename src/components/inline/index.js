@@ -173,7 +173,8 @@ module.exports = {
           node.controlsObserver = new MutationObserver(() => node.controls = false);
           node.controlsObserver.observe(node, { attributes: true });
           // Play/pause the audio instead when the video is clicked.
-          node.addEventListener('click', () => Player.inline.playPause(aId));
+          node._inlinePlayer.clickToggle = () => Player.inline.playPause(aId);
+          node.addEventListener('click', node._inlinePlayer.clickToggle);
         }
 
         // For videos wait for both to load before playing.
@@ -245,6 +246,8 @@ module.exports = {
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
+    // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
+    node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
     // Remove controls.
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {

@@ -106,7 +106,8 @@ module.exports = {
   async render() {
     try {
       if (Player.container) {
-        document.body.removeChild(Player.container);
+        // remove(), not body.removeChild: in native threads the container is in .board.
+        Player.container.remove();
         // Don't detach the stylesheet — we just rewrite its innerHTML below.
         // Detaching it here without re-attachment leaves the page un-styled on
         // any subsequent render() call (the `||` below preserves the detached node).
