@@ -4,10 +4,16 @@ module.exports = {
   get
 };
 
+// GM.xmlHttpRequest hands back the response headers as one raw string, not an object.
+function getHeader(rawHeaders, name) {
+  const match = new RegExp(`^${name}:[ \\t]*(.*)$`, 'im').exec(rawHeaders || '');
+  return match ? match[1].trim() : undefined;
+}
+
 async function get(url) {
   return new Promise(function (resolve, reject) {
     const headers = {};
-    if (cache[url]) {
+    if (cache[url] && cache[url].lastModified) {
       headers['If-Modified-Since'] = cache[url].lastModified;
     }
     GM.xmlHttpRequest({
@@ -16,10 +22,15 @@ async function get(url) {
       headers,
       responseType: 'json',
       onload: response => {
-        if (response.status >= 200 && response.status < 300) {
-          cache[url] = { lastModified: response.responseHeaders['last-modified'], response: response.response };
+        if (response.status === 304 && cache[url]) {
+          return resolve(cache[url].response);
         }
-        resolve(response.status === 304 ? cache[url].response : response.response);
+        // Reject HTTP errors so callers report them instead of reading a null body.
+        if (response.status < 200 || response.status >= 300) {
+          return reject(new Error(`Request for ${url} failed with status ${response.status}.`));
+        }
+        cache[url] = { lastModified: getHeader(response.responseHeaders, 'last-modified'), response: response.response };
+        resolve(response.response);
       },
       onerror: reject
     });
