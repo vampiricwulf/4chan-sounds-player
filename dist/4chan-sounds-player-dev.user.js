@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.580
+// @version      3.7.2.582
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -67,6 +67,21 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-clockwise\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z\"/>\n  <path d=\"M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z\"/>\n</svg>");
+
+/***/ },
+
+/***/ "./node_modules/bootstrap-icons/icons/arrow-counterclockwise.svg"
+/*!***********************************************************************!*\
+  !*** ./node_modules/bootstrap-icons/icons/arrow-counterclockwise.svg ***!
+  \***********************************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" fill=\"currentColor\" class=\"bi bi-arrow-counterclockwise\" viewBox=\"0 0 16 16\">\n  <path fill-rule=\"evenodd\" d=\"M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z\"/>\n  <path d=\"M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z\"/>\n</svg>");
 
 /***/ },
 
@@ -3790,7 +3805,10 @@ module.exports = {
   public: ['search'],
 
   tagLoadTO: {},
-  _removedIds: new Set(),
+  // Sounds the user removed from the playlist, by id. Kept until the page is reloaded, so
+  // reading the posts again doesn't bring them back, and they can be restored from their
+  // post's add link or the footer.
+  _removed: new Map(),
 
   template: __webpack_require__(/*! ./templates/player.tpl */ "./src/components/playlist/templates/player.tpl"),
   listTemplate: __webpack_require__(/*! ./templates/list.tpl */ "./src/components/playlist/templates/list.tpl"),
@@ -4182,9 +4200,11 @@ module.exports = {
     }
     const index = Player.sounds.indexOf(sound);
     // Remember what the user removed so parsing the posts again (a setting change, a
-    // reload, a re-inserted post) doesn't bring it back. Filters and settings that remove
-    // sounds temporarily don't count.
-    sound && !temporary && !Player._applyingFilters && Player.playlist._removedIds.add(sound.id);
+    // thread update, a re-inserted post) doesn't bring it back, and so it can be restored.
+    // Filters and settings that remove sounds temporarily don't count, and local files
+    // can't come back (their object URL is released below).
+    const userRemoved = !!sound && !temporary && !Player._applyingFilters;
+    userRemoved && !sound.local && Player.playlist._removed.set(sound.id, sound);
 
     // If the playing sound is being removed then play the next sound.
     if (Player.playing === sound) {
@@ -4199,8 +4219,7 @@ module.exports = {
 
     // A removed local file's object URL can go once no other sound uses it (a file can hold
     // several sounds). Not for temporary removals, which can bring the sound back.
-    if (sound && sound.local && !temporary && !Player._applyingFilters
-      && !Player.sounds.some(s => s.image === sound.image) && /^blob:/.test(sound.image)) {
+    if (userRemoved && sound.local && !Player.sounds.some(s => s.image === sound.image) && /^blob:/.test(sound.image)) {
       URL.revokeObjectURL(sound.image);
     }
     // Remove the item from the list.
@@ -4209,6 +4228,44 @@ module.exports = {
     // Update the post's play link (applyFilters does this itself once it's done).
     sound && sound.post && !Player._applyingFilters && Player.posts.updateButtons(sound.post);
     sound && Player.trigger('remove', sound);
+  },
+
+  /**
+   * Put sounds the user removed back in the playlist, in their place: a post's, or all of
+   * them when no post is given. Returns how many came back.
+   */
+  restoreRemoved(postId) {
+    const restored = [];
+    Player.playlist._removed.forEach((sound, id) => {
+      if (postId == null || sound.post === String(postId)) {
+        Player.playlist._removed.delete(id);
+        restored.push(sound);
+      }
+    });
+    let filtered = false;
+    restored.forEach(sound => {
+      sound.playing = false;
+      // Filters or allowed hosts changed since then apply as they would to a new post.
+      sound.disallow = Player.disallowedSound(sound);
+      if (!sound.disallow) {
+        Player.add(sound);
+      } else if (!sound.disallow.invalid) {
+        Player.filteredSounds.push(sound);
+        filtered = true;
+      }
+    });
+    new Set(restored.map(sound => sound.post)).forEach(post => post && Player.posts.updateButtons(post));
+    filtered && Player.trigger('filters-applied');
+    return restored.length;
+  },
+
+  /**
+   * How many of a post's sounds the user removed.
+   */
+  removedCount(postId) {
+    let count = 0;
+    Player.playlist._removed.forEach(sound => sound.post === postId && count++);
+    return count;
   },
 
   toggleRepeat() {
@@ -5437,7 +5494,7 @@ module.exports = {
 
       const parsed = Player.posts.getSounds(filename, imageSrc, postID, thumbSrc, imageMD5);
       // Leave out sounds the user removed.
-      const sounds = parsed.sounds.filter(sound => !Player.playlist._removedIds.has(sound.id));
+      const sounds = parsed.sounds.filter(sound => !Player.playlist._removed.has(sound.id));
       const filtered = parsed.filtered;
 
       if (sounds.length || filtered.length) {
@@ -5518,9 +5575,10 @@ module.exports = {
   },
 
   /**
-	 * Read all the sounds from the thread again.
+	 * Read all the sounds from the thread again, including ones the user removed.
 	 */
   refresh() {
+    Player.playlist.restoreRemoved();
     Player.posts.addPosts(document.body);
   },
 
@@ -5535,13 +5593,14 @@ module.exports = {
         return;
       }
 
-      // Create/update the unfilter button, or remove it.
+      // Create/update the add button for filtered or removed sounds, or remove it.
       const linkScope = Player.posts._linkScope(postEl);
       let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
       const allFilters = Player.posts.getFilters(postId);
       const hasFilter = allFilters.host.length || allFilters.image || allFilters.sound.length;
-      if (hasFilter) {
-        postEl.classList.add('filtered-sound');
+      const removed = Player.playlist.removedCount(postId);
+      postEl.classList[hasFilter ? 'add' : 'remove']('filtered-sound');
+      if (hasFilter || removed) {
         // There is a filtered sound for the post so create/update the add link,
         const filtered = [allFilters.image && 'image', allFilters.sound.length && 'sound'].filter(Boolean).join(' and ');
         // Hosts come from post filenames and the URL parser keeps characters like `"`,
@@ -5551,20 +5610,25 @@ module.exports = {
         const hint = (hosts.length > 1 ? `The hosts ${hosts.join(', ')} are not allowed` : '')
 					+ (hosts.length === 1 ? `The host ${hosts[0]} is not allowed` : '')
 					+ (filtered ? `${allFilters.host.length ? ', and the' : 'The'} player filters disallow this ${filtered}` : '')
-					+ '. Click to allow and add to the player.';
+					+ (removed ? `${hasFilter ? '. ' : ''}You removed ${removed > 1 ? `${removed} sounds in this post` : 'this sound'} from the player` : '')
+					+ (hasFilter ? '. Click to allow and add to the player.' : '. Click to add it back.');
 
+        // A filtered post shows the filter icon; one with only removed sounds a restore icon.
+        const kind = hasFilter ? 'filtered' : 'removed';
+        const linkText = (kind === 'removed' && linkInfo.restoreText) || linkInfo.unfilterText || '';
         if (addLink) {
           addLink.dataset.content = hint;
+          addLink.dataset.kind !== kind && (addLink.innerHTML = linkText);
+          addLink.dataset.kind = kind;
         } else {
           _.element('<span>'
 						+ (linkInfo.prependText || '')
-						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkInfo.unfilterText || ''}</a>`
+						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-kind="${kind}" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkText}</a>`
 						+ (linkInfo.appendText || '')
 						+ '</span>', relative, linkInfo.position);
         }
       } else {
-        // There isn't a filtered so remove the add link.
-        postEl.classList.remove('filtered-sound');
+        // Nothing filtered or removed, so remove the add link.
         addLink && addLink.parentNode.parentNode.removeChild(addLink.parentNode);
         addLink && addLink.infoEl && addLink.infoEl.parentNode.removeChild(addLink.infoEl);
       }
@@ -5619,7 +5683,11 @@ module.exports = {
   },
 
   allowPost(postId) {
+    // Only what the link said was filtered is allowed. Sounds the user removed from this
+    // post come back too, unless a filter made since then applies to them; the link then
+    // shows that instead.
     const allowed = Player.posts.getFilters(postId);
+    Player.playlist.restoreRemoved(postId);
     // The host comes from the post. Allow entries also match subdomains, so refuse a
     // single label ("com" would allow every .com site) and local or IP-address hosts (the
     // player fetches allowed sounds with the userscript's cross-site requests).
@@ -6046,10 +6114,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.580") {
+    if (storedVersion !== "3.7.2.582") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.580"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.582"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6348,7 +6416,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.580";
+      settings.VERSION = "3.7.2.582";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6364,7 +6432,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.580") {
+    if (!fromVersion || fromVersion === "3.7.2.582") {
       return {};
     }
     const changes = {};
@@ -6855,7 +6923,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.580"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.582"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -9629,9 +9697,17 @@ module.exports = [
     action: data => `remove("${_.escAttr(data.sound.id, true)}")`,
     icon: Icons.trash,
     attrs: data => [
-      'title="Filter the image."',
+      'title="Remove from the playlist."',
       `data-id="${_.escAttr(data.sound.id)}"`
     ]
+  },
+  {
+    tplName: 'restore',
+    action: 'playlist.restoreRemoved()',
+    actionMods: '.prevent',
+    showIf: () => Player.playlist._removed.size > 0,
+    icon: Icons.arrowCounterclockwise,
+    attrs: [ 'title="Add the sounds you removed back to the playlist."' ]
   },
   {
     tplName: 'menu',
@@ -9685,6 +9761,8 @@ const playingRE = /p: ?{([^}]*)}/g;
 const hoverRE = /h: ?{([^}]*)}/g;
 // Render the inner content only when at least one sound is dead (failed to load).
 const deadRE = /d: ?{([^}]*)}/g;
+// Render the inner content only when the user has removed sounds from the playlist.
+const removedRE = /\br: ?{([^}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -9698,6 +9776,8 @@ const soundCountRE = /sound-count/g;
 const soundPropRE = /sound-(src|id|name|post|imageOrThumb|imageMD5|image|thumb|filename)(-esc)?/g;
 const soundFilterCountRE = /filtered-count/g;
 const deadCountRE = /dead-count/g;
+const removedCountRE = /removed-count/g;
+const restoreButtonRE = /restore-(?:button|link)/g;
 const configRE = /\$config\[([^\]]+)\]/g;
 
 // Hold information on which config values components templates depend on.
@@ -9747,6 +9827,7 @@ module.exports = {
       // runs when a template actually contains a d:{ } block, so the per-sound row
       // template — built once per sound — doesn't pay an O(n) scan on every render.
       .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
+      .replace(removedRE, (m, inner) => Player.playlist._removed.size ? inner : '')
       .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
@@ -9812,8 +9893,9 @@ module.exports = {
       // templates without the token (e.g. the per-sound row template) skip the scan.
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
+      .replace(removedCountRE, () => Player.playlist._removed.size)
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.580"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.582"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -9858,6 +9940,9 @@ module.exports = {
     soundFilterCountRE.lastIndex = 0;
     deadCountRE.lastIndex = 0;
     deadRE.lastIndex = 0;
+    removedCountRE.lastIndex = 0;
+    removedRE.lastIndex = 0;
+    restoreButtonRE.lastIndex = 0;
     buttonRE.lastIndex = 0;
     configRE.lastIndex = 0;
 
@@ -9888,6 +9973,9 @@ module.exports = {
     hasIndex && events.push('order', 'dead-change');
     hasFilterCount && events.push('filters-applied');
     hasDead && events.push('add', 'remove', 'filters-applied', 'dead-change');
+    // removed-count, r:{ } and the restore button change when a sound is removed or restored.
+    const hasRemoved = removedCountRE.test(template) || removedRE.test(template) || restoreButtonRE.test(template);
+    hasRemoved && events.push('add', 'remove', 'filters-applied');
 
     // Find which buttons the template includes that are dependent on config values.
     const config = [];
@@ -10779,7 +10867,7 @@ module.exports = [
     property: 'footerTemplate',
     title: 'Footer',
     actions: [ { title: 'Reset', handler: 'settings.reset("footerTemplate")', mods: '.prevent' } ],
-    default: 'playing-button:"sound-index /&nbsp;" sound-count sounds d:{ (+ dead-count dead)}\n'
+    default: 'playing-button:"sound-index /&nbsp;" sound-count sounds d:{ (+ dead-count dead)} r:{ restore-link:"&nbsp;(removed-count removed)"}\n'
 			+ '<div class="fcsp-col"></div>\n'
 			+ 'p:{\n'
 			+ '		post-link\n'
@@ -10887,6 +10975,7 @@ module.exports = {
 module.exports = {
   fcSounds: '<svg width="452" height="257" xmlns="http://www.w3.org/2000/svg"><g><text font-weight="bold" font-style="italic" font-family="Helvetica, Arial, sans-serif" font-size="250" y="197" fill-opacity="0.05" fill="#000000">4sp</text></g></svg>',
   arrowClockwise: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-clockwise.svg */ "./node_modules/bootstrap-icons/icons/arrow-clockwise.svg")["default"]),
+  arrowCounterclockwise: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-counterclockwise.svg */ "./node_modules/bootstrap-icons/icons/arrow-counterclockwise.svg")["default"]),
   arrowsCollapse: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-collapse.svg */ "./node_modules/bootstrap-icons/icons/arrows-collapse.svg")["default"]),
   arrowDown: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrow-down.svg */ "./node_modules/bootstrap-icons/icons/arrow-down.svg")["default"]),
   arrowsExpand: (__webpack_require__(/*! ../node_modules/bootstrap-icons/icons/arrows-expand.svg */ "./node_modules/bootstrap-icons/icons/arrows-expand.svg")["default"]),
@@ -12532,7 +12621,9 @@ module.exports = {
       relative: [ '.fileText .file-info', '.fileText a' ],
       position: 'afterend',
       prependText: ' ',
-      unfilterText: Icons.filter
+      unfilterText: Icons.filter,
+      // For a post whose sounds were removed rather than filtered.
+      restoreText: Icons.arrowCounterclockwise
     },
     // Deliberately missing dots because this is used to set the class
     styleFetcher: 'post reply style-fetcher',
