@@ -50,7 +50,7 @@
 			</div>
 
 			<div class="${ns}-col">
-				<div class="${ns}-file-input placeholder" ${Player.tools.useSoundURL ? 'display: none;' : ''}>
+				<div class="${ns}-file-input placeholder" style="${Player.tools.useSoundURL ? 'display: none;' : ''}">
 					<div class="${ns}-file-overlay w-100">
 						<span class="placeholder-text">Select/Drop Sound/s</span>
 						<span class="text"></span>

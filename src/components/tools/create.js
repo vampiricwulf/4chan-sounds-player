@@ -59,7 +59,8 @@ const createTool = module.exports = {
     const fileList = container.querySelector(`.${ns}-file-list`);
     files || (files = [...input.files]);
     container.classList[files.length ? 'remove' : 'add']('placeholder');
-    fileText.innerHTML = files.length > 1
+    // textContent: a file name can contain markup.
+    fileText.textContent = files.length > 1
       ? files.length + ' files'
       : files[0] && files[0].name || '';
     fileList && (_.elementHTML(fileList, files.length < 2 ? '' : files.map((file, i) =>
@@ -175,17 +176,26 @@ const createTool = module.exports = {
       const soundlessLength = names.join('').length + (soundURLs || sounds).length * 8;
       if (useSoundURL) {
         try {
-          // Make sure each url is valid and strip the protocol.
-          soundURLs = soundURLs.map(url => new URL(url) && url.replace(/^(https?:)?\/\//, ''));
+          // Strip the protocol, then make sure what's left is a valid URL. Scheme-less
+          // URLs (files.catbox.moe/x.mp3) are the format sound filenames use, so accept them.
+          soundURLs = soundURLs.map(url => {
+            const bare = url.replace(/^(https?:)?\/\//, '');
+            new URL('https://' + bare);
+            return bare;
+          });
         } catch (err) {
           throw new PlayerError('The provided sound URL is invalid.', 'warning');
         }
-        if (maxFilenameLength < soundlessLength + soundURLs.join('').length) {
+        // The URLs are percent-encoded in the filename, so measure the encoded length.
+        if (maxFilenameLength < soundlessLength + soundURLs.map(encodeURIComponent).join('').length) {
           throw new PlayerError('The generated image filename is too long.', 'warning');
         }
       } else {
         if (!sounds || !sounds.length) {
           throw new PlayerError('Select a sound.', 'warning');
+        }
+        if (!host || host.invalid) {
+          throw new PlayerError('Select a valid upload host.', 'warning');
         }
 
         // Check the final filename length if the URL length is known for the host.
@@ -235,7 +245,8 @@ const createTool = module.exports = {
       // Complete! with some action links
       _.element(completeTemplate(), createTool.status);
     } catch (err) {
-      createTool.status.innerHTML += '<br>Failed! ' + (err instanceof PlayerError ? err.reason : '');
+      // Some reasons include a file name, so escape.
+      createTool.status.innerHTML += '<br>Failed! ' + (err instanceof PlayerError ? _.escHTML(err.reason) : '');
       Player.logError('Failed to create sound image', err);
     }
     Player.$(`.${ns}-create-button`).disabled = false;
@@ -287,27 +298,39 @@ const createTool = module.exports = {
         data: formData,
         responseType: host.responsePath ? 'json' : 'text',
         headers: host.headers,
-        onload: async response => {
+        onload: response => {
           if (response.status < 200 || response.status >= 300) {
             return reject(response);
           }
-          const responseVal = host.responsePath
-            ? _.get(response.response, host.responsePath)
-            : host.responseMatch
-              ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
-              : response.responseText;
-          const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : responseVal).trim();
-          // uploadedUrl comes from the upload host's response — escape so a host
-          // that returns HTML can't inject scripts into the status panel.
-          // escAttr is used for the href attribute; escHTML for the visible text.
-          const escUrl = _.escAttr(uploadedUrl);
-          Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploaded ${_.escHTML(file.name)} to <a href="${escUrl}" target="_blank">${_.escHTML(uploadedUrl)}</a>`;
-          resolve(uploadedUrl);
+          // Anything thrown here has to reject the upload: the create flow awaits this
+          // promise, and an uncaught throw left it pending with the Create button disabled.
+          try {
+            const responseVal = host.responsePath
+              ? _.get(response.response, host.responsePath)
+              : host.responseMatch
+                ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
+                : response.responseText;
+            // A host that answers 200 with an error body has no link at the expected place.
+            if (typeof responseVal !== 'string' || !responseVal.trim()) {
+              throw new PlayerError(`The upload host's response didn't include a link for ${file.name}.`, 'error');
+            }
+            const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : responseVal).trim();
+            // uploadedUrl comes from the upload host's response — escape so a host
+            // that returns HTML can't inject scripts into the status panel.
+            // escAttr is used for the href attribute; escHTML for the visible text.
+            const escUrl = _.escAttr(uploadedUrl);
+            const statusEl = Player.$(`.${ns}-upload-status-${idx}`);
+            statusEl && (statusEl.innerHTML = `Uploaded ${_.escHTML(file.name)} to <a href="${escUrl}" target="_blank">${_.escHTML(uploadedUrl)}</a>`);
+            resolve(uploadedUrl);
+          } catch (err) {
+            reject(err);
+          }
         },
         upload: {
           onprogress: response => {
             const total = response.total > 0 ? response.total : file.size;
-            Player.$(`.${ns}-upload-status-${idx}`).innerHTML = `Uploading ${_.escHTML(file.name)} - ${Math.floor(response.loaded / total * 100)}%`;
+            const statusEl = Player.$(`.${ns}-upload-status-${idx}`);
+            statusEl && (statusEl.innerHTML = `Uploading ${_.escHTML(file.name)} - ${Math.floor(response.loaded / total * 100)}%`);
           }
         },
         onerror: reject
