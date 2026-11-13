@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.596
+// @version      3.7.2.598
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -2265,7 +2265,7 @@ module.exports = {
     const restoreIndex = Player.display.dismissed.indexOf(restore);
     if (restore && restoreIndex > -1) {
       Player.display.dismissed.splice(restoreIndex, 1);
-      Player.$all(`[\\@click^='display.restore("${restore}")']`).forEach(el => {
+      Player.$all(`[data-restore-id="${CSS.escape(restore)}"]`).forEach(el => {
         _.element(dismissedContentCache[restore], el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
@@ -2277,7 +2277,7 @@ module.exports = {
     if (dismiss && !Player.display.dismissed.includes(dismiss)) {
       Player.display.dismissed.push(dismiss);
       Player.$all(`[data-dismiss-id="${dismiss}"]`).forEach(el => {
-        _.element(`<a href="#" @click.prevent='display.restore("${dismiss}")'>${dismissedRestoreCache[dismiss]}</a>`, el, 'beforebegin');
+        _.element(`<a href="#" data-restore-id="${dismiss}" @click.prevent='display.restore("${dismiss}")'>${dismissedRestoreCache[dismiss]}</a>`, el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
       await GM.setValue('dismissed', Player.display.dismissed.join(','));
@@ -2288,7 +2288,7 @@ module.exports = {
     dismissedContentCache[name] = text;
     dismissedRestoreCache[name] = restore;
     return Player.display.dismissed.includes(name)
-      ? `<a href="#" @click.prevent='display.restore("${name}")'>${restore}</a>`
+      ? `<a href="#" data-restore-id="${name}" @click.prevent='display.restore("${name}")'>${restore}</a>`
       : text;
   },
 
@@ -3867,7 +3867,8 @@ module.exports = {
       // Create the element if it doesn't exist.
       // Set the user template and control events on it to make all the buttons work.
       if (!container) {
-        container = _.element(`<span class="${ns}-chan-x-controls ${ns}-col-auto ${ns}-align-center"></span>`, document.querySelector('#shortcuts'), 'afterbegin');
+        // hover-trigger: so h:{ } in the template shows on hover, as in the other templates.
+        container = _.element(`<span class="${ns}-chan-x-controls ${ns}-col-auto ${ns}-align-center ${ns}-hover-trigger"></span>`, document.querySelector('#shortcuts'), 'afterbegin');
       }
 
       if (Player.config.chanXControls === 'never' || Player.config.chanXControls === 'closed' && !Player.isHidden) {
@@ -3888,6 +3889,9 @@ module.exports = {
           'sound-duration': `<span class="${ns}-duration" data-audio="${audioId}">0:00</span>`
         }
       }));
+      // Show the current time now rather than 0:00 until the next media event (none comes
+      // while paused).
+      Player.audio && Player.controls.updateDuration({ currentTarget: Player.audio });
     }
   },
 
@@ -4017,9 +4021,12 @@ module.exports = {
 
     // Reset to the placeholder image when the player is stopped.
     Player.on('stop', () => {
-      Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
-        el.classList.remove('playing'),
-      );
+      // Rebuild the row that was playing, so p:{ } in the row template goes too.
+      Player.$all(`.${ns}-list-item.playing`).forEach((el) => {
+        el.classList.remove('playing');
+        const sound = Player.sounds.find((s) => s.id === el.dataset.id);
+        sound && Player.playlist.refreshRow(sound);
+      });
       Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
       Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
@@ -4627,7 +4634,9 @@ module.exports = {
       Player.sounds.push(Player.sounds.splice(movingIdx, 1)[0]);
       list.appendChild(moving);
     }
-    Player.trigger('order');
+    // Announced once the drag ends: a re-render now (a row template showing sound-index
+    // listens for it) would replace the row being dragged.
+    Player.playlist._dragMoved = true;
   },
 
   /**
@@ -4640,6 +4649,10 @@ module.exports = {
     delete Player.playlist._dragging;
     e.currentTarget.classList.remove(`${ns}-dragging`);
     Player.playlist.setHoverImageVisibility();
+    if (Player.playlist._dragMoved) {
+      Player.playlist._dragMoved = false;
+      Player.trigger('order');
+    }
   },
 
   /**
@@ -6445,10 +6458,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.596") {
+    if (storedVersion !== "3.7.2.598") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.596"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.598"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6763,7 +6776,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.596";
+      settings.VERSION = "3.7.2.598";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6779,7 +6792,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.596") {
+    if (!fromVersion || fromVersion === "3.7.2.598") {
       return {};
     }
     const changes = {};
@@ -7279,7 +7292,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.596"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.598"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -7463,26 +7476,29 @@ module.exports = {
       return Player.logError(`Theme '${_.escHTML(name)}' does not exist.`, null, 'warning');
     }
     const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
+    // Apply only the settings a theme can hold. Themes can be imported or shared, and one
+    // with other settings (the allow list, upload hosts) would change those too.
+    const next = name === 'Default' ? {} : Player.theme._themeFieldsOf(Player.config.savedThemes[name]);
     Player.set('selectedTheme', name);
+    // Put back what the previous theme set and this one doesn't, so it doesn't carry over
+    // (switching from Fixed Playlist kept its 4chan X header controls setting, for
+    // example, whether going to Default or to another theme). Default always gets the
+    // default templates; other settings only while they still have the previous theme's
+    // value, so edits made after selecting it (e.g. new theme keybinds) are kept.
+    const props = new Set(name === 'Default' ? [ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ] : []);
+    settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
+      const themeValue = s.property && _.get(previous, s.property);
+      themeValue !== undefined && _.get(next, s.property) === undefined
+        && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
+    });
+    props.forEach(prop => {
+      Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
+    });
     if (name === 'Default') {
-      // Reset everything the previous theme set, not just the templates (switching back
-      // from Fixed Playlist kept its 4chan X header controls setting, for example).
-      // Other settings only while they still have the theme's value, so edits made after
-      // selecting the theme (e.g. new theme keybinds) are kept.
-      const props = new Set([ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ]);
-      settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
-        const themeValue = s.property && _.get(previous, s.property);
-        themeValue !== undefined && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
-      });
-      props.forEach(prop => {
-        Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
-      });
       Player.settings.render();
       Player.display.updateCSSVars();
     } else {
-      // Apply only the settings a theme can hold. Themes can be imported or shared, and one
-      // with other settings (the allow list, upload hosts) would change those too.
-      Player.settings.load(Player.theme._themeFieldsOf(Player.config.savedThemes[name]));
+      Player.settings.load(next);
     }
   },
 
@@ -7566,6 +7582,9 @@ module.exports = {
     if (name === 'Default') {
       return Player.logError('Cannot delete the default theme. You can instead overwrite it.', null, 'warning');
     }
+    // Switch away first, while its settings are still known, so they're put back.
+    const wasSelected = Player.config.selectedTheme === name;
+    wasSelected && Player.theme.switch('Default');
     // For default themes set null so we know to not include them.
     if (Player.settings.findDefault('savedThemes').default[name]) {
       themes[name] = null;
@@ -7577,8 +7596,7 @@ module.exports = {
     row.parentNode.removeChild(row);
     Player.settings.set('savedThemes', themes, { bypassValidation: true, bypassRender: true });
     // A removed theme can't stay selected (next/previous would start from a missing entry).
-    if (Player.config.selectedTheme === name) {
-      Player.set('selectedTheme', 'Default');
+    if (wasSelected) {
       Player.settings.renderSetting(Player.settings.findDefault('savedThemes'));
     }
     // Its row in the theme keybinds list goes too.
@@ -10178,11 +10196,12 @@ const buttons = __webpack_require__(/*! ./buttons */ "./src/components/user-temp
 // matches) because it resumes from a stale offset. To keep both call shapes
 // safe, every .test()/.exec() site below resets lastIndex to 0 explicitly.
 const playingRE = /p: ?{([^}]*)}/g;
-const hoverRE = /h: ?{([^}]*)}/g;
 // Render the inner content only when at least one sound is dead (failed to load).
 const deadRE = /d: ?{([^}]*)}/g;
 // Render the inner content only when the user has removed sounds from the playlist.
 const removedRE = /\br: ?{([^}]*)}/g;
+// Any block whose content holds no other block: applied innermost first, so blocks can nest.
+const innermostBlockRE = /\b([pdhr]): ?{([^{}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -10241,14 +10260,24 @@ module.exports = {
 
     // Apply common template replacements, unless they are opted out.
     let html = data.template.replace(configRE, (...args) => _.get(Player.config, args[1]));
-    !data.ignoreDisplayBlocks && (html = html
-      .replace(playingRE, Player.playing && Player.playing === data.sound ? '$1' : '')
-      // Lazy replacer (not an eager ternary like the blocks above): the dead scan only
-      // runs when a template actually contains a d:{ } block, so the per-sound row
-      // template — built once per sound — doesn't pay an O(n) scan on every render.
-      .replace(deadRE, (m, inner) => Player.sounds.some(s => s.error) ? inner : '')
-      .replace(removedRE, (m, inner) => Player.playlist.removedCount() ? inner : '')
-      .replace(hoverRE, `<span class="${ns}-hover-display ${outerClass}">$1</span>`));
+    if (!data.ignoreDisplayBlocks) {
+      // Conditions are only worked out for blocks the template has: the dead and removed
+      // scans would otherwise run for every row the row template builds.
+      const shows = {
+        p: () => !!Player.playing && Player.playing === data.sound,
+        d: () => Player.sounds.some(s => s.error),
+        r: () => Player.playlist.removedCount() > 0
+      };
+      // Innermost first, so "p:{ h:{menu-button} }" works: an outer block used to end at
+      // the inner one's "}", leaving a stray "}" on the page.
+      let before;
+      do {
+        before = html;
+        html = html.replace(innermostBlockRE, (m, kind, inner) => kind === 'h'
+          ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
+          : shows[kind]() ? inner : '');
+      } while (html !== before);
+    }
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
       let buttonConf = Player.userTemplate._findButtonConf(type);
       _data.tplNameMatch = buttonConf.tplNameMatch;
@@ -10315,7 +10344,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.596"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.598"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -10401,12 +10430,13 @@ module.exports = {
     const config = [];
     let match;
     while ((match = buttonRE.exec(template)) !== null) {
+      let buttonConf = Player.userTemplate._findButtonConf(match[1]);
+      // Buttons for the selected sound appear, disappear and act on it, so follow it.
+      // (The row template's rows are rebuilt by the playlist itself.)
+      buttonConf.requireSound && property !== 'rowTemplate' && events.push('playsound', 'stop', 'filters-applied');
       // If user text is given then the display doesn't change.
-      if (!match[2]) {
-        let buttonConf = Player.userTemplate._findButtonConf(match[1]);
-        if (buttonConf.property) {
-          config.push(buttonConf.property);
-        }
+      if (!match[2] && buttonConf.property) {
+        config.push(buttonConf.property);
       }
     }
     // Find config references.
