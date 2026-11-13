@@ -181,12 +181,25 @@ module.exports = {
             // Held down (scrubbing the seek bar) counts the whole time, and a second after.
             node._inlinePlayer.lastPress = 0;
             node._inlinePlayer.pressing = false;
+            const endPress = () => {
+              node._inlinePlayer.lastPress = performance.now();
+              node._inlinePlayer.pressing = false;
+            };
             node._inlinePlayer.markPress = e => {
               node._inlinePlayer.lastPress = performance.now();
-              node._inlinePlayer.pressing = e.type === 'pointerdown';
+              // Held with the main button: the release can happen anywhere (dragged off the
+              // video), or never reach the page (a context menu), so end it from the window,
+              // or after a while at the latest.
+              node._inlinePlayer.pressing = e.type === 'pointerdown' && e.button === 0;
+              if (node._inlinePlayer.pressing) {
+                window.addEventListener('pointerup', endPress, { capture: true, once: true });
+                window.addEventListener('pointercancel', endPress, { capture: true, once: true });
+                clearTimeout(node._inlinePlayer.pressTimeout);
+                node._inlinePlayer.pressTimeout = setTimeout(endPress, 10000);
+              }
             };
             if (ownControls) {
-              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
+              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
             }
             const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
             node._inlinePlayer.resync = () => audio.paused && byUser()
@@ -364,8 +377,9 @@ module.exports = {
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
-    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ]
+    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ]
       .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
+    clearTimeout(node._inlinePlayer.pressTimeout);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);

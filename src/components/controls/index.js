@@ -226,7 +226,10 @@ module.exports = {
     // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
     // again. A shorter follower that loops is compared within its loop (one that doesn't
     // loop, like an inline player's audio following its video, has to be sent back).
-    if (from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
+    // Not while the user holds the video's own seek bar: the seek they're making is passed
+    // to the sound, and pulling the video back to the sound's older position fought it.
+    const userHolding = to._inlinePlayer && to._inlinePlayer.pressing && to === to._inlinePlayer.video;
+    if (!userHolding && from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
       if ((to.loop ? Math.min(drift, to.duration - drift) : drift) > 0.15) {

@@ -131,7 +131,9 @@ module.exports = {
       // Posts inside the player are its own (the threads view's board layout shows other
       // threads' OPs), not this thread's. FoolFuuka shows quote previews, including other
       // threads' posts, in #backlink.
-      if ((Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
+      // And posts no longer on the page by the time they're read (a preview already
+      // closed again: new nodes are read in batches, 100ms later).
+      if (!post.isConnected || (Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
         return;
       }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
