@@ -16,11 +16,17 @@ const bannerPlugin = config.plugins.find(plugin => plugin instanceof webpack.Ban
 const header = bannerPlugin.options.banner;
 
 webpack(config, (err, stats) => {
+  // A fatal error (bad config) comes with no stats, so report it before reading them.
+  if (err) {
+    console.error(err);
+    process.exitCode = 1;
+    return;
+  }
   console.log(stats.toString({
     colors: true
   }));
 
-  if (err || stats.hasErrors()) {
+  if (stats.hasErrors()) {
     // Surface the failure to the shell so `npm run build` / CI chains don't treat a
     // broken compile as success and publish a stale or missing artifact.
     process.exitCode = 1;

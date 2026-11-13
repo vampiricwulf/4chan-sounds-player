@@ -5,9 +5,9 @@
   "main": "main.js",
   "scripts": {
     "build": "node build.js && npm run build-greasyfork",
-    "build-beta": "node build.js --env filename=4chan-sounds-player-beta --env append-hash",
+    "build-beta": "node build.js --env filename=4chan-sounds-player-beta --env build-number",
     "build-greasyfork": "node build.js --env filename=4chan-sounds-player-greasyfork --env no-minify",
-    "build-dev": "node build.js --mode development --env gitcdn",
+    "build-dev": "node build.js --mode development --env gitcdn --env build-number",
     "lint": "eslint .",
     "test:util": "node test/video-util.test.js",
     "test": "node test/video-util.test.js && node test/parse-action.test.js && node test/docs-coverage.test.js && node test/user-template.test.js",
@@ -18,6 +18,7 @@
   "devDependencies": {
     "eslint": "^9.39.2",
     "globals": "^17.0.0",
+    "minimist": "^1.2.8",
     "raw-loader": "^4.0.2",
     "sass": "^1.26.5",
     "sass-loader": "^8.0.2",

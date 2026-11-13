@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout Source Tree
         uses: actions/checkout@v6
+        with:
+          # Full history: beta/dev versions end in the commit count.
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

@@ -15,7 +15,11 @@ const branch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
 const hash = execSync('git rev-parse --short HEAD').toString().trim();
 
 module.exports = (env, argv) => {
-  const version = pkg.version + (env['append-hash'] ? '-' + hash : '');
+  // Beta and dev builds are published on every commit, so they need a version that only
+  // goes up for userscript managers to offer the update: append the commit count. (The
+  // old commit-hash suffix compared as text, in random order.) CI checks out full history.
+  const buildNumber = env['build-number'] && execSync('git rev-list --count HEAD').toString().trim();
+  const version = pkg.version + (buildNumber ? '.' + buildNumber : env['append-hash'] ? '-' + hash : '');
   const githubRequire = '// @require$1' + (env.gitcdn ? 'https://gitcdn.link/repo' : 'https://raw.githubusercontent.com');
 
   const filename = env.filename || `4chan-sounds-player${argv.mode === 'production' ? '' : '-dev'}`;
