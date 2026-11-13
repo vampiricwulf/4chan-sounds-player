@@ -138,9 +138,10 @@ module.exports = [
     allowInTheme: true,
     class: `${ns}-colorpicker-input`,
     attrs: '@focusout.stop.prevent="colorpicker._updatePreview" @click="colorpicker.create"',
+    // Escape the value: it comes from settings, which can be imported or shared as a theme.
     displayMethod: ({ value, attrs }) => `<div class="${ns}-col">
-				<input type="text" ${attrs} value="${value}">
-				<div class="${ns}-cp-preview" style="background: ${value}" @click.stop.prevent="colorpicker.create"></div>
+				<input type="text" ${attrs} value="${_.escAttr(value)}">
+				<div class="${ns}-cp-preview" style="background: ${_.escAttr(value)}" @click.stop.prevent="colorpicker.create"></div>
 			</div>`,
     actions: [
       { title: 'Match Theme', handler: 'theme.forceBoardTheme', mods: '.prevent' }

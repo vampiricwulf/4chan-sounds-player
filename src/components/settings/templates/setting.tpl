@@ -42,8 +42,9 @@ data.displayMethod === null ? '' : `
 			})).join('')
 		}
 
-		value = _.get(Player.config, data.property, data.default);
-		attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
+		// Declared: without let these became globals on the page's window.
+		let value = _.get(Player.config, data.property, data.default);
+		const attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
 			+ (data.class ? ` class="${data.class}"` : '')
 			+ ` data-property="${data.property}"`;
 
@@ -55,7 +56,7 @@ data.displayMethod === null ? '' : `
 			value = JSON.stringify(value, null, 4)
 		}
 
-		inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
+		const inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
 			|| _.get(Player, data.displayMethod)
 			|| data.displayMethod && Player.settings.inputTemplates[data.displayMethod]
 			|| type === 'boolean' && Player.settings.inputTemplates.checkbox

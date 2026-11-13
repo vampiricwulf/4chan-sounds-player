@@ -114,8 +114,14 @@ module.exports = {
   },
 
   parseRGB(str) {
-    const rgbMatch = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-    return [ +rgbMatch[1] || 0, +rgbMatch[2] || 0, +rgbMatch[3] || 0, isNaN(+rgbMatch[4]) ? 1 : rgbMatch[4] ];
+    const rgbMatch = String(str).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    // Computed colours in other notations (e.g. oklch()) don't match; start from black
+    // rather than throwing and leaving the picker unable to open.
+    if (!rgbMatch) {
+      return [ 0, 0, 0, 1 ];
+    }
+    const alpha = parseFloat(rgbMatch[4]);
+    return [ +rgbMatch[1] || 0, +rgbMatch[2] || 0, +rgbMatch[3] || 0, isNaN(alpha) ? 1 : alpha ];
   },
 
   hsv2rgb(h, s, v, a) {
@@ -133,7 +139,8 @@ module.exports = {
       Math.round(r * 255),
       Math.round(g * 255),
       Math.round(b * 255),
-      a || 1
+      // An alpha of 0 is valid; only default a missing one.
+      a == null ? 1 : a
     ];
   },
 
@@ -163,7 +170,7 @@ module.exports = {
       break;
     }
 
-    return [ h, s, v, a || 1 ];
+    return [ h, s, v, a == null ? 1 : a ];
   },
 
   _updatePreview(e) {
