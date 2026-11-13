@@ -15,7 +15,10 @@ const noSleep = typeof NoSleep === 'function' && new NoSleep();
 // standalone video).
 // enable() returns a promise that rejects while the page is hidden (a track changing in a
 // background tab): it's taken again when the page is shown (see _initNoSleep).
-const enableNoSleep = e => e.currentTarget === Player.audio && Promise.resolve(noSleep.enable()).catch(() => {});
+// Not when it already holds one: NoSleep takes a new lock on every enable() and forgets
+// the old one, which then never gets released (every skip while playing leaked one).
+const enableNoSleep = e => e.currentTarget === Player.audio && !noSleep.isEnabled && !noSleep._wakeLock
+  && Promise.resolve(noSleep.enable()).catch(() => {});
 const disableNoSleep = e => e.currentTarget === Player.audio && noSleep.disable();
 
 module.exports = {
@@ -458,6 +461,9 @@ module.exports = {
       media[action]('play', enableNoSleep);
       media[action]('pause', disableNoSleep);
       media[action]('ended', disableNoSleep);
+      // A sound that fails, or a new one replacing it, fires neither of those.
+      media[action]('error', disableNoSleep);
+      media[action]('emptied', disableNoSleep);
     });
     if (enabled !== Player.display._noSleepEnabled && Player.audio && !Player.audio.paused) {
       Promise.resolve(noSleep[enabled ? 'enable' : 'disable']()).catch(() => {});

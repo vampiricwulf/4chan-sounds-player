@@ -326,6 +326,10 @@ const createTool = module.exports = {
         // A URL saved without its scheme would be read relative to the page.
         url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
+        // A host that never answers left Create disabled until a reload.
+        timeout: 5 * 60 * 1000,
+        ontimeout: () => reject(new PlayerError(`The upload host didn't answer for ${file.name}.`, 'error')),
+        onabort: () => reject(new PlayerError(`The upload of ${file.name} was stopped.`, 'error')),
         responseType: host.responsePath ? 'json' : 'text',
         // Like the form data, leave out headers set to null (the default hosts' empty
         // token): they'd be sent as the text "null".

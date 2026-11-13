@@ -154,6 +154,10 @@ module.exports = {
           index: 0,
           expanded: isExpandedImage
         };
+        // A sound that fails to load moves on to the post's next one, once round.
+        audio._inlinePlayer.failed = 0;
+        audio.addEventListener('playing', () => audio._inlinePlayer && (audio._inlinePlayer.failed = 0));
+        !isVideo && audio.addEventListener('error', () => Player.inline._tryNextAfterError(audio));
         // One expanded image's sound at a time: 4chan X's Expand All Images expanded every
         // post at once, and every sound played over the others.
         // (Only if it's still playing when the event arrives: two started together would
@@ -207,7 +211,8 @@ module.exports = {
         // its controls taken away. Let it play on its own with its own controls instead.
         if (isVideo) {
           node._inlinePlayer.audioError = () => {
-            if (node._inlineAudio !== audio) {
+            // Another of the post's sounds is tried first (below).
+            if (node._inlineAudio !== audio || Player.inline._tryNextAfterError(audio)) {
               return;
             }
             node.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
@@ -416,6 +421,21 @@ module.exports = {
 	 */
   next(audioId) {
     Player.inline._movePlaying(audioId, 1);
+  },
+
+  /**
+	 * After a sound fails, play the post's next sound if there is one it hasn't tried since
+	 * one last played. Returns whether it did.
+	 */
+  _tryNextAfterError(audio) {
+    const data = audio._inlinePlayer;
+    if (!data || data.sounds.length < 2 || ++data.failed >= data.sounds.length
+      // With Repeat off there's nothing after the last one.
+      || (Player.config.expandedRepeat === 'none' && data.index + 1 >= data.sounds.length)) {
+      return false;
+    }
+    Player.inline._movePlaying(audio.dataset.id, 1);
+    return true;
   },
 
   _movePlaying(audioId, dir) {

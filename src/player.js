@@ -246,6 +246,15 @@ const Player =
             type === 'info' ? 'notify' : 'error',
             lifetime * 1000,
           );
+        } else {
+          // The archives have neither: show a notice of our own (as text, like 4chan X).
+          const parsed = document.createElement('template');
+          parsed.innerHTML = content;
+          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, document.body);
+          notice.textContent = parsed.content.textContent;
+          const close = () => notice.remove();
+          notice.addEventListener('click', close);
+          setTimeout(close, lifetime * 1000);
         }
       },
     });

@@ -486,6 +486,8 @@ module.exports = {
       sound.playing = false;
       // The Fatbox rerouter may have been turned on or off since it was removed.
       typeof sound._origSrc === 'string' && (sound.src = Player.posts.rerouteSrc(sound._origSrc));
+      // Coming back is a fresh try.
+      delete sound.error;
       // Filters or allowed hosts changed since then apply as they would to a new post.
       sound.disallow = Player.disallowedSound(sound);
       if (!sound.disallow) {

@@ -40,6 +40,9 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
+    // Sounds marked dead while the connection was down are worth trying again.
+    window.addEventListener('online', () => Player.controls.clearDeadMarks());
+
     // Hide controls that don't fit once the player is shown: on the first show nothing
     // could be measured when it rendered, so they wrapped onto a second line.
     Player.on('show', () => Player.controls.preventWrapping());
@@ -112,6 +115,17 @@ module.exports = {
       Player.actions._pendingPlay && Player.pause();
       // It isn't playing (the element still says it is): show the play button, which retries.
       Player.controls.setPlayButtons(Player.audio, true);
+      // Nothing is loading now: stop asking how much has.
+      Player.controls.stopPollingForLoading();
+      // With no connection, or several failures in a row (a dropped connection, a blocked
+      // host), stop instead of marking the whole playlist dead one sound every 3 seconds.
+      Player._failStreak = (Player._failStreak || 0) + 1;
+      if (navigator.onLine === false || Player._failStreak >= 3) {
+        Player.logError(navigator.onLine === false
+          ? 'You seem to be offline, so the player stopped. Click a sound to try again once you\'re connected.'
+          : 'Several sounds in a row failed to load, so the player stopped. Check your connection (or try the Fatbox Rerouter), then click a sound to try again.', null, 'warning');
+        return;
+      }
       // Read when the timer fires: pausing in the meantime (pause() clears it) means the
       // next sound should start paused.
       Player._errorAdvanceWasPlaying = wasPlaying;
@@ -128,11 +142,29 @@ module.exports = {
     if (Player.controls._isStale(e)) {
       return;
     }
+    if (Player.playing) {
+      Player._failStreak = 0;
+      // It recovered (a retry, or the rerouter's swap): don't skip past it after all.
+      clearTimeout(Player._errorAdvanceTO);
+    }
     if (Player.playing && Player.playing.error) {
       delete Player.playing.error;
       Player.playlist.refreshRow(Player.playing);
       Player.trigger('dead-change');
     }
+  },
+
+  /**
+	 * Clear every dead mark, so sounds are tried again (back online, or their links changed).
+	 */
+  clearDeadMarks(sounds = Player.sounds) {
+    const dead = sounds.filter(sound => sound.error);
+    dead.forEach(sound => {
+      delete sound.error;
+      Player.playlist.refreshRow(sound);
+    });
+    Player._failStreak = 0;
+    dead.length && Player.trigger('dead-change');
   },
 
   /**

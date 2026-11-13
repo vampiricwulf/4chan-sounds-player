@@ -141,3 +141,25 @@
 		opacity: 1;
 	}
 }
+// Notices on sites with neither 4chan X's nor 4chan's own (the archives).
+.#{$ns}-notice {
+	position: fixed;
+	left: 3.5rem;
+	bottom: 10px;
+	z-index: 20;
+	max-width: 25rem;
+	padding: .5rem .75rem;
+	border: 1px solid var(--fcsp-border);
+	border-left-width: .25rem;
+	border-radius: .25rem;
+	background: var(--fcsp-background);
+	color: var(--fcsp-text);
+	cursor: pointer;
+
+	&.#{$ns}-notice-warning {
+		border-left-color: #e0a800;
+	}
+	&.#{$ns}-notice-error {
+		border-left-color: #d9534f;
+	}
+}

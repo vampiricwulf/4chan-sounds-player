@@ -218,7 +218,12 @@ const videoTool = module.exports = {
     } catch (err) {
       // Allow a later retry after a transient failure.
       videoTool._loadingPromise = null;
-      throw err;
+      // Mark it as the encoder not loading, so a batch stops instead of retrying the
+      // download for every sound.
+      const error = err instanceof PlayerError ? err
+        : new PlayerError(`Couldn't download the video encoder${err && err.status ? ` (the server answered ${err.status})` : ''}.`, 'error', err);
+      error.encoderLoad = true;
+      throw error;
     }
   },
 

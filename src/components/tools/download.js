@@ -285,6 +285,12 @@ const downloadTool = module.exports = {
           } catch (err) {
             if (err.canceled) {
               !Player.tools._downloadAllCanceled && status && _.element(`<p>Skipped ${_.escHTML(sound.title)}.</p>`, messages);
+            } else if (err.encoderLoad) {
+              // Without the encoder nothing can be combined: stop, and say why once.
+              if (!Player.tools._downloadAllCanceled) {
+                status && _.element(`<p>${_.escHTML(err.reason || 'Couldn\'t load the video encoder.')} Stopped combining.</p>`, messages);
+                Player.tools._downloadAllCanceled = true;
+              }
             } else if (!Player.tools._downloadAllCanceled) {
               console.error('[4chan sounds player] Mux failed', err);
               status && _.element(`<p>Failed to combine ${_.escHTML(sound.title)}!</p>`, messages);

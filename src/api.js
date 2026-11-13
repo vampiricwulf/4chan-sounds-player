@@ -21,6 +21,10 @@ async function get(url) {
       url,
       headers,
       responseType: 'json',
+      // A request that never answers left the threads view loading, with no way to retry.
+      timeout: 30000,
+      ontimeout: () => reject(new Error(`Request for ${url} timed out.`)),
+      onabort: () => reject(new Error(`Request for ${url} was aborted.`)),
       onload: response => {
         if (response.status === 304 && cache[url]) {
           return resolve(cache[url].response);

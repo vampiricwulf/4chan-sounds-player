@@ -62,16 +62,21 @@ module.exports = {
       // Re-derive src from each sound's stored original. Idempotent and safe to repeat.
       // fatbox is a byte-identical mirror so sound.tags (ID3) stays valid; no cache wipe.
       let changed = false;
+      let deadCleared = false;
       Player.allSounds(sound => {
         if (typeof sound._origSrc !== 'string') return;
         const newSrc = rerouteSrc(sound._origSrc);
         if (sound.src !== newSrc) {
           sound.src = newSrc;
+          // A new link deserves a new try: dead marks are often what the rerouter fixes.
+          sound.error && (delete sound.error, deadCleared = true);
           changed = true;
         }
       });
       // Skip the downstream cascade when nothing was actually rerouted (no catbox sounds).
       if (!changed) return;
+      Player._failStreak = 0;
+      deadCleared && Player.trigger('dead-change');
       // Re-bucket sounds between sounds/filteredSounds (recomputes sound.disallow
       // against the new hostname, calls Player.posts.updateButtons, emits
       // 'filters-applied'). applyFilters internally sets Player._applyingFilters
