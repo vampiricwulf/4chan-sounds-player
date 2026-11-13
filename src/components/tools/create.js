@@ -327,8 +327,10 @@ const createTool = module.exports = {
         // A URL saved without its scheme would be read relative to the page.
         url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
-        // A host that never answers left Create disabled until a reload.
-        timeout: 5 * 60 * 1000,
+        // A host that never answers left Create disabled until a reload. The limit is for the
+        // whole upload, so allow for big files on slow connections (5 minutes, plus a second
+        // for every 25KB).
+        timeout: 5 * 60 * 1000 + Math.ceil((file.size || 0) / 25000) * 1000,
         ontimeout: () => reject(new PlayerError(`The upload host didn't answer for ${file.name}.`, 'error')),
         onabort: () => reject(new PlayerError(`The upload of ${file.name} was stopped.`, 'error')),
         responseType: host.responsePath ? 'json' : 'text',

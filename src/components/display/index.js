@@ -155,12 +155,14 @@ module.exports = {
       // Stopped on keypress, where browsers submit, so keydown still reaches hotkeys (an
       // Enter binding in the search box), and only for text fields (Enter opens a file
       // picker). The change Enter would have made is still sent.
+      // (Checkboxes submit on Enter too.)
       const textTypes = [ 'text', 'search', 'number', 'url', 'email', 'password', 'tel' ];
+      const ownAction = [ 'file', 'button', 'submit', 'reset', 'image' ];
       Player.container.addEventListener('keypress', e => {
         const input = e.target;
-        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && textTypes.includes(input.type)) {
+        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && !ownAction.includes(input.type)) {
           e.preventDefault();
-          input.dispatchEvent(new Event('change', { bubbles: true }));
+          textTypes.includes(input.type) && input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
 

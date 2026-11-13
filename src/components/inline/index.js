@@ -178,20 +178,30 @@ module.exports = {
             // A press on the video itself in the last moment: not the sync's own pauses, a
             // loop wrapping round, or 4chan X pausing it (which a click anywhere else
             // shortly before used to count as).
+            // Held down (scrubbing the seek bar) counts the whole time, and a second after.
             node._inlinePlayer.lastPress = 0;
-            node._inlinePlayer.markPress = () => node._inlinePlayer.lastPress = performance.now();
-            ownControls && node.addEventListener('pointerdown', node._inlinePlayer.markPress);
-            ownControls && node.addEventListener('keydown', node._inlinePlayer.markPress);
-            const byUser = () => ownControls && performance.now() - node._inlinePlayer.lastPress < 1000;
+            node._inlinePlayer.pressing = false;
+            node._inlinePlayer.markPress = e => {
+              node._inlinePlayer.lastPress = performance.now();
+              node._inlinePlayer.pressing = e.type === 'pointerdown';
+            };
+            if (ownControls) {
+              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
+            }
+            const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
             node.addEventListener('play', node._inlinePlayer.resync);
             if (ownControls) {
               node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
+              // A seek the user started is forwarded however long it takes to finish.
+              node._inlinePlayer.noteSeek = () => byUser() && (node._inlinePlayer.userSeek = true);
               node._inlinePlayer.forwardSeek = () => {
+                const userSeek = node._inlinePlayer.userSeek || byUser();
+                node._inlinePlayer.userSeek = false;
                 // Not the seeks the sync makes.
-                if (!byUser() || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                if (!userSeek || performance.now() - (node._syncSeekAt || 0) < 1000) {
                   return;
                 }
                 // The video loops under a longer sound: keep the sound in the same loop.
@@ -201,6 +211,7 @@ module.exports = {
                   : node.currentTime;
               };
               node.addEventListener('pause', node._inlinePlayer.forwardPause);
+              node.addEventListener('seeking', node._inlinePlayer.noteSeek);
               node.addEventListener('seeked', node._inlinePlayer.forwardSeek);
             }
           }
@@ -352,8 +363,9 @@ module.exports = {
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
-    node._inlinePlayer.markPress && node.removeEventListener('pointerdown', node._inlinePlayer.markPress);
-    node._inlinePlayer.markPress && node.removeEventListener('keydown', node._inlinePlayer.markPress);
+    node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
+    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ]
+      .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);

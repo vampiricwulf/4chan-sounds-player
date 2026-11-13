@@ -18,11 +18,8 @@ module.exports = {
       // Use isFinite + non-empty check so a saved corner like '0:0' (player
       // pinned to top-left) restores correctly instead of being skipped via the
       // falsy-zero short-circuit. size has no '0' case (a 0px window is junk).
-      // Without a saved size, still fit the default one in the window (on a narrow phone
-      // its header buttons were off-screen).
-      +width && +height
-        ? Player.position.resize(width, height, true)
-        : Player.position.resize(Player.container.offsetWidth, Player.container.offsetHeight);
+      const savedSize = +width && +height;
+      savedSize && Player.position.resize(width, height, true);
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
@@ -30,6 +27,10 @@ module.exports = {
         // The first time, keep the default position clear of the page's header.
         Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
       }
+      // Without a saved size, the default one, fitted to the window once placed (on a narrow
+      // phone its header buttons were off-screen). Not its current size: a theme's layout
+      // can stretch that, and it was measured where it was last shown.
+      savedSize || Player.position.resize(360, 360);
 
       if (Player.config.limitPostWidths) {
         Player.position.setPostWidths();
@@ -215,7 +216,8 @@ module.exports = {
 
     // A handle that doesn't save (the Fixed Playlist theme's width handle) only sizes the
     // player for the current layout: note it, so the saved size comes back on a change.
-    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true';
+    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true'
+      && { view: Player.config.viewStyle, theme: Player.config.selectedTheme };
     if (Player._resizeTarget.dataset.bypassSave !== 'true') {
       GM.setValue('size', width + ':' + height);
       if (Player._resizeMoveX || Player._resizeMoveY) {
@@ -228,8 +230,11 @@ module.exports = {
 	 * Go back to the saved size (or the default one) after a temporary resize.
 	 */
   async restoreSize() {
-    // Not in fullscreen, where resizing does nothing: keep the note for leaving it.
-    if (!Player.position._temporarySize || !Player.container || Player.config.viewStyle === 'fullscreen') {
+    const temporary = Player.position._temporarySize;
+    // Not in fullscreen, where resizing does nothing: keep the note for leaving it. Not when
+    // back in the layout the size was made for (leaving fullscreen): it still applies.
+    if (!temporary || !Player.container || Player.config.viewStyle === 'fullscreen'
+      || (Player.config.viewStyle === temporary.view && Player.config.selectedTheme === temporary.theme)) {
       return;
     }
     Player.position._temporarySize = false;

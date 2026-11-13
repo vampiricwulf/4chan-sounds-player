@@ -40,8 +40,14 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
-    // Sounds marked dead while the connection was down are worth trying again.
-    window.addEventListener('online', () => Player.controls.clearDeadMarks());
+    // Sounds marked dead while the connection was down are worth trying again (not ones that
+    // failed before, which are likely gone for good). Failures shortly before the browser
+    // noticed count too.
+    window.addEventListener('offline', () => Player.controls._offlineAt = Date.now());
+    window.addEventListener('online', () => {
+      const since = (Player.controls._offlineAt || Date.now()) - 30000;
+      Player.controls.clearDeadMarks(Player.sounds.filter(sound => sound.errorAt >= since));
+    });
 
     // Hide controls that don't fit once the player is shown: on the first show nothing
     // could be measured when it rendered, so they wrapped onto a second line.
@@ -102,6 +108,7 @@ module.exports = {
       // Notifications are rendered as HTML and the title comes from the post filename.
       Player.logError(`Failed to play ${_.escHTML(Player.playing.title)}. Please check the console for details.`, err, 'warning');
       Player.playing.error = err;
+      Player.playing.errorAt = Date.now();
       // Mark the row dead so it's visible and skipped during playlist traversal, and
       // refresh count templates (sound-count drops it; dead-count / d:{ } surface it).
       Player.playlist.refreshRow(Player.playing);
@@ -123,7 +130,7 @@ module.exports = {
       if (navigator.onLine === false || Player._failStreak >= 3) {
         Player.logError(navigator.onLine === false
           ? 'You seem to be offline, so the player stopped. Click a sound to try again once you\'re connected.'
-          : 'Several sounds in a row failed to load, so the player stopped. Check your connection (or try the Fatbox Rerouter), then click a sound to try again.', null, 'warning');
+          : 'Several sounds in a row failed to load, so the player stopped. They may have been deleted, or there may be a connection problem (the Fatbox Rerouter can help with catbox). Click a sound to try again.', null, 'warning');
         return;
       }
       // Read when the timer fires: pausing in the meantime (pause() clears it) means the

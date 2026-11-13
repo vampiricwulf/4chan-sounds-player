@@ -250,7 +250,9 @@ const Player =
           // The archives have neither: show a notice of our own (as text, like 4chan X).
           const parsed = document.createElement('template');
           parsed.innerHTML = content;
-          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, document.body);
+          // In a column, so several at once don't cover each other.
+          const column = document.querySelector(`.${ns}-notices`) || _.element(`<div class="${ns}-notices"></div>`, document.body);
+          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, column);
           notice.textContent = parsed.content.textContent;
           const close = () => notice.remove();
           notice.addEventListener('click', close);
