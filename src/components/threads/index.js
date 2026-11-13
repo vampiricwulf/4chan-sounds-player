@@ -185,6 +185,8 @@ module.exports = {
 	 * Fetch the catalog for each selected board and search for sounds in OPs.
 	 */
   async fetch() {
+    // Only the latest fetch shows its results.
+    const token = Player.threads._fetching = {};
     Player.threads.loading = true;
     Player.threads.render();
     if (!Player.threads.boardList) {
@@ -193,28 +195,47 @@ module.exports = {
       } catch (err) {
         return Player.logError('Failed fetching the boards list.', err);
       }
+      // fetchBoards ends by showing the idle view, but the catalogs are still to come.
+      if (Player.threads._fetching !== token) {
+        return;
+      }
+      Player.threads.loading = true;
+      Player.threads.render();
     }
-    const allThreads = [];
     const failedBoards = [];
+    const boards = Player.threads.selectedBoards.slice();
+    const byBoard = new Array(boards.length);
+    const fetchBoard = async (board, i) => {
+      const boardConf = Player.threads.boardList.find(boardConf => boardConf.board === board);
+      if (!boardConf) {
+        return;
+      }
+      // Catch per board so one failing catalog doesn't discard every other board's threads.
+      let pages;
+      try {
+        pages = await get(catalogURL.replace('%s', board));
+      } catch (err) {
+        console.error('[4chan sounds player]', err);
+        failedBoards.push(board);
+        return;
+      }
+      byBoard[i] = (pages || []).flatMap(({ page, threads }) => threads.map(thread => Object.assign(thread, { board, page, ws_board: boardConf.ws_board })));
+    };
     try {
-      await Promise.all(Player.threads.selectedBoards.map(async board => {
-        const boardConf = Player.threads.boardList.find(boardConf => boardConf.board === board);
-        if (!boardConf) {
-          return;
+      // A couple of catalogs at a time (4chan's API asks clients not to flood it), kept in
+      // the order the boards are selected rather than the order they arrive.
+      let next = 0;
+      const worker = async () => {
+        while (next < boards.length) {
+          const i = next++;
+          await fetchBoard(boards[i], i);
         }
-        // Catch per board so one failing catalog doesn't discard every other board's threads.
-        let pages;
-        try {
-          pages = await get(catalogURL.replace('%s', board));
-        } catch (err) {
-          console.error('[4chan sounds player]', err);
-          failedBoards.push(board);
-          return;
-        }
-        (pages || []).forEach(({ page, threads }) => {
-          allThreads.push(...threads.map(thread => Object.assign(thread, { board, page, ws_board: boardConf.ws_board })));
-        });
-      }));
+      };
+      await Promise.all([ worker(), worker() ]);
+      if (Player.threads._fetching !== token) {
+        return;
+      }
+      const allThreads = byBoard.flat().filter(Boolean);
       failedBoards.length && Player.logError(`Failed fetching the catalog for /${failedBoards.map(_.escHTML).join('/, /')}/.`, null, 'warning');
 
       Player.threads.soundThreads = allThreads.filter(thread => {

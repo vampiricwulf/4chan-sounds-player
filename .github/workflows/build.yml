@@ -19,6 +19,9 @@ concurrency:
 
 jobs:
   build:
+    # A manual run on another branch would publish builds pointing their update URLs at
+    # that branch.
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Tree
@@ -68,6 +71,21 @@ jobs:
         env:
           RELEASE: ${{ steps.version.outputs.increased == 'true' && format(' and v{0} release', steps.version.outputs.version) || '' }}
         run: |
+          # Every push gets a new beta/dev version (the commit count), so a push that
+          # doesn't change the script (docs, CI, lockfile) would still offer users an
+          # update. Publish beta/dev only if they differ beyond their version numbers.
+          normalize() { sed -E 's/[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/VERSION/g'; }
+          changed=
+          for f in dist/4chan-sounds-player-beta.user.js dist/4chan-sounds-player-dev.user.js; do
+            if ! git cat-file -e "HEAD:$f" 2>/dev/null \
+              || ! cmp -s <(git show "HEAD:$f" | normalize) <(normalize < "$f"); then
+              changed=1
+            fi
+          done
+          if [ -z "$changed" ]; then
+            echo "The beta/dev scripts only differ by version number; not publishing them."
+            git checkout -- dist/4chan-sounds-player-beta.* dist/4chan-sounds-player-dev.*
+          fi
           git add dist
           if git diff --cached --quiet; then
             echo "The builds are unchanged."

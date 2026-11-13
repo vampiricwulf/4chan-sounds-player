@@ -111,6 +111,11 @@ module.exports = {
 
   addPost(post, skipRender) {
     try {
+      // Posts inside the player are its own (the threads view's board layout shows other
+      // threads' OPs), not this thread's.
+      if (Player.container && Player.container.contains(post)) {
+        return;
+      }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
       let parent = post.parentElement;
       let parentParent = parent && parent.parentElement;
