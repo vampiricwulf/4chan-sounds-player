@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.598
+// @version      3.7.2.600
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -3549,8 +3549,31 @@ module.exports = {
           // off-screen or the tab is hidden, then resume it from where it stopped. When the
           // audio leads, re-sync the video whenever something starts it.
           if (master === audio) {
-            node._inlinePlayer.resync = () => Player.controls.sync(audio);
+            // Without the player's controls, the video's own controls are the only ones:
+            // pressing play, pause or seeking on them acts on the sound. (Only for the user's
+            // own presses: 4chan X pausing it off-screen shouldn't stop the sound.)
+            const ownControls = !(isExpandedImage && Player.config.expandedControls);
+            const byUser = () => ownControls && (!navigator.userActivation || navigator.userActivation.isActive);
+            node._inlinePlayer.resync = () => audio.paused && byUser()
+              ? audio.play().catch(() => {})
+              : Player.controls.sync(audio);
             node.addEventListener('play', node._inlinePlayer.resync);
+            if (ownControls) {
+              node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
+              node._inlinePlayer.forwardSeek = () => {
+                // Not the seeks the sync makes.
+                if (!byUser() || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                  return;
+                }
+                // The video loops under a longer sound: keep the sound in the same loop.
+                const d = node.duration;
+                audio.currentTime = d > 0 && isFinite(d) && audio.duration > d
+                  ? Math.floor(audio.currentTime / d) * d + node.currentTime
+                  : node.currentTime;
+              };
+              node.addEventListener('pause', node._inlinePlayer.forwardPause);
+              node.addEventListener('seeked', node._inlinePlayer.forwardSeek);
+            }
           }
         }
 
@@ -3652,6 +3675,9 @@ module.exports = {
       }
       audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       data.video && data.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      // A video still loading gets its controls when it's ready to play; it won't now, so
+      // give them to it here.
+      data.pendingControls && data.pendingControls();
       const master = data.master || audio;
       !master.paused && master.pause();
     });
@@ -3678,6 +3704,8 @@ module.exports = {
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
+    node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
+    node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
@@ -5571,11 +5599,18 @@ const hosts = __webpack_require__(/*! ../../hosts */ "./src/hosts.js");
 
 const protocolRE = /^(https?:)?\/\//;
 // A tag closes with the bracket it opened with, so "[sound=…song(1).mp3]" keeps the ")" in
-// its link. (Any closing bracket ended it before.) Mismatched ones ("[sound=…)") are still
-// read, as a last resort. Groups: name, then host and link for [ ], ( ), { } or mismatched.
+// its link. (Any closing bracket ended it before.) Inside, other brackets only come in
+// balanced pairs, so a body can't run past a stray closer or into the next tag; failing that
+// the first closing bracket of any kind ends it, as before. Groups: name, then host and
+// link for [ ], ( ), { } or mismatched.
 const hostAlternatives = Object.keys(hosts).join('|');
-const filenameRE = new RegExp(`(.*?)(?:\\[(${hostAlternatives})[ =:|$](.*?)\\]|\\((${hostAlternatives})[ =:|$](.*?)\\)`
-  + `|\\{(${hostAlternatives})[ =:|$](.*?)\\}|[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
+const noBrackets = '[^\\[\\](){}]';
+const tagRE = (open, close, others) => `\\${open}(${hostAlternatives})[ =:|$]((?:${noBrackets}|${others.map(([ o, c ]) => `\\${o}${noBrackets}*\\${c}`).join('|')})*)\\${close}`;
+const filenameRE = new RegExp('(.*?)(?:'
+  + tagRE('[', ']', [ [ '(', ')' ], [ '{', '}' ] ]) + '|'
+  + tagRE('(', ')', [ [ '[', ']' ], [ '{', '}' ] ]) + '|'
+  + tagRE('{', '}', [ [ '[', ']' ], [ '(', ')' ] ]) + '|'
+  + `[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
 // Hostname-anchored: requires // (or userinfo@) immediately before the matched
 // catbox.moe, and a path/port/query/fragment/end immediately after. So substrings
 // in paths or query strings don't match, and `xcatbox.moe` doesn't either.
@@ -5906,7 +5941,7 @@ module.exports = {
 						+ (linkInfo.prependText || '')
 						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-kind="${kind}" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkText}</a>`
 						+ (linkInfo.appendText || '')
-						+ '</span>', relative, linkInfo.position);
+						+ '</span>', relative, Player.posts._linkPosition(relative));
         }
       } else {
         // Nothing filtered or removed, so remove the add link.
@@ -5924,7 +5959,7 @@ module.exports = {
 					+ (linkInfo.prependText || '')
 					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='posts.playPost("${_.escAttr(postId, true)}")'>${linkInfo.text || ''}</a>`
 					+ (linkInfo.appendText || '')
-					+ '</span>', relative, linkInfo.position);
+					+ '</span>', relative, Player.posts._linkPosition(relative));
       }
     }
   },
@@ -5945,10 +5980,22 @@ module.exports = {
 	 */
   _linkAnchor(post) {
     const { relative, position } = selectors.playLink;
-    const candidates = [].concat(relative || []).map(sel => post.querySelector(sel)).filter(Boolean);
+    // The post's own, not one in a post inlined inside it (4chan X puts inlined backlinks
+    // before the file), where the link would be lost.
+    const own = sel => Array.from(post.querySelectorAll(sel)).find(el => el.closest(selectors.posts) === post);
+    const candidates = [].concat(relative || []).map(own).filter(Boolean);
     // Links go inside the anchor (FoolFuuka) or beside it, in its parent.
     const holder = el => position === 'beforeend' || position === 'afterbegin' ? el : el.parentNode;
     return candidates.find(el => holder(el).getClientRects().length) || candidates[0];
+  },
+
+  /**
+	 * Where a link goes relative to its anchor. Before a thumbnail, not after it: native
+	 * 4chan finds the thumbnail to show again when closing an expanded webm as the element
+	 * just before the video.
+	 */
+  _linkPosition(anchor) {
+    return anchor.matches('a.fileThumb') ? 'beforebegin' : selectors.playLink.position;
   },
 
   /**
@@ -6458,10 +6505,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.598") {
+    if (storedVersion !== "3.7.2.600") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.598"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.600"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6776,7 +6823,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.598";
+      settings.VERSION = "3.7.2.600";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6792,7 +6839,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.598") {
+    if (!fromVersion || fromVersion === "3.7.2.600") {
       return {};
     }
     const changes = {};
@@ -7292,7 +7339,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.598"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.600"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10344,7 +10391,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.598"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.600"));
 
     // Apply any specific replacements
     if (data.replacements) {
