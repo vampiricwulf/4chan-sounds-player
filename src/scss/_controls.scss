@@ -142,7 +142,18 @@
 	background: var(--fcsp-controls-inactive);;
 }
 
-.#{$ns}-chan-x-controls {
+// (span: more specific than the .fcsp-col-auto max-width it also has.)
+span.#{$ns}-chan-x-controls {
+	// A long title shouldn't widen 4chan X's header (it wrapped onto a second line, or
+	// pushed the buttons off a centered header).
+	max-width: min(40vw, 30rem);
+	min-width: 0;
+	overflow: hidden;
+
+	.#{$ns}-truncate-text {
+		min-width: 0;
+	}
+
 	.#{$ns}-current-time, .#{$ns}-duration {
 		margin: 0 .25rem;
 	}

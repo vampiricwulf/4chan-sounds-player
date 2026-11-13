@@ -6,6 +6,9 @@ module.exports = {
     const { top, bottom } = Player.position.getHeaderOffset();
     Player.config.offsetTop = top + 'px';
     Player.config.offsetBottom = bottom + 'px';
+    // And keep them current: the header's height changes (the player's own controls in it,
+    // the window narrowing), and themes like Fixed Playlist place the player by them.
+    window.addEventListener('resize', _.debounce(Player.position.updateHeaderOffsets, 150));
 
     // Apply the last position/size, and post width limiting, when the player is shown.
     Player.on('show', async function () {
@@ -224,6 +227,15 @@ module.exports = {
         GM.setValue('position', parseInt(Player.container.style.left, 10) + ':' + parseInt(Player.container.style.top, 10));
       }
     }
+  },
+
+  /**
+	 * Update offsetTop/offsetBottom when the header's size has changed.
+	 */
+  updateHeaderOffsets() {
+    const { top, bottom } = Player.position.getHeaderOffset();
+    Player.config.offsetTop !== top + 'px' && Player.set('offsetTop', top + 'px', { bypassSave: true });
+    Player.config.offsetBottom !== bottom + 'px' && Player.set('offsetBottom', bottom + 'px', { bypassSave: true });
   },
 
   /**

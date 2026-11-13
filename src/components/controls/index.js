@@ -228,7 +228,8 @@ module.exports = {
     // loop, like an inline player's audio following its video, has to be sent back).
     // Not while the user holds the video's own seek bar: the seek they're making is passed
     // to the sound, and pulling the video back to the sound's older position fought it.
-    const userHolding = to._inlinePlayer && to._inlinePlayer.pressing && to === to._inlinePlayer.video;
+    const userHolding = to._inlinePlayer && to === to._inlinePlayer.video
+      && (to._inlinePlayer.pressing || performance.now() - (to._userSeekAt || 0) < 1000);
     if (!userHolding && from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
@@ -238,7 +239,10 @@ module.exports = {
       }
     }
     if (!leading) {
-      !to.paused && to.pause();
+      if (!to.paused) {
+        to._syncPauseAt = performance.now();
+        to.pause();
+      }
       return;
     }
     // play() rejects when a newer load or pause interrupts it; that's expected here.

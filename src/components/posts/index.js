@@ -181,7 +181,10 @@ module.exports = {
 
       const thumbContainer = Player.posts._own(post, selectors.thumb);
       const fileThumb = thumbContainer && thumbContainer.closest('a');
-      const imageSrc = fileThumb && fileThumb.href;
+      // 4chan X takes the link off the thumbnail while it shows the expanded video (Expand All
+      // Images does it before new posts arrive): fall back to the file name's link.
+      const fileLink = !(fileThumb && fileThumb.href) && Player.posts._own(post, '.fileText a[href], .file-info a[href]');
+      const imageSrc = (fileThumb && fileThumb.href) || (fileLink && fileLink.href);
       if (!imageSrc) {
         return;
       }

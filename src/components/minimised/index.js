@@ -43,6 +43,8 @@ module.exports = {
       // Show the current time now rather than 0:00 until the next media event (none comes
       // while paused).
       Player.audio && Player.controls.updateDuration({ currentTarget: Player.audio });
+      // The controls can change the header's height.
+      Player.position.updateHeaderOffsets();
     }
   },
 

@@ -30,7 +30,12 @@ module.exports = {
 
     Player.inline.observer = new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {
-        mutation.addedNodes.forEach(Player.inline.handleAddedNode);
+        mutation.addedNodes.forEach(node => {
+          Player.inline.handleAddedNode(node);
+          // Expanded media inside a block of new content (4chan X's thread updater with
+          // Expand All Images), and copies of our controls in quote copies.
+          node.querySelectorAll && Player.inline._handleAddedTree(node);
+        });
         mutation.removedNodes.forEach(Player.inline.handleRemovedNode);
       });
     });
@@ -163,6 +168,17 @@ module.exports = {
         // (Only if it's still playing when the event arrives: two started together would
         // otherwise each pause the other.)
         isExpandedImage && audio.addEventListener('play', () => !audio.paused && Player.inline._pauseOtherExpanded(audio));
+        // Hiding the post (4chan X's [–]) leaves the expanded media in place but not shown:
+        // stop the sound there, as there's nothing left to stop it with.
+        if (isExpandedImage) {
+          node._inlinePlayer.hiddenCheck = () => {
+            if (document.visibilityState === 'visible' && !node.getClientRects().length) {
+              const master = node._inlinePlayer.master || audio;
+              !master.paused && master.pause();
+            }
+          };
+          audio.addEventListener('timeupdate', node._inlinePlayer.hiddenCheck);
+        }
         // Link video & audio so they sync.
         if (isVideo) {
           node._linked = audio;
@@ -201,7 +217,17 @@ module.exports = {
             if (ownControls) {
               [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
             }
-            const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
+            // Chrome's built-in controls send the page no pointer events at all, so a change
+            // to a video that's on show in a visible tab counts as the user's too (4chan X
+            // pauses videos when they leave the screen or the tab is hidden), except the ones
+            // the sync itself makes.
+            const onShow = () => document.visibilityState === 'visible' && (() => {
+              const rect = node.getBoundingClientRect();
+              return rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+            })();
+            const byUser = () => ownControls && (node._inlinePlayer.pressing
+              || performance.now() - node._inlinePlayer.lastPress < 1000
+              || (onShow() && performance.now() - (node._syncPauseAt || 0) > 300));
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
@@ -210,13 +236,18 @@ module.exports = {
               node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
               // A seek the user started is forwarded however long it takes to finish.
               node._inlinePlayer.noteSeek = () => byUser() && (node._inlinePlayer.userSeek = true);
+              // Where the video was, to tell its loop wrapping round from a seek.
+              node._inlinePlayer.trackTime = () => node._inlinePlayer.lastTime = node.currentTime;
+              node.addEventListener('timeupdate', node._inlinePlayer.trackTime);
               node._inlinePlayer.forwardSeek = () => {
                 const userSeek = node._inlinePlayer.userSeek || byUser();
                 node._inlinePlayer.userSeek = false;
-                // Not the seeks the sync makes.
-                if (!userSeek || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                const wrapped = node.loop && node.currentTime < 0.5 && node._inlinePlayer.lastTime > node.duration - 1;
+                // Not the seeks the sync makes, or the loop.
+                if (!userSeek || wrapped || performance.now() - (node._syncSeekAt || 0) < 1000) {
                   return;
                 }
+                node._userSeekAt = performance.now();
                 // The video loops under a longer sound: keep the sound in the same loop.
                 const d = node.duration;
                 audio.currentTime = d > 0 && isFinite(d) && audio.duration > d
@@ -359,12 +390,42 @@ module.exports = {
 	 * @param {Element} node Added node.
 	 */
   handleRemovedNode(node) {
+    // Moved rather than removed (4chan X re-threading re-appends posts): it's back on the
+    // page by now, so keep its player.
+    if (node.isConnected) {
+      return;
+    }
     const nodes = [ node ];
     node.querySelectorAll && nodes.push(...node.querySelectorAll(`.${ns}-has-inline-audio`));
     nodes.forEach(node => {
       if (node._inlineAudio) {
         Player.inline._removeForNode(node);
       }
+    });
+  },
+
+  /**
+	 * Look inside new content: copies (4chan X's inline quotes clone a post as it is, ids
+	 * ending in _N) get our dead controls stripped, and expanded media in new posts gets a
+	 * player.
+	 */
+  _handleAddedTree(root) {
+    // Never the player's own interface (its controls aren't an inline player's).
+    if (Player.container && (Player.container === root || Player.container.contains(root) || root.contains(Player.container))) {
+      return;
+    }
+    root.querySelectorAll(`.${ns}-has-controls > .${ns}-controls`).forEach(controls => {
+      const media = controls.parentNode && controls.parentNode.querySelector(`.${ns}-has-inline-audio`);
+      if (!media || !media._inlineAudio) {
+        controls.parentNode && controls.parentNode.classList.remove(`${ns}-has-controls`);
+        controls.remove();
+      }
+    });
+    root.querySelectorAll(`.${ns}-has-inline-audio`).forEach(media => !media._inlineAudio && media.classList.remove(`${ns}-has-inline-audio`));
+    root.querySelectorAll('img, video').forEach(media => {
+      const post = media.closest(selectors.posts);
+      const isCopy = post && /_\d+$/.test(post.id);
+      !isCopy && !media._inlineAudio && Player.inline.handleAddedNode(media);
     });
   },
 
@@ -377,6 +438,8 @@ module.exports = {
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
     node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
+    node._inlinePlayer.trackTime && node.removeEventListener('timeupdate', node._inlinePlayer.trackTime);
+    node._inlinePlayer.hiddenCheck && node._inlineAudio.removeEventListener('timeupdate', node._inlinePlayer.hiddenCheck);
     node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ]
       .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
     clearTimeout(node._inlinePlayer.pressTimeout);
