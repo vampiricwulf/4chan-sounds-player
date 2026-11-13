@@ -310,8 +310,10 @@ module.exports = {
 	 */
   previous(audioId) {
     const audio = Player.inline.audio[audioId];
-    if (audio.currentTime > 3) {
-      audio.currentTime = 0;
+    // The master (the video, with "Master Source: Video") drives the other.
+    const master = audio && audio._inlinePlayer.master;
+    if (master && master.currentTime > 3) {
+      master.currentTime = 0;
     } else {
       Player.inline._movePlaying(audioId, -1);
     }
@@ -368,7 +370,10 @@ module.exports = {
 	 */
   playPause(audioId) {
     const audio = Player.inline.audio[audioId];
-    audio && audio[audio.paused ? 'play' : 'pause']();
+    // Toggle the master: its events drive the sync, so toggling the other one (the audio
+    // when the video is master) left the video looping and was undone by the next sync.
+    const master = audio && audio._inlinePlayer.master;
+    master && (master.paused ? master.play().catch(() => {}) : master.pause());
   },
 
   /**

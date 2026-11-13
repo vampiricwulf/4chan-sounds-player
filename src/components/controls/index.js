@@ -75,6 +75,10 @@ module.exports = {
 	 * reverts to the pre-swap URL, so skip the 3s auto-advance.
 	 */
   handleAudioError(err) {
+    // Ignore a late error from an element the main player has switched away from.
+    if (Player.controls._isStale(err)) {
+      return;
+    }
     // Clear any in-flight auto-advance first so repeated/duplicate error events
     // don't stack independent 3s timers (which would skip past several tracks).
     clearTimeout(Player._errorAdvanceTO);
@@ -93,7 +97,7 @@ module.exports = {
       // failed, keep playing the next sound; only stay paused if we were already paused.
       // Captured now (not at timer-fire) so it reflects the state at the moment of error.
       const wasPlaying = !!Player.audio && !Player.audio.paused;
-      Player._errorAdvanceTO = setTimeout(() => Player.next({ paused: !wasPlaying }), 3000);
+      Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !wasPlaying }), 3000);
     }
   },
 
@@ -102,7 +106,10 @@ module.exports = {
 	 * mark (set by handleAudioError) and refresh the row to drop the visual indicator.
 	 * This lets a manual retry or a rerouter fix un-mark a previously-dead sound.
 	 */
-  clearPlayingError() {
+  clearPlayingError(e) {
+    if (Player.controls._isStale(e)) {
+      return;
+    }
     if (Player.playing && Player.playing.error) {
       delete Player.playing.error;
       Player.playlist.refreshRow(Player.playing);
@@ -114,12 +121,31 @@ module.exports = {
 	 * Handle audio events. Sync the video up, and update the controls.
 	 */
   handleMediaEvent(e) {
+    if (Player.controls._isStale(e)) {
+      return;
+    }
     const audio = e.currentTarget._inlineAudio || e.currentTarget;
     Player.controls.sync(e.currentTarget);
     Player.controls.updateDuration(e);
+    Player.controls.setPlayButtons(audio, audio.paused);
+  },
+
+  /**
+	 * Show the play or pause state on the play buttons for an audio element.
+	 */
+  setPlayButtons(audio, paused) {
     document.querySelectorAll(`.${ns}-play-button[data-audio="${audio.dataset.id}"]`).forEach(el => {
-      el.classList[audio.paused ? 'add' : 'remove'](`${ns}-play`);
+      el.classList[paused ? 'add' : 'remove'](`${ns}-play`);
     });
+  },
+
+  /**
+	 * Whether a main-player media event comes from an element the player has since switched
+	 * away from (the audio element while a standalone video plays, or vice versa).
+	 */
+  _isStale(e) {
+    const media = e && e.currentTarget;
+    return !!media && media.dataset && media.dataset.id === 'main' && media !== Player.audio;
   },
 
   /**
@@ -168,6 +194,9 @@ module.exports = {
 	 * Update the seek bar and the duration labels.
 	 */
   updateDuration(e) {
+    if (Player.controls._isStale(e)) {
+      return;
+    }
     const media = e.currentTarget;
     const audio = media._inlineAudio || media;
     const controls = media._inlinePlayer ? media._inlinePlayer.controls : document;

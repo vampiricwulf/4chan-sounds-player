@@ -75,7 +75,16 @@ module.exports = {
       ? [target]
       : target.querySelectorAll(selectors.posts);
 
-    posts.forEach(post => Player.posts.addPost(post, postRender) && (addedSounds = true));
+    // The initial parse adds every sound in the thread. Hold the per-sound template
+    // refreshes ('add', 'filters-applied'), which re-rendered the header/footer once per
+    // sound, and refresh once at the end.
+    postRender && (Player._bulkAdding = true);
+    try {
+      posts.forEach(post => Player.posts.addPost(post, postRender) && (addedSounds = true));
+    } finally {
+      postRender && (Player._bulkAdding = false);
+    }
+    postRender && Player.trigger('filters-applied');
 
     if (addedSounds && postRender && Player.container) {
       Player.playlist.render();
@@ -94,8 +103,9 @@ module.exports = {
       const postID = post.id.slice(selectors.postIdPrefix.length);
 
       // If there's a play or add button this post has already been parsed. Just wire up the link.
-      let playLink = post.querySelector(`.${ns}-play-link`);
-      let addLink = post.querySelector(`.${ns}-unfilter-link`);
+      const linkScope = Player.posts._linkScope(post);
+      let playLink = linkScope.querySelector(`.${ns}-play-link`);
+      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
       if (playLink || addLink) {
         playLink && Player.events.apply(playLink);
         addLink && Player.events.apply(addLink);
@@ -243,7 +253,8 @@ module.exports = {
       }
 
       // Create/update the unfilter button, or remove it.
-      let addLink = relative.parentNode.querySelector(`.${ns}-unfilter-link`);
+      const linkScope = Player.posts._linkScope(postEl);
+      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
       const allFilters = Player.posts.getFilters(postId);
       const hasFilter = allFilters.host.length || allFilters.image || allFilters.sound.length;
       if (hasFilter) {
@@ -276,18 +287,41 @@ module.exports = {
       }
 
       // Remove the play button if all sounds in the post are filtered, otherwise create it if needed.
-      let playLink = postEl.querySelector(`.${ns}-play-link`);
+      let playLink = linkScope.querySelector(`.${ns}-play-link`);
       const addedSound = Player.sounds.find(sound => sound.post === postId);
       if (playLink && !addedSound) {
         playLink.parentNode.parentNode.removeChild(playLink.parentNode);
       } else if (!playLink && addedSound) {
         _.element('<span>'
 					+ (linkInfo.prependText || '')
-					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='play("${addedSound.id}")'>${linkInfo.text || ''}</a>`
+					+ `<a href="javascript:" class="${ns}-play-link ${linkInfo.class}" @click='posts.playPost("${_.escAttr(postId, true)}")'>${linkInfo.text || ''}</a>`
 					+ (linkInfo.appendText || '')
 					+ '</span>', relative, linkInfo.position);
       }
     }
+  },
+
+  /**
+	 * Play a post's first sound in the player. Looked up when clicked: the post's first
+	 * sound changes when sounds are filtered or removed.
+	 */
+  playPost(postId) {
+    const sound = Player.sounds.find(sound => sound.post === postId);
+    sound && Player.play(sound);
+  },
+
+  /**
+	 * The element a post's play/add links are inserted into. Looking in the whole post found
+	 * links of nested posts (inline quotes, a FoolFuuka OP's replies) instead.
+	 */
+  _linkScope(post) {
+    const { relative: selector, position } = selectors.playLink;
+    const relative = [].concat(selector || []).map(sel => post.querySelector(sel)).find(Boolean);
+    if (!relative) {
+      return post;
+    }
+    // Links are inserted inside the anchor (FoolFuuka) or next to it (4chan, Fuuka).
+    return position === 'beforeend' || position === 'afterbegin' ? relative : relative.parentNode;
   },
 
   getFilters(postId) {

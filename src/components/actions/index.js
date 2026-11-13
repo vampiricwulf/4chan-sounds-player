@@ -5,13 +5,15 @@ module.exports = {
   initialize() {
     // Keep this reference to switch Player.audio to standalone videos and back.
     Player.controls._audio = Player.audio;
+    Player.on('rendered', () => Player.$(`.${ns}-video`).addEventListener('error', Player.actions._handleVideoError));
   },
 
   /**
 	 * Switching being playing and paused.
 	 */
   togglePlay() {
-    if (Player.audio.paused) {
+    // A play waiting for a sound webm to load counts as playing, so this cancels it.
+    if (Player.audio.paused && !Player.actions._pendingPlay) {
       Player.play();
     } else {
       Player.pause();
@@ -26,10 +28,21 @@ module.exports = {
       // Handle id instead of sound object.
       if (typeof sound === 'string') {
         sound = Player.sounds.find(s => s.id === sound);
+        // An id that no longer resolves (removed or filtered) shouldn't play another sound.
+        if (!sound) {
+          return;
+        }
       }
       // If nothing is currently selected to play start playing the first sound.
       if (!sound && !Player.playing && Player.sounds.length) {
         sound = Player.sounds[0];
+      }
+
+      // Retrying the selected sound after it failed to load: play() on an errored element
+      // only rejects, so reload it, and cancel the pending auto-advance.
+      if (sound && sound === Player.playing && Player.audio.error) {
+        clearTimeout(Player._errorAdvanceTO);
+        Player.audio.load();
       }
 
       // If a new sound is being played update the display.
@@ -40,6 +53,7 @@ module.exports = {
         // Remove play on load listeners for the previous sound.
         Player.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
         Player.audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+        Player.actions._pendingPlay = false;
         // Remove audio events from the video, and add them back for standalone video.
         const audioEvents = Player.controls.audioEvents;
         for (let evt in audioEvents) {
@@ -64,10 +78,21 @@ module.exports = {
         // element left the audio element with the previous sound after a standalone video.
         Player.audio = sound.standaloneVideo ? Player.video : Player.controls._audio;
         if (Player.audio !== previousMedia) {
-          // Silence the outgoing element and keep the user's volume and playback rate.
+          // Silence and unload the outgoing element: left loading, its late events (an
+          // error, a duration) were handled as the new sound's. Keep the user's volume and
+          // playback rate.
           previousMedia.pause();
+          previousMedia.removeAttribute('src');
+          previousMedia.load();
           Player.audio.volume = previousMedia.volume;
           Player.audio.defaultPlaybackRate = previousMedia.defaultPlaybackRate;
+        }
+        // A sound without a video doesn't use the video element: unload it rather than
+        // leave the previous post's video looping (and decoding) out of sight.
+        if (!Player.isVideo && Player.video !== previousMedia && Player.video.getAttribute('src')) {
+          Player.video.pause();
+          Player.video.removeAttribute('src');
+          Player.video.load();
         }
         // A standalone video's source is the post's video, which playlist.showImage sets
         // on 'playsound'.
@@ -84,6 +109,9 @@ module.exports = {
         if (!Player.isStandalone && Player.isVideo && (Player.video.readyState < 3 || Player.audio.readyState < 3)) {
           Player.video.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
           Player.audio.addEventListener('canplaythrough', Player.actions.playOnceLoaded);
+          // Remember the play is pending so pause() can cancel it, and show it as playing.
+          Player.actions._pendingPlay = true;
+          Player.controls.setPlayButtons(Player.audio, false);
         } else {
           // play() returns a promise that rejects asynchronously (so the try/catch
           // can't catch it): AbortError when a newer load/pause supersedes this call
@@ -103,6 +131,7 @@ module.exports = {
 	 */
   playOnceLoaded(e) {
     if (e.currentTarget.readyState > 3 && e.currentTarget._linked.readyState > 3) {
+      (e.currentTarget === Player.audio || e.currentTarget === Player.video) && (Player.actions._pendingPlay = false);
       e.currentTarget.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       e.currentTarget._linked.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
       e.currentTarget._inlinePlayer && e.currentTarget._inlinePlayer.pendingControls && e.currentTarget._inlinePlayer.pendingControls();
@@ -122,13 +151,46 @@ module.exports = {
 	 * Pause playback.
 	 */
   pause() {
+    // Cancel a play still waiting for a sound webm's audio and video to load; otherwise it
+    // would start anyway once they had.
+    if (Player.actions._pendingPlay) {
+      Player.actions._pendingPlay = false;
+      Player.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      Player.audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      Player.controls.setPlayButtons(Player.audio, true);
+    }
     Player.audio && Player.audio.pause();
+  },
+
+  /**
+	 * The post's video failed to load for a sound webm (deleted, or an archive without the
+	 * media). Play the sound without it instead of waiting for the video forever.
+	 * A standalone video's errors go to controls.handleAudioError instead.
+	 */
+  _handleVideoError(e) {
+    if (!Player.playing || Player.isStandalone || !Player.isVideo || e.currentTarget !== Player.video) {
+      return;
+    }
+    Player.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+    Player.audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+    Player.audio._linked = Player.video._linked = false;
+    Player.isVideo = false;
+    Player.container.classList.remove('playing-video');
+    Player.$(`.${ns}-image-link`).classList.remove(`${ns}-show-video`);
+    if (Player.actions._pendingPlay) {
+      Player.actions._pendingPlay = false;
+      Player.audio.play().catch(() => {});
+    }
   },
 
   /**
 	 * Stop playback.
 	 */
   stop() {
+    // Cancel an auto-advance after a failed sound, which would otherwise start playing
+    // again (from the first sound) after the player was closed.
+    clearTimeout(Player._errorAdvanceTO);
+    Player.pause();
     // Cancel any pending rerouter swap so its listeners don't fire after the stop.
     Player.audio._pendingReroute && Player.audio._pendingReroute();
     Player.audio.pause();

@@ -41,10 +41,11 @@ module.exports = {
       Player.$all(
         `.${ns}-list-item.playing, .${ns}-list-item[data-id="${Player.playing.id}"]`,
       ).forEach((el) => {
-        const newItem = Player.playlist.listTemplate({
-          sounds: [Player.sounds.find((s) => s.id === el.dataset.id)],
-        });
-        _.element(newItem, el, 'beforebegin');
+        const rowSound = Player.sounds.find((s) => s.id === el.dataset.id);
+        const newItem = rowSound && Player.playlist.listTemplate({ sounds: [ rowSound ] });
+        // Empty when the previous sound no longer matches an active search (only the
+        // playing sound is kept): drop its row, as the search would have.
+        newItem && newItem.trim() && _.element(newItem, el, 'beforebegin');
         el.parentNode.removeChild(el);
       });
       // If the player isn't fullscreen scroll to the playing item.
@@ -391,6 +392,8 @@ module.exports = {
     // Remove the item from the list.
     const item = sound && Player.$(`.${ns}-list-item[data-id="${sound.id}"]`);
     item && Player.$(`.${ns}-list-container`).removeChild(item);
+    // Update the post's play link (applyFilters does this itself once it's done).
+    sound && sound.post && !Player._applyingFilters && Player.posts.updateButtons(sound.post);
     sound && Player.trigger('remove', sound);
   },
 

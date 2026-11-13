@@ -113,7 +113,17 @@ const Player =
       compareIds(a, b) {
         const [aPID, aSID] = a.split(':');
         const [bPID, bSID] = b.split(':');
-        const postDiff = aPID - bPID;
+        // Local files ("local3") have no post number: sort them after the thread's posts,
+        // in the order they were added. Subtracting them gave NaN, which made the sort
+        // inconsistent and left a shuffled order in place.
+        const aLocal = /^local/.test(aPID);
+        const bLocal = /^local/.test(bPID);
+        if (aLocal !== bLocal) {
+          return aLocal ? 1 : -1;
+        }
+        const postDiff = aLocal
+          ? aPID.localeCompare(bPID, undefined, { numeric: true })
+          : (parseFloat(aPID) - parseFloat(bPID)) || aPID.localeCompare(bPID, undefined, { numeric: true });
         return postDiff !== 0 ? postDiff : aSID - bSID;
       },
 
