@@ -1,9 +1,5 @@
 ##{$ns}-container {
 	position: fixed;
-	// Above the page's own content: 4chan-neXT lifts expanded images (1) and its scrollbar
-	// markers (4) over everything at the default level, which covered the player. Still
-	// under the 4chan X / neXT header (8 or 35), quick reply, menus and previews.
-	z-index: 5;
 	display: flex;
 	flex-direction: column;
 	background: var(--fcsp-background);
@@ -122,6 +118,15 @@
 }
 .#{$ns}-menu {
 	z-index: 15;
+}
+
+// With 4chan X and its forks, above the page's own content: 4chan-neXT lifts expanded images (1)
+// and its scrollbar markers (4, added before the player, which wins the tie) over everything at
+// the default level, and they covered the player and its thumbnail. Under all that 4chan X
+// floats (the thread watcher at 5 and up). Not on native 4chan, whose quick reply, previews and
+// menus have no z-index of their own and went under it.
+html.fourchan-x ##{$ns}-container, html.fourchan-x .#{$ns}-image-link.#{$ns}-pip {
+	z-index: 4;
 }
 
 // Fallback open button for when the native nav bars (and their [Sounds] links) are hidden.

@@ -90,8 +90,9 @@ module.exports = {
 	 * Check if an added node is an expanded/hover sound image and play the audio.
 	 *
 	 * @param {Element} node Added node.
+	 * @param {Object} [opts] autoplay: false to get it ready without starting it.
 	 */
-  handleAddedNode(node) {
+  handleAddedNode(node, opts) {
     try {
       if (node.nodeName !== 'IMG' && node.nodeName !== 'VIDEO') {
         return;
@@ -217,14 +218,20 @@ module.exports = {
             node._inlinePlayer.pressing = false;
             // Whichever of the pair ends it, the other goes too: one left behind made a later
             // unrelated release (a touch scroll starting) count as a press on the video.
-            const endPress = node._inlinePlayer.endPress = () => {
+            // A cancelled one wasn't a press: the browser took it over for a scroll or zoom (a
+            // swipe starting on the video), and 4chan X pausing it as it left the screen
+            // stopped the sound.
+            const endPress = node._inlinePlayer.endPress = e => {
               window.removeEventListener('pointerup', endPress, true);
               window.removeEventListener('pointercancel', endPress, true);
               clearTimeout(node._inlinePlayer.pressTimeout);
-              node._inlinePlayer.lastPress = performance.now();
+              node._inlinePlayer.lastPress = e && e.type === 'pointercancel' ? 0 : performance.now();
               node._inlinePlayer.pressing = false;
             };
             node._inlinePlayer.markPress = e => {
+              if (e.type === 'pointercancel') {
+                return endPress(e);
+              }
               node._inlinePlayer.lastPress = performance.now();
               // Held with the main button: the release can happen anywhere (dragged off the
               // video), or never reach the page (a context menu), so end it from the window,
@@ -345,8 +352,12 @@ module.exports = {
           node.addEventListener('click', node._inlinePlayer.clickToggle);
         }
 
-        // For videos wait for both to load before playing.
-        if (isVideo && (node.readyState < 3 || audio.readyState < 3)) {
+        if (opts && opts.autoplay === false) {
+          // Found already expanded in a new reply (Expand All Images): ready, but not started.
+          // It could be anywhere on the page, and would take over from what's playing.
+          showPlayerControls && addControls();
+        } else if (isVideo && (node.readyState < 3 || audio.readyState < 3)) {
+          // For videos wait for both to load before playing.
           audio.pause();
           node.pause();
           // Set the add controls function so playOnceLoaded can run it when it's ready.
@@ -497,7 +508,7 @@ module.exports = {
       posts.forEach(id => {
         const post = document.getElementById(selectors.postIdPrefix + id);
         post && post.querySelectorAll(selectors.expandedImage).forEach(media => {
-          !media._inlineAudio && Player.inline.handleAddedNode(media);
+          !media._inlineAudio && Player.inline.handleAddedNode(media, { autoplay: false });
         });
       });
     });
@@ -508,9 +519,11 @@ module.exports = {
 	 * by a stub) or by 4chan itself.
 	 */
   _inHiddenPost(node) {
-    const root = node.closest('.postContainer, .thread');
-    return !!(node.closest('[hidden], .post-hidden')
-      || (root && root.firstElementChild && root.firstElementChild.classList.contains('stub')));
+    // 4chan X puts a stub first in a hidden post or thread; 4chan hides a thread outright
+    // when it's set not to show stubs.
+    const hidden = el => el && ((el.firstElementChild && el.firstElementChild.classList.contains('stub'))
+      || el.style.display === 'none');
+    return !!(node.closest('[hidden], .post-hidden') || hidden(node.closest('.postContainer')) || hidden(node.closest('.thread')));
   },
 
   _removeForNode(node) {

@@ -10,6 +10,9 @@
 		left: 0;
 		right: 0;
 		bottom: 0;
+		// Over the media: 4chan-neXT lifts an expanded image or video (z-index 1) within its
+		// link, which hid the controls and took their clicks.
+		z-index: 2;
 	}
 
 	&:not(:hover) .#{$ns}-controls {

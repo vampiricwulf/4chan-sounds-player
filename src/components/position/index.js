@@ -174,14 +174,15 @@ module.exports = {
     const viewWidth = document.documentElement.clientWidth;
     const viewHeight = document.documentElement.clientHeight;
     nav._fcspMoved = true;
-    if (p.left >= n.width + gap * 2) {
-      // To its left, at the same height.
-      set('right', (viewWidth - p.left + gap) + 'px');
-    } else if (viewHeight - p.bottom >= n.height + gap * 2) {
+    const offsets = Player.position.getHeaderOffset();
+    if (p.left >= n.width + gap * 2 + Math.max(0, dx)) {
+      // To its left, at the same height, and docked (slid right) still clear of it.
+      set('right', (viewWidth - p.left + gap + Math.max(0, dx)) + 'px');
+    } else if (viewHeight - offsets.bottom - p.bottom >= n.height + gap * 2) {
       // A player as wide as the window (phones): below it, or above it.
       set('top', (p.bottom + gap) + 'px');
       set('bottom', 'auto');
-    } else if (p.top - Player.position.getHeaderOffset().top >= n.height + gap * 2) {
+    } else if (p.top - offsets.top >= n.height + gap * 2) {
       set('top', (p.top - gap - n.height) + 'px');
       set('bottom', 'auto');
     } else {
