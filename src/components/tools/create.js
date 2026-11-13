@@ -323,13 +323,19 @@ const createTool = module.exports = {
             if (responseVal == null || typeof responseVal === 'object' || !String(responseVal).trim()) {
               throw new PlayerError(`The upload host's response didn't include a link for ${file.name}.`, 'error');
             }
-            const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : String(responseVal)).trim();
+            // A function replacement, so '$&' and the like in the response aren't patterns.
+            const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', () => String(responseVal)) : String(responseVal)).trim();
             // uploadedUrl comes from the upload host's response — escape so a host
             // that returns HTML can't inject scripts into the status panel.
             // escAttr is used for the href attribute; escHTML for the visible text.
-            const escUrl = _.escAttr(uploadedUrl);
+            // Only link http(s) addresses (a hostile host could answer with a javascript:
+            // URL); scheme-less ones, like the file URL formats produce, get https.
+            const href = /^https?:\/\//i.test(uploadedUrl) ? uploadedUrl
+              : /^[a-z][a-z0-9+.-]*:/i.test(uploadedUrl) ? null
+                : 'https://' + uploadedUrl.replace(/^\/\//, '');
+            const shown = href ? `<a href="${_.escAttr(href)}" target="_blank">${_.escHTML(uploadedUrl)}</a>` : _.escHTML(uploadedUrl);
             const statusEl = Player.$(`.${ns}-upload-status-${idx}`);
-            statusEl && (statusEl.innerHTML = `Uploaded ${_.escHTML(file.name)} to <a href="${escUrl}" target="_blank">${_.escHTML(uploadedUrl)}</a>`);
+            statusEl && (statusEl.innerHTML = `Uploaded ${_.escHTML(file.name)} to ${shown}`);
             resolve(uploadedUrl);
           } catch (err) {
             reject(err);

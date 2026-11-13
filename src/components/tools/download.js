@@ -1,6 +1,9 @@
 const progressBarsTemplate = require('./templates/download-progress.tpl');
 const videoUtil = require('./video-util');
 
+// File types that run or render as code when opened.
+const RISKY_EXTENSIONS = /\.(exe|com|bat|cmd|scr|pif|cpl|msi|msp|hta|html?|xhtml|mht|svg|js|jse|vbs|vbe|wsf|wsh|ps1|psm1|lnk|url|reg|jar|sh|app|dmg|pkg|deb|rpm|apk)$/i;
+
 const get = (src, opts) => {
   let xhr;
   // Wrap so aborting rejects.
@@ -96,6 +99,14 @@ const downloadTool = module.exports = {
 	 */
   async download(src, name) {
     try {
+      // The name comes from the post, but keep the extension of what's actually being
+      // saved: "setup.exe[sound=...].png" would otherwise save the sound as setup.exe.
+      // Sources without one (local blob: files) keep the name unless it's an executable or
+      // script type.
+      const urlExt = (String(src).split(/[?#]/)[0].match(/\.([a-z0-9]{1,5})$/i) || [])[1];
+      name = String(name || 'download');
+      const base = name.replace(/\.[a-z0-9]{1,5}$/i, '') || 'download';
+      name = urlExt ? `${base}.${urlExt}` : RISKY_EXTENSIONS.test(name) ? base : name;
       const blob = await get(src);
       const a = _.element(`<a href="${URL.createObjectURL(blob)}" download="${_.escAttr(name)}" rel="noopener" target="_blank"></a>`);
       a.click();

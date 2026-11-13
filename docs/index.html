@@ -1194,11 +1194,11 @@ p:{ post-link dl-video-button }
   <h3 id="api-settings">Settings</h3>
   <div class="table-wrap"><table>
     <tr><th>Action</th><th>Arguments</th><th>Effect</th></tr>
-    <tr><td><code>set</code></td><td class="wrap"><code>property, value, { bypassValidation }</code></td><td>Change a setting, such as <code>'repeat', 'one'</code>. A value equal to the current one is ignored unless you pass <code>bypassValidation: true</code>.</td></tr>
+    <tr><td><code>set</code></td><td class="wrap"><code>property, value, { bypassValidation }</code></td><td>Change a setting, such as <code>'repeat', 'one'</code>. A value equal to the current one is ignored unless you pass <code>bypassValidation: true</code>. Only on/off, number and choice settings, with a value of the right type: templates, CSS, colors, hosts, filters and the allowed hosts can't be changed this way, because any script on the page can send these events.</td></tr>
     <tr><td><code>settings.reset</code></td><td><code>property</code></td><td>Put one setting back to its default.</td></tr>
     <tr><td><code>settings.export</code></td><td></td><td>Download your settings, as the Export button does.</td></tr>
     <tr><td><code>settings.import</code></td><td></td><td>Open a file picker to import settings.</td></tr>
-    <tr><td><code>settings.load</code></td><td class="wrap"><code>settings, { applyDefault }</code></td><td>Load a settings object. With <code>applyDefault: true</code>, anything not in the object goes back to its default. Otherwise it's left as it is.</td></tr>
+    <tr><td><code>settings.load</code></td><td class="wrap"><code>settings</code></td><td>Load a settings object. Anything not in it is left as it is. Like <code>set</code>, it only applies on/off, number and choice settings.</td></tr>
   </table></div>
   <pre><code>// Turn on shuffle and switch to the Fixed Playlist theme
 const send = (action, ...args) =&gt; document.dispatchEvent(

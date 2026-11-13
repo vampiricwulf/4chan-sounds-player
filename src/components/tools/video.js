@@ -50,21 +50,18 @@ function fetchBytes(url, onProgress) {
   });
 }
 
-// Fetch a URL as text (GM.xhr).
-function fetchText(url) {
-  return new Promise((resolve, reject) => {
-    GM.xmlHttpRequest({
-      method: 'GET',
-      url,
-      responseType: 'text',
-      onload: r => r.status >= 400 ? reject(httpError(r)) : resolve(r.responseText),
-      onerror: reject
-    });
-  });
+// Refuse a download that isn't byte-for-byte the pinned file: it's about to be run.
+async function verifySha256(bytes, expected) {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  const hex = Array.from(digest, b => b.toString(16).padStart(2, '0')).join('');
+  if (hex !== expected) {
+    throw new PlayerError('The video encoder download failed its integrity check.', 'error');
+  }
 }
 
 // Above this, measure the audio with the ffmpeg probe rather than a full WebAudio decode.
-const MAX_DECODE_BYTES = 20 * 1024 * 1024;
+// (Decoded PCM is ~10x the compressed size, so this caps it around 100MB.)
+const MAX_DECODE_BYTES = 8 * 1024 * 1024;
 
 const videoTool = module.exports = {
   _ffmpeg: null,
@@ -174,10 +171,13 @@ const videoTool = module.exports = {
     videoTool._loadingPromise = (async () => {
       if (!videoTool._createCore) {
         // The wasm is ~31MB and dominates the wait, so it drives the progress ratio.
-        const [ coreText, wasmBytes ] = await Promise.all([
-          fetchText(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
+        const [ coreBytes, wasmBytes ] = await Promise.all([
+          fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.js`),
           fetchBytes(`${cfg.FFMPEG_CORE_BASE}/ffmpeg-core.wasm`, onProgress)
         ]);
+        await verifySha256(coreBytes, cfg.FFMPEG_CORE_JS_SHA256);
+        await verifySha256(wasmBytes, cfg.FFMPEG_CORE_WASM_SHA256);
+        const coreText = new TextDecoder().decode(coreBytes);
         // Load the core glue and capture the factory. The UMD is `var createFFmpegCore = …`;
         // read it back as the eval COMPLETION VALUE (resolved by binding) rather than via
         // `self`, because the Firefox userscript sandbox doesn't mirror an eval'd global var
@@ -235,8 +235,11 @@ const videoTool = module.exports = {
   // so pass a copy. One shared context is reused across a batch (browsers cap the
   // number of AudioContexts). Callers fall back to _probeDurationFFmpeg if this rejects.
   async audioDuration(bytes) {
+    // An offline context only decodes; it doesn't hold an audio output open for the rest
+    // of the session.
+    const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
     const AC = window.AudioContext || window.webkitAudioContext;
-    _audioCtx = _audioCtx || new AC();
+    _audioCtx = _audioCtx || (OAC ? new OAC(1, 1, 44100) : new AC());
     const decoded = await _audioCtx.decodeAudioData(bytes.slice().buffer);
     return decoded.duration;
   },

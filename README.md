@@ -227,8 +227,8 @@ For example, `{ action: 'next', arguments: [ { group: true } ] }`.
 - `theme.switch(name)` - Switch theme.
 - `theme.next()` - Switch to the next theme, according to the configured order.
 - `theme.previous()` - Switch to the previous theme, according to the configured order.
-- `set(property, value, { bypassValidation } )` - Set a config value. If `bypassValidation` is not set the value will be checked for changes and ignored if it's the same.
+- `set(property, value, { bypassValidation } )` - Set a config value. If `bypassValidation` is not set the value will be checked for changes and ignored if it's the same. Only on/off, number and choice settings can be set this way, with a value of the right type; templates, CSS, colors, hosts, filters and the allowed hosts can't, since any script on the page can send these events.
 - `settings.reset(property)` - Reset a config value to its default.
 - `settings.export()` - Trigger an export of the user settings.
 - `settings.import()` - Trigger a file input to import user settings.
-- `settings.load(settings, { applyDefault: false })` - Load a user settings object. If `applyDefault` is set any settings not included in the given object will be set to the default. Otherwise they are left unchanged.
+- `settings.load(settings)` - Load a user settings object. Settings not included are left unchanged. As with `set`, only on/off, number and choice settings are applied; the rest are ignored.

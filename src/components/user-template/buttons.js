@@ -188,18 +188,18 @@ module.exports = [
   {
     tplName: 'remove',
     requireSound: true,
-    action: data => `remove("${data.sound.id}")`,
+    action: data => `remove("${_.escAttr(data.sound.id, true)}")`,
     icon: Icons.trash,
     attrs: data => [
       'title="Filter the image."',
-      `data-id="${data.sound.id}"`
+      `data-id="${_.escAttr(data.sound.id)}"`
     ]
   },
   {
     tplName: 'menu',
     requireSound: true,
     class: `${ns}-item-menu-button`,
-    action: data => `playlist.handleItemMenu($event, "${data.sound.id}")`,
+    action: data => `playlist.handleItemMenu($event, "${_.escAttr(data.sound.id, true)}")`,
     actionMods: '.prevent.stop',
     icon: Icons.chevronDown
   },

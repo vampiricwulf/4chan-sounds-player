@@ -313,7 +313,9 @@ module.exports.escAttr = function (str, escapeDoubleQuote) {
       case '>': return '&gt;';
       case '\\': return '\\\\';
       case ';': return '&#59;';
-      case "'": return '&#39;';
+      // Both quotes are backslash-escaped so the value is safe inside a JS string with
+      // either delimiter (a bare &#39; decoded back to a quote that ended a '...' string).
+      case "'": return '\\&#39;';
       case '"': return '\\&#34;';
       case '\n': return '\\n';
       case '\r': return '\\r';

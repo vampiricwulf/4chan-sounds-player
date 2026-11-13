@@ -101,3 +101,24 @@ assert.strictEqual(p.compileAction('x = 1', resolve), null, 'not a call');
 assert.strictEqual(p.compileAction('next({ paused: !x })', resolve), null, 'expression object value');
 
 console.log('parse-action: all assertions passed');
+
+// --- escAttr(x, true) survives both JS quote styles after HTML attribute decoding ---
+{
+  global.Player = global.Player || {};
+  const esc = require('../src/_.js').escAttr;
+  const htmlDecode = s => s.replace(/&#39;/g, '\'').replace(/&#34;/g, '"').replace(/&#59;/g, ';').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+  const nasty = 'a\'b"c\\d;e\nf<g>&h x\'),alert(1),(\'';
+  for (const q of [ '"', '\'' ]) {
+    const handler = htmlDecode(`f(${q}${esc(nasty, true)}${q})`);
+    const args = [];
+    const run = p.compileAction(handler, path => path === 'f' ? { fn: (...a) => args.push(...a), scope: null } : null);
+    assert(run, `parses with ${q} quotes: ${handler}`);
+    run();
+    assert.strictEqual(args[0], nasty, `round-trips with ${q} quotes`);
+    // And as real JS (what the new Function fallback would run): still one string argument.
+    let got;
+    new Function('f', handler)(v => { got = v; });
+    assert.strictEqual(got, nasty, `JS with ${q} quotes`);
+  }
+}
+console.log('parse-action (escAttr quotes): all assertions passed');

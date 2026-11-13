@@ -4,6 +4,10 @@
 module.exports = {
   // @ffmpeg/core 0.12.10 UMD build (ffmpeg-core.js + ffmpeg-core.wasm).
   FFMPEG_CORE_BASE: 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd',
+  // SHA-256 of those two files. The core is eval'd with the userscript's privileges, so
+  // it's only run if it's exactly the pinned release (update these with the version).
+  FFMPEG_CORE_JS_SHA256: 'b266ab5b952555881dd6310663986994a182acb2b7ff25cf10a25f7a37ac2b21',
+  FFMPEG_CORE_WASM_SHA256: '9f57947a5bd530d8f00c5b3f2cb2a3492faa7e5d823315342d6a8656d0a6b7b7',
   AUDIO_BITRATE: '192k',
   // A still's picture never changes, so encode exactly ONE frame and let it span
   // the whole track — the cheapest possible encode and the smallest possible file.

@@ -76,16 +76,21 @@ const Player =
           // Render the player, but not neccessarily show it.
           await Player.display.render();
 
-          // Expose some functionality via PlayerEvent custom events.
+          // Expose some functionality via PlayerEvent custom events. Any script on the page
+          // can send these, so only the public actions (in every build: the development
+          // bypass exposed every function), and settings changes go through the restricted
+          // versions: a template set this way runs its handlers with the userscript's
+          // privileges (cross-site requests with the user's cookies).
+          const restricted = {
+            set: Player.settings.setPublic,
+            'settings.load': Player.settings.loadPublic
+          };
           document.addEventListener('PlayerEvent', (e) => {
-            if (
-              e.detail.action &&
-              (MODE === 'development' ||
-                Player._public.includes(e.detail.action))
-            ) {
-              return _.get(Player, e.detail.action).apply(
+            const action = e.detail && e.detail.action;
+            if (action && Player._public.includes(action)) {
+              return (restricted[action] || _.get(Player, action)).apply(
                 window,
-                e.detail.arguments,
+                [].concat(e.detail.arguments || []),
               );
             }
           });
@@ -151,6 +156,11 @@ const Player =
             ? _origSrc.replace(/^(https?:)?\/\//, '')
             : null;
           const host = link.hostname.toLowerCase();
+          // No hostname (blob:, data:, about:) can't be checked against the allow list;
+          // only local files have those, and they skip this check.
+          if (!host) {
+            return { invalid: true };
+          }
           const result = {};
           result.host =
             !Player.config.allow.find(
@@ -203,7 +213,8 @@ const Player =
         console.error('[4chan sounds player]', message, error);
         if (error instanceof PlayerError) {
           error.error && console.error('[4chan sound player]', error.error);
-          message = error.reason;
+          // Reasons are plain text that can include file or sound names; alerts are HTML.
+          message = _.escHTML(error.reason);
           type = error.type || type;
         }
         Player.alert(message, type || 'error', 5);
@@ -217,7 +228,11 @@ const Player =
           // Send plain text: an Element in the detail doesn't survive the trip between
           // separate script sandboxes (or 4chan X's extension build), so the notice never
           // appeared there. 4chan X renders string content as text.
-          const detail = { content: _.element(`<span>${content}</span>`).textContent, type, lifetime };
+          // Parsed in a <template>, which is inert: _.element would also wire up @event
+          // attributes and let images load.
+          const parsed = document.createElement('template');
+          parsed.innerHTML = content;
+          const detail = { content: parsed.content.textContent, type, lifetime };
           document.dispatchEvent(
             new CustomEvent('CreateNotification', {
               bubbles: true,
