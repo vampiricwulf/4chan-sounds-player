@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.604
+// @version      3.7.2.606
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -2175,8 +2175,16 @@ module.exports = {
       // That's inside 4chan's post form (#delform): Enter in one of the player's text fields
       // submitted it, clicking the player's first button (Create, which uploads) or the
       // form's Delete button. Enter in a field does nothing beyond the field's own handling.
-      Player.container.addEventListener('keydown', e => {
-        e.key === 'Enter' && e.target.nodeName === 'INPUT' && e.target.form && e.preventDefault();
+      // Stopped on keypress, where browsers submit, so keydown still reaches hotkeys (an
+      // Enter binding in the search box), and only for text fields (Enter opens a file
+      // picker). The change Enter would have made is still sent.
+      const textTypes = [ 'text', 'search', 'number', 'url', 'email', 'password', 'tel' ];
+      Player.container.addEventListener('keypress', e => {
+        const input = e.target;
+        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && textTypes.includes(input.type)) {
+          e.preventDefault();
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       });
 
       await Player.trigger('rendered');
@@ -3623,8 +3631,15 @@ module.exports = {
             // Without the player's controls, the video's own controls are the only ones:
             // pressing play, pause or seeking on them acts on the sound. (Only for the user's
             // own presses: 4chan X pausing it off-screen shouldn't stop the sound.)
-            const ownControls = !(isExpandedImage && Player.config.expandedControls);
-            const byUser = () => ownControls && (!navigator.userActivation || navigator.userActivation.isActive);
+            const ownControls = isExpandedImage && !Player.config.expandedControls;
+            // A press on the video itself in the last moment: not the sync's own pauses, a
+            // loop wrapping round, or 4chan X pausing it (which a click anywhere else
+            // shortly before used to count as).
+            node._inlinePlayer.lastPress = 0;
+            node._inlinePlayer.markPress = () => node._inlinePlayer.lastPress = performance.now();
+            ownControls && node.addEventListener('pointerdown', node._inlinePlayer.markPress);
+            ownControls && node.addEventListener('keydown', node._inlinePlayer.markPress);
+            const byUser = () => ownControls && performance.now() - node._inlinePlayer.lastPress < 1000;
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
@@ -3778,6 +3793,8 @@ module.exports = {
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
+    node._inlinePlayer.markPress && node.removeEventListener('pointerdown', node._inlinePlayer.markPress);
+    node._inlinePlayer.markPress && node.removeEventListener('keydown', node._inlinePlayer.markPress);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
@@ -5556,7 +5573,8 @@ module.exports = {
 	 * Go back to the saved size (or the default one) after a temporary resize.
 	 */
   async restoreSize() {
-    if (!Player.position._temporarySize || !Player.container) {
+    // Not in fullscreen, where resizing does nothing: keep the note for leaving it.
+    if (!Player.position._temporarySize || !Player.container || Player.config.viewStyle === 'fullscreen') {
       return;
     }
     Player.position._temporarySize = false;
@@ -6529,7 +6547,7 @@ module.exports = {
     Player.settings.set('uploadHosts', hosts, { bypassValidation: true, bypassRender: true });
     // The default can't be a host that's gone: make the first remaining one the default.
     if (Player.config.defaultUploadHost === name) {
-      const next = Object.keys(hosts).find(key => hosts[key]);
+      const next = Object.keys(hosts).find(key => hosts[key] && !hosts[key].invalid);
       next && Player.set('defaultUploadHost', next);
       Player.settings.renderSetting(Player.settings.findDefault('uploadHosts'));
     }
@@ -6625,10 +6643,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.604") {
+    if (storedVersion !== "3.7.2.606") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.604"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.606"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6944,7 +6962,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.604";
+      settings.VERSION = "3.7.2.606";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6960,7 +6978,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.604") {
+    if (!fromVersion || fromVersion === "3.7.2.606") {
       return {};
     }
     const changes = {};
@@ -7464,7 +7482,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.604"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.606"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -7647,7 +7665,8 @@ module.exports = {
     if (name !== 'Default' && !Player.config.savedThemes[name]) {
       return Player.logError(`Theme '${_.escHTML(name)}' does not exist.`, null, 'warning');
     }
-    const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
+    // Only what switching to it could have set.
+    const previous = Player.theme._themeFieldsOf(Player.config.savedThemes[Player.config.selectedTheme]);
     // Apply only the settings a theme can hold. Themes can be imported or shared, and one
     // with other settings (the allow list, upload hosts) would change those too.
     const next = name === 'Default' ? {} : Player.theme._themeFieldsOf(Player.config.savedThemes[name]);
@@ -7660,7 +7679,8 @@ module.exports = {
     const props = new Set(name === 'Default' ? [ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ] : []);
     settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => {
       const themeValue = s.property && _.get(previous, s.property);
-      themeValue !== undefined && _.get(next, s.property) === undefined
+      // Keybinds a theme brought stay: resetting them stopped Next Theme after one press.
+      themeValue !== undefined && !s.property.startsWith('hotkey_bindings.') && _.get(next, s.property) === undefined
         && _.isEqual(_.get(Player.config, s.property), themeValue) && props.add(s.property);
     });
     props.forEach(prop => {
@@ -7818,7 +7838,8 @@ module.exports = {
 	 * Enter in the theme name box saves, like the Create/Update link.
 	 */
   handleNameKey(e) {
-    if (e.key === 'Enter') {
+    // Not the Enter that confirms an IME conversion.
+    if (e.key === 'Enter' && !e.isComposing) {
       e.preventDefault();
       Player.theme.save();
     }
@@ -8553,8 +8574,9 @@ const createTool = module.exports = {
           soundURLs = soundURLs.map(url => {
             const bare = url.replace(/^(https?:)?\/\//, '');
             // Browsers accept a lot as a URL ("not a url at all" included): require a host
-            // with a dot and no spaces.
-            if (/\s/.test(bare) || !new URL('https://' + bare).hostname.includes('.')) {
+            // with a dot and no spaces (spaces in the path are fine).
+            const host = bare.split(/[/?#]/)[0];
+            if (/\s/.test(host) || !host.includes('.') || !new URL('https://' + bare).hostname) {
               throw new Error('Invalid URL');
             }
             return bare;
@@ -10403,7 +10425,8 @@ const deadRE = /d: ?{([^}]*)}/g;
 // Render the inner content only when the user has removed sounds from the playlist.
 const removedRE = /\br: ?{([^}]*)}/g;
 // Any block whose content holds no other block: applied innermost first, so blocks can nest.
-const innermostBlockRE = /\b([pdhr]): ?{([^{}]*)}/g;
+// (r:{ has to start a word; the others never did, so "sound-titleh:{…}" keeps working.)
+const innermostBlockRE = /(?:\b(r)|([pdh])): ?{([^{}]*)}/g;
 // Create a regex to find buttons/links, ignore matches if the button/link name is itself a regex.
 const tplNames = buttons.map(conf => `${conf.tplName.source && conf.tplName.source.replace(/\(/g, '(?:') || conf.tplName}`);
 const buttonRE = new RegExp(`(${tplNames.join('|')})-(?:button|link)(?:\\:"([^"]+?)")?`, 'g');
@@ -10475,9 +10498,12 @@ module.exports = {
       let before;
       do {
         before = html;
-        html = html.replace(innermostBlockRE, (m, kind, inner) => kind === 'h'
-          ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
-          : shows[kind]() ? inner : '');
+        html = html.replace(innermostBlockRE, (m, r, other, inner) => {
+          const kind = r || other;
+          return kind === 'h'
+            ? `<span class="${ns}-hover-display ${outerClass}">${inner}</span>`
+            : shows[kind]() ? inner : '';
+        });
       } while (html !== before);
     }
     !data.ignoreButtons && (html = html.replace(buttonRE, function (full, type, text) {
@@ -10546,7 +10572,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.604"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.606"));
 
     // Apply any specific replacements
     if (data.replacements) {
