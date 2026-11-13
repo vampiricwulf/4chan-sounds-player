@@ -319,10 +319,11 @@ const createTool = module.exports = {
                 ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
                 : response.responseText;
             // A host that answers 200 with an error body has no link at the expected place.
-            if (typeof responseVal !== 'string' || !responseVal.trim()) {
+            // (A number is fine, e.g. a file id used with the file URL format.)
+            if (responseVal == null || typeof responseVal === 'object' || !String(responseVal).trim()) {
               throw new PlayerError(`The upload host's response didn't include a link for ${file.name}.`, 'error');
             }
-            const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : responseVal).trim();
+            const uploadedUrl = (host.soundUrl ? host.soundUrl.replace('%s', responseVal) : String(responseVal)).trim();
             // uploadedUrl comes from the upload host's response — escape so a host
             // that returns HTML can't inject scripts into the status panel.
             // escAttr is used for the href attribute; escHTML for the visible text.

@@ -18,6 +18,10 @@ module.exports = (env, argv) => {
   // Beta and dev builds are published on every commit, so they need a version that only
   // goes up for userscript managers to offer the update: append the commit count. (The
   // old commit-hash suffix compared as text, in random order.) CI checks out full history.
+  if (env['build-number'] && execSync('git rev-parse --is-shallow-repository').toString().trim() === 'true') {
+    // A shallow clone's commit count is far too low, so the version would go backwards.
+    throw new Error('Beta/dev builds need the full git history (git fetch --unshallow).');
+  }
   const buildNumber = env['build-number'] && execSync('git rev-list --count HEAD').toString().trim();
   const version = pkg.version + (buildNumber ? '.' + buildNumber : env['append-hash'] ? '-' + hash : '');
   const githubRequire = '// @require$1' + (env.gitcdn ? 'https://gitcdn.link/repo' : 'https://raw.githubusercontent.com');
