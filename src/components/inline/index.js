@@ -9,7 +9,9 @@ module.exports = {
 
   // Similar but not exactly the audio events in the controls component.
   mediaEvents: {
-    ended: evt => Player.inline._movePlaying(evt.currentTarget.dataset.id, +(Player.config.expandedRepeat !== 'one')),
+    // The master may be the post's video (expandedLoopMaster), which has no inline audio
+    // id of its own, so resolve the linked audio element first.
+    ended: evt => Player.inline._movePlaying((evt.currentTarget._inlineAudio || evt.currentTarget).dataset.id, +(Player.config.expandedRepeat !== 'one')),
     pause: 'controls.handleMediaEvent',
     play: 'controls.handleMediaEvent',
     seeked: 'controls.handleMediaEvent',
@@ -303,9 +305,12 @@ module.exports = {
   _movePlaying(audioId, dir) {
     const audio = Player.inline.audio[audioId];
     const data = audio && audio._inlinePlayer;
+    if (!data) {
+      return;
+    }
     const count = data.sounds.length;
     const repeat = Player.config.expandedRepeat;
-    if (data && (repeat !== 'none' || data.index + dir >= 0 && data.index + dir < count)) {
+    if (repeat !== 'none' || data.index + dir >= 0 && data.index + dir < count) {
       data.index = (data.index + dir + count) % count;
       // Cancel any pending rerouter swap so its onLoad/onError listeners can't
       // fire against the navigated src and revert to the previous sound.
