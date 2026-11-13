@@ -1529,7 +1529,8 @@ module.exports = {
     const to = from._linked;
     if (from && from.readyState > 3 && to && to.readyState > 3) {
       to.currentTime = from.currentTime % to.duration;
-      to[from.paused ? 'pause' : 'play']();
+      // play() rejects when a newer load or pause interrupts it; that's expected here.
+      from.paused ? to.pause() : to.play().catch(() => {});
       to.playbackRate = from.playbackRate;
       to.defaultPlaybackRate = from.defaultPlaybackRate;
     }
@@ -1863,7 +1864,8 @@ module.exports = {
   async render() {
     try {
       if (Player.container) {
-        document.body.removeChild(Player.container);
+        // remove(), not body.removeChild: in native threads the container is in .board.
+        Player.container.remove();
         // Don't detach the stylesheet — we just rewrite its innerHTML below.
         // Detaching it here without re-attachment leaves the page un-styled on
         // any subsequent render() call (the `||` below preserves the detached node).
@@ -2310,7 +2312,7 @@ module.exports = (data = {}) => `<div class="${ns}-menu ${ns}-dialog dialog" id=
 (module, __unused_webpack_exports, __webpack_require__) {
 
 /* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
-const { compileAction } = __webpack_require__(/*! ./parse-action */ "./src/components/events/parse-action.js");
+const { compileAction, splitStatements } = __webpack_require__(/*! ./parse-action */ "./src/components/events/parse-action.js");
 
 module.exports = {
   atRoot: ['on', 'off', 'trigger'],
@@ -2399,17 +2401,21 @@ module.exports = {
     //   2. compileAction — parse a simple `method(args)` call and dispatch without
     //      eval, so arg-bearing handlers work under CSPs lacking 'unsafe-eval'.
     //   3. new Function — the general fallback (blocked by such CSPs, hence 1 & 2).
+    // Several statements (`a.b;c.d($event)`) are resolved one by one and run in order.
+    // They used to fall through to new Function, where a bare `a.b` is only referenced,
+    // never called.
+    const statements = action ? splitStatements(action) : [];
+    const compiled = statements && statements.map(Player.events._compileStatement);
     let handler =
       action &&
-      (Player.getHandler(action) ||
-        compileAction(action, path => {
-          const fn = _.get(Player, path);
-          if (typeof fn !== 'function') {
-            return null;
+      (compiled && compiled.length && compiled.every(Boolean) && (compiled.length === 1
+        ? compiled[0]
+        : function (...args) {
+          let result;
+          for (const fn of compiled) {
+            result = fn.apply(this, args);
           }
-          const lastDot = path.lastIndexOf('.');
-          const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
-          return { fn, scope };
+          return result;
         }) ||
         function ($event) {
           try {
@@ -2477,6 +2483,26 @@ module.exports = {
   },
 
   /**
+   * Resolve one handler statement without eval: a bare method path, or a simple
+   * `method(args)` call. Returns a function or null.
+   */
+  _compileStatement(statement) {
+    const fn = Player.getHandler(statement);
+    if (typeof fn === 'function') {
+      return fn;
+    }
+    return compileAction(statement, path => {
+      const fn = _.get(Player, path);
+      if (typeof fn !== 'function') {
+        return null;
+      }
+      const lastDot = path.lastIndexOf('.');
+      const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
+      return { fn, scope };
+    });
+  },
+
+  /**
    * Create an event listener on the player.
    *
    * @param {String} evt The name of the events.
@@ -2511,9 +2537,16 @@ module.exports = {
    * @param {*} data Data passed to the handler.
    */
   async trigger(evt, ...data) {
-    const events = Player.events._events[evt] || [];
+    // Iterate a copy: a handler that removes itself (threads._initialFetch does) would
+    // otherwise make the loop skip the handler after it.
+    const events = (Player.events._events[evt] || []).slice();
     for (let handler of events) {
-      await handler(...data);
+      // One failing handler shouldn't stop the rest of the components reacting.
+      try {
+        await handler(...data);
+      } catch (err) {
+        console.error(`[4chan sounds player] Error handling '${evt}'`, err);
+      }
     }
   },
 
@@ -2550,9 +2583,9 @@ module.exports = {
 // (e.g. some archives). Returns null for anything it can't safely parse — the
 // caller then falls back to new Function. Kept Player-free so it's unit-testable.
 
-// Split a comma-separated arg list at top level (respecting quotes / brackets /
-// braces / parens). Returns an array of trimmed sources, or null if unbalanced.
-function splitArgs(src) {
+// Split src at top-level `sep` characters (respecting quotes / brackets / braces /
+// parens). Returns an array of trimmed sources, or null if unbalanced.
+function splitTopLevel(src, sep) {
   src = src.trim();
   if (src === '') {
     return [];
@@ -2579,7 +2612,7 @@ function splitArgs(src) {
     } else if (c === '}' || c === ']' || c === ')') {
       depth--;
       cur += c;
-    } else if (c === ',' && depth === 0) {
+    } else if (c === sep && depth === 0) {
       out.push(cur.trim());
       cur = '';
     } else {
@@ -2591,6 +2624,18 @@ function splitArgs(src) {
   }
   out.push(cur.trim());
   return out;
+}
+
+// Split a comma-separated arg list at top level.
+function splitArgs(src) {
+  return splitTopLevel(src, ',');
+}
+
+// Split a handler like `a.b;c.d($event)` into its statements, dropping empty ones (a
+// trailing `;`). A `;` inside a string argument doesn't split. Null if unbalanced.
+function splitStatements(src) {
+  const parts = splitTopLevel(src, ';');
+  return parts && parts.filter(Boolean);
 }
 
 // Un-escape a single/double quoted string literal to its value, or null if malformed.
@@ -2743,7 +2788,7 @@ function compileAction(action, resolve) {
   };
 }
 
-module.exports = { compileAction, splitArgs, parseString, parseObject, compileArg, topColon };
+module.exports = { compileAction, splitArgs, splitStatements, parseString, parseObject, compileArg, topColon };
 
 
 /***/ },
@@ -2855,12 +2900,18 @@ module.exports = {
         }
       }
 
-      // Keep the media metadata updated.
-      Player.audio.addEventListener('pause', () => navigator.mediaSession.playbackState = 'paused');
-      Player.audio.addEventListener('ended', () => navigator.mediaSession.playbackState = 'paused');
-      Player.audio.addEventListener('play', Player.hotkeys.setMediaMetadata);
-      Player.audio.addEventListener('ratechange', Player.hotkeys.setMediaPosition);
-      Player.audio.addEventListener('seeked', Player.hotkeys.setMediaPosition);
+      // Keep the media metadata updated. Standalone videos play through the video
+      // element, so listen on both and only act for whichever is currently playing.
+      const paused = () => navigator.mediaSession.playbackState = 'paused';
+      const listen = media => [
+        [ 'pause', paused ],
+        [ 'ended', paused ],
+        [ 'play', Player.hotkeys.setMediaMetadata ],
+        [ 'ratechange', Player.hotkeys.setMediaPosition ],
+        [ 'seeked', Player.hotkeys.setMediaPosition ]
+      ].forEach(([ evt, fn ]) => media.addEventListener(evt, e => e.currentTarget === Player.audio && fn()));
+      listen(Player.audio);
+      Player.on('rendered', () => Player.video && listen(Player.video));
       Player.on('tags-loaded', sound => sound === Player.playing && Player.hotkeys.setMediaMetadata());
     }
   },
@@ -2909,11 +2960,17 @@ module.exports = {
   },
 
   setMediaPosition() {
-    navigator.mediaSession.setPositionState({
-      duration: Player.audio.duration || 0,
-      playbackRate: Player.audio.playbackRate,
-      position: Player.audio.currentTime
-    });
+    const { duration, playbackRate, currentTime } = Player.audio;
+    // setPositionState throws unless 0 <= position <= a finite duration and the rate is
+    // non-zero, e.g. before metadata has loaded.
+    if (!isFinite(duration) || !(duration > 0) || !playbackRate) {
+      return;
+    }
+    try {
+      navigator.mediaSession.setPositionState({ duration, playbackRate, position: Math.min(currentTime, duration) });
+    } catch (err) {
+      // Not supported in this browser.
+    }
   },
 
   addHandler: () => {
@@ -3199,7 +3256,8 @@ module.exports = {
           node.controlsObserver = new MutationObserver(() => node.controls = false);
           node.controlsObserver.observe(node, { attributes: true });
           // Play/pause the audio instead when the video is clicked.
-          node.addEventListener('click', () => Player.inline.playPause(aId));
+          node._inlinePlayer.clickToggle = () => Player.inline.playPause(aId);
+          node.addEventListener('click', node._inlinePlayer.clickToggle);
         }
 
         // For videos wait for both to load before playing.
@@ -3271,6 +3329,8 @@ module.exports = {
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
+    // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
+    node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
     // Remove controls.
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {
@@ -3831,17 +3891,32 @@ module.exports = {
       const canvas = document.createElement('canvas');
       const video = document.createElement('video');
       const context = canvas.getContext('2d');
+      let added = false;
       video.addEventListener('seeked', function () {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-        thumbSrc = canvas.toDataURL();
+        if (video.videoWidth && video.videoHeight) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+          thumbSrc = canvas.toDataURL();
+        } else {
+          thumbSrc = null;
+        }
         _continue();
-      });
+      }, { once: true });
+      // A video the browser can't decode never seeks, which silently dropped the file.
+      // Add it anyway, just without a thumbnail.
+      video.addEventListener('error', () => {
+        thumbSrc = null;
+        _continue();
+      }, { once: true });
       video.src = imageSrc;
       video.currentTime = 0.001;
 
       function _continue() {
+        if (added) {
+          return;
+        }
+        added = true;
         const { sounds } = Player.posts.getSounds(
           file.name,
           imageSrc,
@@ -3850,7 +3925,11 @@ module.exports = {
           null,
           true,
         );
-        sounds.forEach((sound) => Player.add({ ...sound, local: true, type }));
+        // getSounds only picks the thumbnail for URLs ending in .webm/.mp4, and a blob:
+        // URL doesn't, so a local video's image would be the video itself, which an <img>
+        // shows as broken. Use the extracted frame (or the placeholder without one).
+        const isVideoFile = type === 'video/webm' || type === 'video/mp4';
+        sounds.forEach((sound) => Player.add({ ...sound, local: true, type, ...(isVideoFile && { imageOrThumb: thumbSrc, thumb: thumbSrc }) }));
       }
     });
   },
@@ -4269,10 +4348,14 @@ module.exports = {
    */
   expandImageStart(e) {
     if (
-      e.button === 0 &&
-      !Player.isHidden &&
-      Player.config.viewStyle === 'playlist'
+      e.button !== 0 ||
+      Player.isHidden ||
+      Player.config.viewStyle !== 'playlist'
     ) {
+      // Don't start a drag: expandImage would resize from stale or undefined start values
+      // (e.g. a right-button drag).
+      e.preventDrag = true;
+    } else {
       Player.$(`.${ns}-image-link`).style.cursor = 'ns-resize';
       Player._imageResizeStartY = ((e.touches && e.touches[0]) || e).clientY;
       Player._imageResizeStartHeight = Player.config.imageHeight;
@@ -4533,32 +4616,40 @@ module.exports = {
 
       if (Player.config.limitPostWidths) {
         Player.position.setPostWidths();
-        window.addEventListener('scroll', Player.position.setPostWidths);
+        window.addEventListener('scroll', Player.position._scheduleWidths, { passive: true });
       }
     });
 
     // Remove post width limiting when the player is hidden.
     Player.on('hide', function () {
       Player.position.setPostWidths();
-      window.removeEventListener('scroll', Player.position.setPostWidths);
+      window.removeEventListener('scroll', Player.position._scheduleWidths, { passive: true });
     });
 
     // Reapply the post width limiting config values when they're changed.
     Player.on('config', prop => {
       if (prop === 'limitPostWidths' || prop === 'minPostWidth') {
-        window.removeEventListener('scroll', Player.position.setPostWidths);
+        window.removeEventListener('scroll', Player.position._scheduleWidths, { passive: true });
         Player.position.setPostWidths();
         if (Player.config.limitPostWidths) {
-          window.addEventListener('scroll', Player.position.setPostWidths);
+          window.addEventListener('scroll', Player.position._scheduleWidths, { passive: true });
         }
       }
     });
 
-    // Remove post width limit from inline quotes
-    new MutationObserver(function () {
-      document.querySelectorAll('#hoverUI .postContainer, .inline .postContainer, .backlink_container article').forEach(post => {
-        post.style.maxWidth = null;
-        post.style.minWidth = null;
+    // Remove post width limit from inline quotes. Only when nodes were added, and at most
+    // once a frame: this observes the whole page, which changes constantly.
+    let resetFrame = null;
+    new MutationObserver(function (mutations) {
+      if (resetFrame || !mutations.some(m => m.addedNodes.length)) {
+        return;
+      }
+      resetFrame = requestAnimationFrame(() => {
+        resetFrame = null;
+        document.querySelectorAll('#hoverUI .postContainer, .inline .postContainer, .backlink_container article').forEach(post => {
+          post.style.maxWidth && (post.style.maxWidth = null);
+          post.style.minWidth && (post.style.minWidth = null);
+        });
       });
     }).observe(document.body, {
       childList: true,
@@ -4583,24 +4674,52 @@ module.exports = {
 	 * Applies a max width to posts next to the player so they don't get hidden behind it.
 	 */
   setPostWidths() {
-    const offset = (document.documentElement.clientWidth - Player.container.offsetLeft) + 10;
     const enabled = !Player.isHidden && Player.config.limitPostWidths;
-    const startY = Player.container.offsetTop;
-    const endY = Player.container.getBoundingClientRect().height + startY;
+    const posts = document.querySelectorAll(selectors.limitWidthOf);
+    let limits = [];
+    let maxWidthCss = '';
+    let minWidthCss = '';
 
-    const minWidth = Player.config.minPostWidth;
-    // Coerce a bare number/numeric-string to a px value; pass through any string that
-    // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
-    // numbers as raw CSS which browsers reject.
-    const minWidthCss = minWidth == null || minWidth === ''
-      ? null
-      : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+    if (enabled) {
+      const offset = (document.documentElement.clientWidth - Player.container.offsetLeft) + 10;
+      const startY = Player.container.offsetTop;
+      const endY = Player.container.getBoundingClientRect().height + startY;
+      maxWidthCss = `calc(100% - ${offset}px)`;
 
-    document.querySelectorAll(selectors.limitWidthOf).forEach(post => {
-      const rect = enabled && post.getBoundingClientRect();
-      const limitWidth = enabled && rect.top + rect.height > startY && rect.top < endY;
-      post.style.maxWidth = limitWidth ? `calc(100% - ${offset}px)` : null;
-      post.style.minWidth = limitWidth && minWidthCss ? minWidthCss : null;
+      const minWidth = Player.config.minPostWidth;
+      // Coerce a bare number/numeric-string to a px value; pass through any string that
+      // already includes a CSS unit (e.g. "40em", "300px"). Previous code emitted bare
+      // numbers as raw CSS which browsers reject.
+      minWidthCss = minWidth == null || minWidth === ''
+        ? ''
+        : (/^[0-9.]+$/.test(String(minWidth)) ? `${minWidth}px` : String(minWidth));
+
+      // Read every position before writing any style. Interleaving them forced a layout
+      // per post on each call, and this runs on scroll.
+      limits = Array.from(posts, post => {
+        const rect = post.getBoundingClientRect();
+        return rect.bottom > startY && rect.top < endY;
+      });
+    }
+
+    posts.forEach((post, i) => {
+      const maxWidth = limits[i] ? maxWidthCss : '';
+      const minWidth = limits[i] ? minWidthCss : '';
+      post.style.maxWidth !== maxWidth && (post.style.maxWidth = maxWidth);
+      post.style.minWidth !== minWidth && (post.style.minWidth = minWidth);
+    });
+  },
+
+  /**
+   * Update post widths at most once a frame (scroll fires far more often).
+   */
+  _scheduleWidths() {
+    if (Player.position._widthsFrame) {
+      return;
+    }
+    Player.position._widthsFrame = requestAnimationFrame(() => {
+      Player.position._widthsFrame = null;
+      Player.position.setPostWidths();
     });
   },
 
@@ -5227,8 +5346,14 @@ module.exports = {
   },
 
   parseRGB(str) {
-    const rgbMatch = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-    return [ +rgbMatch[1] || 0, +rgbMatch[2] || 0, +rgbMatch[3] || 0, isNaN(+rgbMatch[4]) ? 1 : rgbMatch[4] ];
+    const rgbMatch = String(str).match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    // Computed colours in other notations (e.g. oklch()) don't match; start from black
+    // rather than throwing and leaving the picker unable to open.
+    if (!rgbMatch) {
+      return [ 0, 0, 0, 1 ];
+    }
+    const alpha = parseFloat(rgbMatch[4]);
+    return [ +rgbMatch[1] || 0, +rgbMatch[2] || 0, +rgbMatch[3] || 0, isNaN(alpha) ? 1 : alpha ];
   },
 
   hsv2rgb(h, s, v, a) {
@@ -5246,7 +5371,8 @@ module.exports = {
       Math.round(r * 255),
       Math.round(g * 255),
       Math.round(b * 255),
-      a || 1
+      // An alpha of 0 is valid; only default a missing one.
+      a == null ? 1 : a
     ];
   },
 
@@ -5276,7 +5402,7 @@ module.exports = {
       break;
     }
 
-    return [ h, s, v, a || 1 ];
+    return [ h, s, v, a == null ? 1 : a ];
   },
 
   _updatePreview(e) {
@@ -6100,8 +6226,9 @@ module.exports = (data = {}) => data.displayMethod === null ? '' : `
 			})).join('')
 		}
 
-		value = _.get(Player.config, data.property, data.default);
-		attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
+		// Declared: without let these became globals on the page's window.
+		let value = _.get(Player.config, data.property, data.default);
+		const attrs = (typeof data.attrs === 'function' ? data.attrs() : data.attrs || '')
 			+ (data.class ? ` class="${data.class}"` : '')
 			+ ` data-property="${data.property}"`;
 
@@ -6113,7 +6240,7 @@ module.exports = (data = {}) => data.displayMethod === null ? '' : `
 			value = JSON.stringify(value, null, 4)
 		}
 
-		inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
+		const inputTemplate = typeof data.displayMethod === 'function' && data.displayMethod
 			|| _.get(Player, data.displayMethod)
 			|| data.displayMethod && Player.settings.inputTemplates[data.displayMethod]
 			|| type === 'boolean' && Player.settings.inputTemplates.checkbox
@@ -6461,7 +6588,7 @@ module.exports = {
 module.exports = (data = {}) => `<div class="${ns}-theme-save-options ${ns}-dialog fields-collapsed dialog" data-allow-click="true" style="top: 0px; left: 0px;">
 	<div class="${ns}-row ${ns}-align-center">
 		<div class="${ns}-col">
-			<input type="text" class="${ns}-save-theme-name" @keyup.prevent="theme.toggleSaveButtonText" placeholder="Name">
+			<input type="text" class="${ns}-save-theme-name" @input="theme.toggleSaveButtonText" placeholder="Name">
 		</div>
 		<div class="${ns}-col">
 			<a class="${ns}-save-theme" @click.prevent="theme.save" href="#">Create</a>
@@ -6900,7 +7027,7 @@ module.exports = (data = {}) => `<div class="${ns}-heading lined">
 	<input
 		type="text"
 		class="${ns}-threads-filter"
-		@keyup='threads.filter($event.target.value)'
+		@input='threads.filter($event.target.value)'
 		value="${_.escAttr(Player.threads.filterValue || '')}"
 	/>
 
@@ -9071,8 +9198,9 @@ module.exports = {
 /*!*******************************!*\
   !*** ./src/config/display.js ***!
   \*******************************/
-(module) {
+(module, __unused_webpack_exports, __webpack_require__) {
 
+/* provided dependency */ var _ = __webpack_require__(/*! ./src/_ */ "./src/_.js");
 module.exports = [
   {
     property: 'autoshow',
@@ -9213,9 +9341,10 @@ module.exports = [
     allowInTheme: true,
     class: `${ns}-colorpicker-input`,
     attrs: '@focusout.stop.prevent="colorpicker._updatePreview" @click="colorpicker.create"',
+    // Escape the value: it comes from settings, which can be imported or shared as a theme.
     displayMethod: ({ value, attrs }) => `<div class="${ns}-col">
-				<input type="text" ${attrs} value="${value}">
-				<div class="${ns}-cp-preview" style="background: ${value}" @click.stop.prevent="colorpicker.create"></div>
+				<input type="text" ${attrs} value="${_.escAttr(value)}">
+				<div class="${ns}-cp-preview" style="background: ${_.escAttr(value)}" @click.stop.prevent="colorpicker.create"></div>
 			</div>`,
     actions: [
       { title: 'Match Theme', handler: 'theme.forceBoardTheme', mods: '.prevent' }
