@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.608
+// @version      3.7.2.610
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1572,8 +1572,14 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
-    // Sounds marked dead while the connection was down are worth trying again.
-    window.addEventListener('online', () => Player.controls.clearDeadMarks());
+    // Sounds marked dead while the connection was down are worth trying again (not ones that
+    // failed before, which are likely gone for good). Failures shortly before the browser
+    // noticed count too.
+    window.addEventListener('offline', () => Player.controls._offlineAt = Date.now());
+    window.addEventListener('online', () => {
+      const since = (Player.controls._offlineAt || Date.now()) - 30000;
+      Player.controls.clearDeadMarks(Player.sounds.filter(sound => sound.errorAt >= since));
+    });
 
     // Hide controls that don't fit once the player is shown: on the first show nothing
     // could be measured when it rendered, so they wrapped onto a second line.
@@ -1634,6 +1640,7 @@ module.exports = {
       // Notifications are rendered as HTML and the title comes from the post filename.
       Player.logError(`Failed to play ${_.escHTML(Player.playing.title)}. Please check the console for details.`, err, 'warning');
       Player.playing.error = err;
+      Player.playing.errorAt = Date.now();
       // Mark the row dead so it's visible and skipped during playlist traversal, and
       // refresh count templates (sound-count drops it; dead-count / d:{ } surface it).
       Player.playlist.refreshRow(Player.playing);
@@ -1655,7 +1662,7 @@ module.exports = {
       if (navigator.onLine === false || Player._failStreak >= 3) {
         Player.logError(navigator.onLine === false
           ? 'You seem to be offline, so the player stopped. Click a sound to try again once you\'re connected.'
-          : 'Several sounds in a row failed to load, so the player stopped. Check your connection (or try the Fatbox Rerouter), then click a sound to try again.', null, 'warning');
+          : 'Several sounds in a row failed to load, so the player stopped. They may have been deleted, or there may be a connection problem (the Fatbox Rerouter can help with catbox). Click a sound to try again.', null, 'warning');
         return;
       }
       // Read when the timer fires: pausing in the meantime (pause() clears it) means the
@@ -2192,12 +2199,14 @@ module.exports = {
       // Stopped on keypress, where browsers submit, so keydown still reaches hotkeys (an
       // Enter binding in the search box), and only for text fields (Enter opens a file
       // picker). The change Enter would have made is still sent.
+      // (Checkboxes submit on Enter too.)
       const textTypes = [ 'text', 'search', 'number', 'url', 'email', 'password', 'tel' ];
+      const ownAction = [ 'file', 'button', 'submit', 'reset', 'image' ];
       Player.container.addEventListener('keypress', e => {
         const input = e.target;
-        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && textTypes.includes(input.type)) {
+        if (e.key === 'Enter' && input.nodeName === 'INPUT' && input.form && !ownAction.includes(input.type)) {
           e.preventDefault();
-          input.dispatchEvent(new Event('change', { bubbles: true }));
+          textTypes.includes(input.type) && input.dispatchEvent(new Event('change', { bubbles: true }));
         }
       });
 
@@ -3662,20 +3671,30 @@ module.exports = {
             // A press on the video itself in the last moment: not the sync's own pauses, a
             // loop wrapping round, or 4chan X pausing it (which a click anywhere else
             // shortly before used to count as).
+            // Held down (scrubbing the seek bar) counts the whole time, and a second after.
             node._inlinePlayer.lastPress = 0;
-            node._inlinePlayer.markPress = () => node._inlinePlayer.lastPress = performance.now();
-            ownControls && node.addEventListener('pointerdown', node._inlinePlayer.markPress);
-            ownControls && node.addEventListener('keydown', node._inlinePlayer.markPress);
-            const byUser = () => ownControls && performance.now() - node._inlinePlayer.lastPress < 1000;
+            node._inlinePlayer.pressing = false;
+            node._inlinePlayer.markPress = e => {
+              node._inlinePlayer.lastPress = performance.now();
+              node._inlinePlayer.pressing = e.type === 'pointerdown';
+            };
+            if (ownControls) {
+              [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ].forEach(type => node.addEventListener(type, node._inlinePlayer.markPress));
+            }
+            const byUser = () => ownControls && (node._inlinePlayer.pressing || performance.now() - node._inlinePlayer.lastPress < 1000);
             node._inlinePlayer.resync = () => audio.paused && byUser()
               ? audio.play().catch(() => {})
               : Player.controls.sync(audio);
             node.addEventListener('play', node._inlinePlayer.resync);
             if (ownControls) {
               node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
+              // A seek the user started is forwarded however long it takes to finish.
+              node._inlinePlayer.noteSeek = () => byUser() && (node._inlinePlayer.userSeek = true);
               node._inlinePlayer.forwardSeek = () => {
+                const userSeek = node._inlinePlayer.userSeek || byUser();
+                node._inlinePlayer.userSeek = false;
                 // Not the seeks the sync makes.
-                if (!byUser() || performance.now() - (node._syncSeekAt || 0) < 1000) {
+                if (!userSeek || performance.now() - (node._syncSeekAt || 0) < 1000) {
                   return;
                 }
                 // The video loops under a longer sound: keep the sound in the same loop.
@@ -3685,6 +3704,7 @@ module.exports = {
                   : node.currentTime;
               };
               node.addEventListener('pause', node._inlinePlayer.forwardPause);
+              node.addEventListener('seeking', node._inlinePlayer.noteSeek);
               node.addEventListener('seeked', node._inlinePlayer.forwardSeek);
             }
           }
@@ -3836,8 +3856,9 @@ module.exports = {
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
     node._inlinePlayer.forwardPause && node.removeEventListener('pause', node._inlinePlayer.forwardPause);
     node._inlinePlayer.forwardSeek && node.removeEventListener('seeked', node._inlinePlayer.forwardSeek);
-    node._inlinePlayer.markPress && node.removeEventListener('pointerdown', node._inlinePlayer.markPress);
-    node._inlinePlayer.markPress && node.removeEventListener('keydown', node._inlinePlayer.markPress);
+    node._inlinePlayer.noteSeek && node.removeEventListener('seeking', node._inlinePlayer.noteSeek);
+    node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown' ]
+      .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
@@ -5414,11 +5435,8 @@ module.exports = {
       // Use isFinite + non-empty check so a saved corner like '0:0' (player
       // pinned to top-left) restores correctly instead of being skipped via the
       // falsy-zero short-circuit. size has no '0' case (a 0px window is junk).
-      // Without a saved size, still fit the default one in the window (on a narrow phone
-      // its header buttons were off-screen).
-      +width && +height
-        ? Player.position.resize(width, height, true)
-        : Player.position.resize(Player.container.offsetWidth, Player.container.offsetHeight);
+      const savedSize = +width && +height;
+      savedSize && Player.position.resize(width, height, true);
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
@@ -5426,6 +5444,10 @@ module.exports = {
         // The first time, keep the default position clear of the page's header.
         Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
       }
+      // Without a saved size, the default one, fitted to the window once placed (on a narrow
+      // phone its header buttons were off-screen). Not its current size: a theme's layout
+      // can stretch that, and it was measured where it was last shown.
+      savedSize || Player.position.resize(360, 360);
 
       if (Player.config.limitPostWidths) {
         Player.position.setPostWidths();
@@ -5611,7 +5633,8 @@ module.exports = {
 
     // A handle that doesn't save (the Fixed Playlist theme's width handle) only sizes the
     // player for the current layout: note it, so the saved size comes back on a change.
-    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true';
+    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true'
+      && { view: Player.config.viewStyle, theme: Player.config.selectedTheme };
     if (Player._resizeTarget.dataset.bypassSave !== 'true') {
       GM.setValue('size', width + ':' + height);
       if (Player._resizeMoveX || Player._resizeMoveY) {
@@ -5624,8 +5647,11 @@ module.exports = {
 	 * Go back to the saved size (or the default one) after a temporary resize.
 	 */
   async restoreSize() {
-    // Not in fullscreen, where resizing does nothing: keep the note for leaving it.
-    if (!Player.position._temporarySize || !Player.container || Player.config.viewStyle === 'fullscreen') {
+    const temporary = Player.position._temporarySize;
+    // Not in fullscreen, where resizing does nothing: keep the note for leaving it. Not when
+    // back in the layout the size was made for (leaving fullscreen): it still applies.
+    if (!temporary || !Player.container || Player.config.viewStyle === 'fullscreen'
+      || (Player.config.viewStyle === temporary.view && Player.config.selectedTheme === temporary.theme)) {
       return;
     }
     Player.position._temporarySize = false;
@@ -6705,10 +6731,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.608") {
+    if (storedVersion !== "3.7.2.610") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.608"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.610"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7024,7 +7050,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.608";
+      settings.VERSION = "3.7.2.610";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7040,7 +7066,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.608") {
+    if (!fromVersion || fromVersion === "3.7.2.610") {
       return {};
     }
     const changes = {};
@@ -7544,7 +7570,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.608"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.610"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8782,8 +8808,10 @@ const createTool = module.exports = {
         // A URL saved without its scheme would be read relative to the page.
         url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
-        // A host that never answers left Create disabled until a reload.
-        timeout: 5 * 60 * 1000,
+        // A host that never answers left Create disabled until a reload. The limit is for the
+        // whole upload, so allow for big files on slow connections (5 minutes, plus a second
+        // for every 25KB).
+        timeout: 5 * 60 * 1000 + Math.ceil((file.size || 0) / 25000) * 1000,
         ontimeout: () => reject(new PlayerError(`The upload host didn't answer for ${file.name}.`, 'error')),
         onabort: () => reject(new PlayerError(`The upload of ${file.name} was stopped.`, 'error')),
         responseType: host.responsePath ? 'json' : 'text',
@@ -10658,7 +10686,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.608"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.610"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12202,7 +12230,9 @@ const Player =
           // The archives have neither: show a notice of our own (as text, like 4chan X).
           const parsed = document.createElement('template');
           parsed.innerHTML = content;
-          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, document.body);
+          // In a column, so several at once don't cover each other.
+          const column = document.querySelector(`.${ns}-notices`) || _.element(`<div class="${ns}-notices"></div>`, document.body);
+          const notice = _.element(`<div class="${ns}-notice ${ns}-notice-${_.escAttr(type)}" role="status"></div>`, column);
           notice.textContent = parsed.content.textContent;
           const close = () => notice.remove();
           notice.addEventListener('click', close);
@@ -12993,12 +13023,18 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
   opacity: 1;
 }
 
-.${ns}-notice {
+.${ns}-notices {
   position: fixed;
   left: 3.5rem;
   bottom: 10px;
   z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   max-width: 25rem;
+}
+
+.${ns}-notice {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--fcsp-border);
   border-left-width: 0.25rem;
