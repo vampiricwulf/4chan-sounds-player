@@ -1,9 +1,14 @@
 'use strict';
 
 let initialized = false;
+let initializing = false;
 
 async function doInit() {
-  if (initialized) {
+  // Both 4chanXInitFinished and the fallback timeout call this. Player.initialize can
+  // take longer than the gap between them (it waits for the 4chan X header), so guard
+  // on initialization having started, not finished, or a second call would add a
+  // duplicate MutationObserver.
+  if (initialized || initializing) {
     return;
   }
 
@@ -13,6 +18,7 @@ async function doInit() {
     setTimeout(doInit, 10);
     return;
   }
+  initializing = true;
 
   // Require globals now that we know it's safe.
   require('./globals');
