@@ -22,6 +22,14 @@ module.exports = [
     displayGroup: 'Display'
   },
   {
+    property: 'rowLoadingBars',
+    default: true,
+    title: 'Playlist Loading Bars',
+    description: 'Show how much of the playing sound has loaded behind its playlist row: the video along the top half and the audio along the bottom half. They fade out once everything has loaded.',
+    displayGroup: 'Display',
+    allowInTheme: true
+  },
+  {
     property: 'hoverImages',
     title: 'Hover Images',
     default: false,
@@ -219,6 +227,20 @@ module.exports = [
         title: 'Loaded Bar Background',
         description: 'The loaded bar within the seek bar.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.controls_loaded_bar")', mods: '.prevent' } ],
+      },
+      {
+        property: 'colors.loading_video',
+        default: 'rgba(46, 204, 64, 0.65)',
+        title: 'Row Video Loading',
+        description: 'The top half of the playing row\'s loading bars, for the video.',
+        actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_video")', mods: '.prevent' } ],
+      },
+      {
+        property: 'colors.loading_audio',
+        default: 'rgba(255, 65, 54, 0.65)',
+        title: 'Row Audio Loading',
+        description: 'The bottom half of the playing row\'s loading bars, for the audio.',
+        actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_audio")', mods: '.prevent' } ],
       },
       // Not configurable but here for access in templates.
       {

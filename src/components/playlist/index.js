@@ -66,6 +66,7 @@ module.exports = {
       Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
         el.classList.remove('playing'),
       );
+      Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
       container.href = '#';
@@ -74,6 +75,9 @@ module.exports = {
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
       container.classList.remove(`${ns}-show-video`);
     });
+
+    // Show or remove the playing row's loading bars.
+    Player.on('config:rowLoadingBars', () => Player.playlist.refreshRow(Player.playing));
 
     // Reapply filters when they change
     Player.on('config:filters', Player.playlist.applyFilters);
@@ -749,6 +753,61 @@ module.exports = {
       _.element(newItem, el, 'beforebegin');
       el.parentNode.removeChild(el);
     }
+  },
+
+  /**
+   * The playing row's loading bars, at how much has loaded so far.
+   */
+  loadingBars() {
+    if (!Player.config.rowLoadingBars) {
+      return '';
+    }
+    const { video, audio, done } = Player.playlist._loadingState();
+    return `<div class="${ns}-row-loading ${done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+      + `<div class="${ns}-row-loading-video" style="width: ${video * 100}%"></div>`
+      + `<div class="${ns}-row-loading-audio" style="width: ${audio * 100}%"></div>`
+      + '</div>';
+  },
+
+  /**
+   * Update the playing row's loading bars. Returns whether everything has loaded.
+   */
+  updateLoadingBars() {
+    const state = Player.playlist._loadingState();
+    const bars = Player.container && Player.$(`.${ns}-list-item.playing .${ns}-row-loading`);
+    if (bars) {
+      bars.children[0].style.width = `${state.video * 100}%`;
+      bars.children[1].style.width = `${state.audio * 100}%`;
+      bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
+    }
+    return state.done;
+  },
+
+  /**
+   * How much of the playing sound's video and audio have loaded, from 0 to 1. A standalone
+   * video is both. A sound without a video only has audio.
+   */
+  _loadingState() {
+    const video = Player.playing && Player.isVideo ? Player.playlist._loadedRatio(Player.video) : 0;
+    const audio = Player.playing ? Player.playlist._loadedRatio(Player.audio) : 0;
+    return { video, audio, done: !!Player.playing && (!Player.isVideo || video === 1) && audio === 1 };
+  },
+
+  /**
+   * The share of a media element's duration that has been downloaded.
+   */
+  _loadedRatio(media) {
+    const duration = media && media.duration;
+    if (!duration || !isFinite(duration) || !media.getAttribute('src')) {
+      return 0;
+    }
+    let loaded = 0;
+    for (let i = 0; i < media.buffered.length; i++) {
+      loaded += media.buffered.end(i) - media.buffered.start(i);
+    }
+    const ratio = loaded / duration;
+    // Durations are estimates for some formats, so the buffered end can stop just short.
+    return ratio > 0.995 ? 1 : Math.max(0, ratio);
   },
 
   toggleSearch(show) {

@@ -192,9 +192,11 @@ module.exports = {
     const size = length > 0
       ? (Player.audio.buffered.end(length - 1) / Player.audio.duration) * 100
       : 0;
-    // If it's fully loaded then stop polling.
-    size === 100 && Player.controls.stopPollingForLoading();
-    Player.audio.loadedBar.style.width = size + '%';
+    // The playing row's loading bars also follow a sound webm's video.
+    const rowLoaded = Player.playlist.updateLoadingBars();
+    // Stop polling once everything is loaded, or nothing is playing.
+    (!Player.playing || size === 100 && rowLoaded) && Player.controls.stopPollingForLoading();
+    Player.audio.loadedBar && (Player.audio.loadedBar.style.width = size + '%');
   },
 
   /**

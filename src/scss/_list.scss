@@ -30,6 +30,9 @@
 
 	overflow: hidden;
 	height: 1.3rem;
+	// The loading bars sit behind the row's content, above its background.
+	position: relative;
+	isolation: isolate;
 
 	&:nth-child(2n) {
 		background: var(--fcsp-even-row);
@@ -51,6 +54,42 @@
 	&.#{$ns}-dead {
 		opacity: 0.5;
 		text-decoration: line-through;
+	}
+	&.#{$ns}-dead .#{$ns}-row-loading {
+		display: none;
+	}
+}
+
+// How much of the playing sound has loaded: the video along the top half and the audio
+// along the bottom half, behind the row's text.
+.#{$ns}-row-loading {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: -1;
+	pointer-events: none;
+	transition: opacity 0.6s ease 0.8s;
+
+	& > div {
+		position: absolute;
+		left: 0;
+		height: 50%;
+		max-width: 100%;
+		transition: width 0.3s linear;
+	}
+	& .#{$ns}-row-loading-video {
+		top: 0;
+		background: var(--fcsp-loading-video);
+	}
+	& .#{$ns}-row-loading-audio {
+		bottom: 0;
+		background: var(--fcsp-loading-audio);
+	}
+	// Fade out once everything has loaded.
+	&.#{$ns}-row-loaded {
+		opacity: 0;
 	}
 }
 

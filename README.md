@@ -157,6 +157,8 @@ They're the ones defined in Settings > Display.
 - `colors.controls_active`
 - `colors.controls_empty_bar`
 - `colors.controls_loaded_bar`
+- `colors.loading_video`
+- `colors.loading_audio`
 - `colors.page_background` - This one is the body background color, and is not configurable.
 - `offsetTop` - This is the offset from top to account for the 4chan X header. Also not configurable.
 - `offsetBottom` - And the offset if the 4chan X header is at the bottom.

@@ -15,6 +15,7 @@
 		data-id="${_.escAttr(sound.id)}"
 		draggable="true"
 	>
+		${sound.playing ? Player.playlist.loadingBars() : ''}
 		${Player.userTemplate.build({
 			template: Player.config.rowTemplate,
 			location: 'item-' + sound.id,

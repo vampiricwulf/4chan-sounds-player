@@ -560,6 +560,10 @@
     <header><h4>Show Update Notifications</h4><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code></span></header>
     <p>After an update, shows a short notice with the new version number and a link to the changelog.</p>
   </article>
+  <article class="entry" id="s-rowLoadingBars" data-setting="rowLoadingBars" data-context="Settings › Display" data-keywords="progress buffer buffering loaded">
+    <header><h4>Playlist Loading Bars</h4><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code></span></header>
+    <p>Fills the playing sound's playlist row as it downloads, behind the row's text: the top half for the video and the bottom half for the audio. A sound with a still image only fills the bottom half; a video with its own audio (from <a href="#s-addWebm">Include Video</a>) fills both together. The bars fade out once everything has loaded. Browsers stop downloading a long video a little way ahead of where it's playing, so its bar can pause and carry on as it plays. The colors are <a href="#s-colors-loading_video">Row Video Loading</a> and <a href="#s-colors-loading_audio">Row Audio Loading</a>.</p>
+  </article>
 
   <div class="subgroup">
     <h4>Controls</h4>
@@ -627,7 +631,7 @@ previous</code></pre>
       <li>Click a color field to open the <strong>color picker</strong>. Drag in the square for shade and in the bar for hue, or type <strong>R G B A</strong> values, then press <em>Apply</em>.</li>
       <li>You can also type any CSS color into the field: <code>#d6daf0</code>, <code>rgb(214, 218, 240)</code>, <code>rgba(0,0,0,.5)</code>, <code>teal</code>.</li>
       <li><strong>Match Theme</strong> at the top of the group copies the current board style's colors again.</li>
-      <li>The controls colors each have a <strong>Reset</strong> link.</li>
+      <li>The controls and loading bar colors each have a <strong>Reset</strong> link.</li>
     </ul>
     <div class="table-wrap"><table>
       <tr><th>Setting</th><th>Colors</th><th>Default</th></tr>
@@ -643,6 +647,8 @@ previous</code></pre>
       <tr id="s-colors-controls_active" data-setting="colors.controls_active"><td><strong>Focused Control Items</strong></td><td>A control icon under the mouse.</td><td><span class="swatch" style="background:#00b6f0"></span><code>#00b6f0</code></td></tr>
       <tr id="s-colors-controls_empty_bar" data-setting="colors.controls_empty_bar"><td><strong>Volume/Seek Bar Background</strong></td><td>The empty part of the volume and seek bars.</td><td><span class="swatch" style="background:#131314"></span><code>#131314</code></td></tr>
       <tr id="s-colors-controls_loaded_bar" data-setting="colors.controls_loaded_bar"><td><strong>Loaded Bar Background</strong></td><td>The loaded part of the seek bar.</td><td><span class="swatch" style="background:#5a5a5b"></span><code>#5a5a5b</code></td></tr>
+      <tr id="s-colors-loading_video" data-setting="colors.loading_video"><td><strong>Row Video Loading</strong></td><td>The top half of the playing row's <a href="#s-rowLoadingBars">loading bars</a>, for the video.</td><td><span class="swatch" style="background:rgba(46, 204, 64, 0.65)"></span><code>rgba(46, 204, 64, 0.65)</code></td></tr>
+      <tr id="s-colors-loading_audio" data-setting="colors.loading_audio"><td><strong>Row Audio Loading</strong></td><td>The bottom half of the playing row's <a href="#s-rowLoadingBars">loading bars</a>, for the audio.</td><td><span class="swatch" style="background:rgba(255, 65, 54, 0.65)"></span><code>rgba(255, 65, 54, 0.65)</code></td></tr>
     </table></div>
     <p class="muted">The first seven defaults are Yotsuba B's colors, used when the board style can't be read. You can use any of these colors in templates and custom CSS as <a href="#tpl-config"><code>$config[colors.…]</code></a>.</p>
   </div>
@@ -1073,6 +1079,7 @@ p:{
     <tr><th>Token</th><th>Value</th></tr>
     <tr><td class="wrap"><code>$config[colors.text]</code>, <code>…background</code>, <code>…border</code>, <code>…odd_row</code>, <code>…even_row</code>, <code>…playing</code>, <code>…dragging</code></td><td>The <a href="#settings-colors">player colors</a>.</td></tr>
     <tr><td class="wrap"><code>$config[colors.controls_background]</code>, <code>…controls_inactive</code>, <code>…controls_active</code>, <code>…controls_empty_bar</code>, <code>…controls_loaded_bar</code></td><td>The control colors.</td></tr>
+    <tr><td class="wrap"><code>$config[colors.loading_video]</code>, <code>…loading_audio</code></td><td>The playlist loading bar colors.</td></tr>
     <tr><td><code>$config[colors.page_background]</code></td><td>The page's own background color. Read-only.</td></tr>
     <tr><td><code>$config[offsetTop]</code></td><td>The height of the 4chan X header when it's docked at the top. Read-only.</td></tr>
     <tr><td><code>$config[offsetBottom]</code></td><td>The same, when the 4chan X header is at the bottom. Read-only.</td></tr>
