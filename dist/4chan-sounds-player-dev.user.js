@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.593
+// @version      3.7.2.596
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1693,25 +1693,33 @@ module.exports = {
 	 *
 	 * The audio leads: while it's paused, ended or stalled waiting for data, the video
 	 * waits too. (This used to do nothing unless both were fully ready, so a stalled audio
-	 * left the video running ahead, and an ended one left it looping.)
+	 * left the video running ahead, and an ended one left it looping.) Positions are lined
+	 * up whether or not it's playing, so seeking while paused moves the picture too.
 	 */
   sync(from) {
     const to = from && from._linked;
     if (!to) {
       return;
     }
-    if (from.paused || from.ended || from.readyState < from.HAVE_FUTURE_DATA) {
-      !to.paused && to.pause();
-      return;
+    const leading = !from.paused && !from.ended && from.readyState >= from.HAVE_FUTURE_DATA;
+    if (leading) {
+      to.playbackRate = from.playbackRate;
+      to.defaultPlaybackRate = from.defaultPlaybackRate;
     }
-    to.playbackRate = from.playbackRate;
-    to.defaultPlaybackRate = from.defaultPlaybackRate;
     // Only seek when they've drifted apart: a seek makes the video wait and fire 'playing'
-    // again. A shorter video loops, so compare positions within its loop.
-    if (to.duration > 0 && isFinite(to.duration)) {
+    // again. A shorter follower that loops is compared within its loop (one that doesn't
+    // loop, like an inline player's audio following its video, has to be sent back).
+    if (from.readyState >= from.HAVE_METADATA && to.duration > 0 && isFinite(to.duration)) {
       const target = from.currentTime % to.duration;
       const drift = Math.abs(to.currentTime - target);
-      Math.min(drift, to.duration - drift) > 0.15 && (to.currentTime = target);
+      if ((to.loop ? Math.min(drift, to.duration - drift) : drift) > 0.15) {
+        to.currentTime = target;
+        to._syncSeekAt = performance.now();
+      }
+    }
+    if (!leading) {
+      !to.paused && to.pause();
+      return;
     }
     // play() rejects when a newer load or pause interrupts it; that's expected here.
     to.paused && to.play().catch(() => {});
@@ -1723,7 +1731,17 @@ module.exports = {
 	 */
   syncVideo(e) {
     const video = e.currentTarget;
-    video._linked && video._linked === Player.audio && Player.controls.sync(Player.audio);
+    if (!video._linked || video._linked !== Player.audio) {
+      return;
+    }
+    // The 'playing' that ends a seek sync made lags the audio by however long the seek
+    // took. Seeking again would chase the audio for as long as each seek takes, with the
+    // picture frozen, so let that one be.
+    if (video._syncSeekAt && performance.now() - video._syncSeekAt < 3000) {
+      video._syncSeekAt = 0;
+      return;
+    }
+    Player.controls.sync(Player.audio);
   },
 
   /**
@@ -2425,8 +2443,10 @@ module.exports = {
     if (!Player.display._noSleepVisibility) {
       Player.display._noSleepVisibility = true;
       document.addEventListener('visibilitychange', () => {
+        // Not when NoSleep still holds a lock: its own handler takes that back, and taking
+        // another here would leave one that disable() doesn't release.
         document.visibilityState === 'visible' && Player.display._noSleepEnabled && Player.audio && !Player.audio.paused
-          && !noSleep.isEnabled && Promise.resolve(noSleep.enable()).catch(() => {});
+          && !noSleep.isEnabled && !noSleep._wakeLock && Promise.resolve(noSleep.enable()).catch(() => {});
       });
     }
   },
@@ -3484,7 +3504,16 @@ module.exports = {
           otherAudio.removeAttribute('src');
           otherAudio.load();
           otherAudio.remove();
-          isVideo && (node.controls = otherAudio.controls);
+          if (isVideo) {
+            const controls = otherAudio.controls;
+            node.controls = controls;
+            // XT/neXT still think the post has its audio, and turn the video's controls off
+            // again once its metadata loads. Without the player's own controls (Expanded
+            // Controls off) that left no way to pause or seek, so put them back after them.
+            !Player.config.expandedControls && node.addEventListener('loadedmetadata', () => setTimeout(() => {
+              node._inlineAudio && (node.controls = controls);
+            }), { once: true });
+          }
         }
         // Create a new audio element.
         const audio = new Audio(sounds[0].src);
@@ -3504,8 +3533,14 @@ module.exports = {
           isVideo,
           audio,
           sounds,
-          index: 0
+          index: 0,
+          expanded: isExpandedImage
         };
+        // One expanded image's sound at a time: 4chan X's Expand All Images expanded every
+        // post at once, and every sound played over the others.
+        // (Only if it's still playing when the event arrives: two started together would
+        // otherwise each pause the other.)
+        isExpandedImage && audio.addEventListener('play', () => !audio.paused && Player.inline._pauseOtherExpanded(audio));
         // Link video & audio so they sync.
         if (isVideo) {
           node._linked = audio;
@@ -3603,6 +3638,23 @@ module.exports = {
     } catch (err) {
       Player.logError('Failed to play sound.', err);
     }
+  },
+
+  /**
+	 * Pause every other expanded image's sound (by pausing what leads it, so the sync doesn't
+	 * start it again), including one still waiting for its video to load.
+	 */
+  _pauseOtherExpanded(playing) {
+    Object.values(Player.inline.audio).forEach(audio => {
+      const data = audio._inlinePlayer;
+      if (audio === playing || !data || !data.expanded) {
+        return;
+      }
+      audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      data.video && data.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      const master = data.master || audio;
+      !master.paused && master.pause();
+    });
   },
 
   /**
@@ -5171,6 +5223,9 @@ module.exports = {
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
+      } else {
+        // The first time, keep the default position clear of the page's header.
+        Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
       }
 
       if (Player.config.limitPostWidths) {
@@ -5273,11 +5328,22 @@ module.exports = {
       });
     }
 
+    const limited = Player.position._limitedPosts || (Player.position._limitedPosts = new Set());
+    const current = new Set(posts);
+    // Posts limited before that no longer match (moved by quote threading, or removed) keep
+    // their width otherwise.
+    limited.forEach(post => {
+      if (!current.has(post)) {
+        post.style.maxWidth = post.style.minWidth = '';
+        limited.delete(post);
+      }
+    });
     posts.forEach((post, i) => {
       const maxWidth = limits[i] ? maxWidthCss : '';
       const minWidth = limits[i] ? minWidthCss : '';
       post.style.maxWidth !== maxWidth && (post.style.maxWidth = maxWidth);
       post.style.minWidth !== minWidth && (post.style.minWidth = minWidth);
+      limits[i] ? limited.add(post) : limited.delete(post);
     });
   },
 
@@ -5438,11 +5504,20 @@ module.exports = {
 	 */
   getHeaderOffset() {
     const docClasses = document.documentElement.classList;
-    const hasChanXHeader = docClasses.contains('fixed');
-    const headerHeight = hasChanXHeader ? document.querySelector('#header-bar').getBoundingClientRect().height : 0;
-    const top = hasChanXHeader && docClasses.contains('top-header') ? headerHeight : 0;
-    const bottom = hasChanXHeader && docClasses.contains('bottom-header') ? headerHeight : 0;
-
+    let top = 0;
+    let bottom = 0;
+    // Count a fixed bar on whichever edge it actually is: 4chan-neXT's phone layouts move
+    // the header to the other edge (without changing the html classes) and add a bar of
+    // their own.
+    const reserve = el => {
+      const rect = el && el.getClientRects().length && el.getBoundingClientRect();
+      if (rect && rect.height) {
+        rect.top + rect.height / 2 < window.innerHeight / 2 ? (top += rect.height) : (bottom += rect.height);
+      }
+    };
+    docClasses.contains('fixed') && reserve(document.querySelector('#header-bar'));
+    const mobileBar = document.getElementById('mobile-bar');
+    mobileBar && getComputedStyle(mobileBar).position === 'fixed' && reserve(mobileBar);
     return { top, bottom };
   },
 
@@ -5611,9 +5686,8 @@ module.exports = {
       const postID = post.id.slice(selectors.postIdPrefix.length);
 
       // If there's a play or add button this post has already been parsed. Just wire up the link.
-      const linkScope = Player.posts._linkScope(post);
-      let playLink = linkScope.querySelector(`.${ns}-play-link`);
-      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
+      let playLink = Player.posts._ownLink(post, `${ns}-play-link`);
+      let addLink = Player.posts._ownLink(post, `${ns}-unfilter-link`);
       if (playLink || addLink) {
         playLink && Player.events.apply(playLink);
         addLink && Player.events.apply(addLink);
@@ -5698,7 +5772,8 @@ module.exports = {
     const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
       const host = match[2] || match[4] || match[6] || match[8];
       const src = (match[3] || match[5] || match[7] || match[9] || '').trim();
-      if (!src.includes('.') || /\s/.test(src)) {
+      // Spaces are fine in what's clearly a link (host.tld/…); they rule out the rest.
+      if (!src.includes('.') || (/\s/.test(src) && !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/|%2F)/i.test(src))) {
         carried += match[0];
         return valid;
       }
@@ -5782,14 +5857,13 @@ module.exports = {
     if (postEl) {
       const linkInfo = selectors.playLink;
       // relative may be a list of selectors in priority order.
-      const relative = [].concat(linkInfo.relative || []).map(sel => postEl.querySelector(sel)).find(Boolean);
+      const relative = Player.posts._linkAnchor(postEl);
       if (!relative) {
         return;
       }
 
       // Create/update the add button for filtered or removed sounds, or remove it.
-      const linkScope = Player.posts._linkScope(postEl);
-      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
+      let addLink = Player.posts._ownLink(postEl, `${ns}-unfilter-link`);
       const allFilters = Player.posts.getFilters(postId);
       const hasFilter = allFilters.host.length || allFilters.image || allFilters.sound.length;
       const removed = Player.playlist.removedCount(postId);
@@ -5828,7 +5902,7 @@ module.exports = {
       }
 
       // Remove the play button if all sounds in the post are filtered, otherwise create it if needed.
-      let playLink = linkScope.querySelector(`.${ns}-play-link`);
+      let playLink = Player.posts._ownLink(postEl, `${ns}-play-link`);
       const addedSound = Player.sounds.find(sound => sound.post === postId);
       if (playLink && !addedSound) {
         playLink.parentNode.parentNode.removeChild(playLink.parentNode);
@@ -5852,17 +5926,24 @@ module.exports = {
   },
 
   /**
-	 * The element a post's play/add links are inserted into. Looking in the whole post found
-	 * links of nested posts (inline quotes, a FoolFuuka OP's replies) instead.
+	 * The element a post's play/add links go next to: the first of the site's anchors that's
+	 * shown. 4chan-neXT's phone layout hides the file info, so they follow the thumbnail
+	 * there instead.
 	 */
-  _linkScope(post) {
-    const { relative: selector, position } = selectors.playLink;
-    const relative = [].concat(selector || []).map(sel => post.querySelector(sel)).find(Boolean);
-    if (!relative) {
-      return post;
-    }
-    // Links are inserted inside the anchor (FoolFuuka) or next to it (4chan, Fuuka).
-    return position === 'beforeend' || position === 'afterbegin' ? relative : relative.parentNode;
+  _linkAnchor(post) {
+    const { relative, position } = selectors.playLink;
+    const candidates = [].concat(relative || []).map(sel => post.querySelector(sel)).filter(Boolean);
+    // Links go inside the anchor (FoolFuuka) or beside it, in its parent.
+    const holder = el => position === 'beforeend' || position === 'afterbegin' ? el : el.parentNode;
+    return candidates.find(el => holder(el).getClientRects().length) || candidates[0];
+  },
+
+  /**
+	 * A post's own play or add link, wherever it was put, but not one of a post nested in it
+	 * (an inline quote, a FoolFuuka OP's replies).
+	 */
+  _ownLink(post, className) {
+    return Array.from(post.querySelectorAll(`.${className}`)).find(link => link.closest(selectors.posts) === post) || null;
   },
 
   getFilters(postId) {
@@ -6364,10 +6445,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.593") {
+    if (storedVersion !== "3.7.2.596") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.593"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.596"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6682,7 +6763,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.593";
+      settings.VERSION = "3.7.2.596";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6698,7 +6779,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.593") {
+    if (!fromVersion || fromVersion === "3.7.2.596") {
       return {};
     }
     const changes = {};
@@ -7198,7 +7279,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.593"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.596"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -8487,6 +8568,19 @@ const createTool = module.exports = {
         bubbles: true,
         detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail
       }));
+      // 4chan X's Randomize Filename option renames the file, which loses the [sound=]
+      // links (XT and neXT leave such names alone). Put the name back in the QR's filename
+      // field; 4chan X saves that field on input.
+      const name = Player.tools._createdImage.name;
+      const restoreName = () => {
+        const input = document.getElementById('qr-filename');
+        if (input && input.value && input.value !== name) {
+          input.value = name;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      };
+      setTimeout(restoreName, 100);
+      setTimeout(restoreName, 600);
       return;
     }
 
@@ -10221,7 +10315,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.593"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.596"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12946,7 +13040,7 @@ module.exports = {
       text: Icons.playFill,
       // In priority order. With 4chan X go after its whole .file-info: inside it the link
       // can sit in a hidden span or after other icons, and StyleChan can hide .file-info.
-      relative: [ '.fileText .file-info', '.fileText a' ],
+      relative: [ '.fileText .file-info', '.fileText a', 'a.fileThumb' ],
       position: 'afterend',
       prependText: ' ',
       unfilterText: Icons.filter,
@@ -12955,7 +13049,9 @@ module.exports = {
     },
     // Deliberately missing dots because this is used to set the class
     styleFetcher: 'post reply style-fetcher',
-    limitWidthOf: '.thread > .postContainer'
+    // Replies anywhere in the thread (4chan X's quote threading nests them), but not
+    // inline quotes.
+    limitWidthOf: '.thread .postContainer:not(.inline .postContainer)'
   },
   FoolFuuka: {
     postIdPrefix: '',
