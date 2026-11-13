@@ -62,8 +62,10 @@ module.exports = {
     const div = _.element(`<div class="${selectors.styleFetcher}"></div>`, document.body);
     const style = document.defaultView.getComputedStyle(div);
 
-    // Make sure the style is loaded.
+    // Make sure the style is loaded. Remove the fetcher element first or one is left in
+    // the page each time this runs (the theme observer and every player toggle call it).
     if (style.backgroundColor === 'rgba(0, 0, 0, 0)') {
+      div.remove();
       return;
     }
     Object.assign(style, { page_background: window.getComputedStyle(document.body).backgroundColor });
