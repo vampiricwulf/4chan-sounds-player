@@ -118,11 +118,16 @@ module.exports = {
 
       const fileThumb = post.querySelector(selectors.thumb).closest('a');
       const imageSrc = fileThumb && fileThumb.href;
-      const thumbImg = fileThumb && fileThumb.querySelector('img');
-      const thumbSrc = thumbImg && thumbImg.src;
+      // 4chan X's "Replace WEBM" swaps a video's thumbnail <img> for a <video> that keeps
+      // the thumbnail as its poster and the MD5 in data-md5. Only looking for an <img>
+      // left webm sounds with a null thumbnail, shown as a broken image.
+      const thumbEl = fileThumb && fileThumb.querySelector('img, video');
+      const thumbSrc = thumbEl && (thumbEl.nodeName === 'VIDEO'
+        ? thumbEl.poster
+        : thumbEl.src || thumbEl.dataset.src) || null;
       const imageMD5 = Site === 'Fuuka'
         ? post.querySelector(':scope > br + a').href.split('/').pop()
-        : thumbImg && thumbImg.getAttribute('data-md5');
+        : thumbEl && thumbEl.getAttribute('data-md5');
 
       if (imageMD5 === 'HO0kbeZNQqBye1CF7Tq7hg==' && post.innerHTML.includes('[futari no christmas]')) {
         filename = 'futari no christmas[sound=files.catbox.moe/ahvi2c.opus]';

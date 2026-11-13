@@ -158,7 +158,9 @@ module.exports = {
     const img = container.querySelector(`.${ns}-image`);
     const background = container.querySelector(`.${ns}-background-image`);
     img.src = background.src = '';
-    img.src = background.src = sound.imageOrThumb;
+    // Without a usable image keep the placeholder; assigning null requests ".../null".
+    img.src = sound.imageOrThumb || `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
+    background.src = sound.imageOrThumb || '';
     Player.isVideo && (Player.video.src = sound.image);
     if (Player.config.viewStyle !== 'fullscreen') {
       container.href = sound.image;
@@ -457,6 +459,9 @@ module.exports = {
   updateHoverImage(e) {
     const id = e.currentTarget.getAttribute('data-id');
     const sound = Player.sounds.find((sound) => sound.id === id);
+    if (!sound || !sound.thumb) {
+      return Player.playlist.removeHoverImage();
+    }
     Player.playlist.hoverImage.style.display = 'block';
     Player.playlist.hoverImage.setAttribute('src', sound.thumb);
     Player.playlist.positionHoverImage(e);
