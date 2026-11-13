@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.610
+// @version      3.7.2.612
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -5939,8 +5939,9 @@ module.exports = {
   addPost(post, skipRender) {
     try {
       // Posts inside the player are its own (the threads view's board layout shows other
-      // threads' OPs), not this thread's.
-      if (Player.container && Player.container.contains(post)) {
+      // threads' OPs), not this thread's. FoolFuuka shows quote previews, including other
+      // threads' posts, in #backlink.
+      if ((Player.container && Player.container.contains(post)) || post.closest('#backlink')) {
         return;
       }
       // Ignore the style fetcher post created by this script, quoted posts, and posts with no file.
@@ -5972,8 +5973,11 @@ module.exports = {
       let filename = null;
       let filenameLocations = selectors.filename;
 
+      // The post's own elements only: a FoolFuuka OP's article holds its replies, so with a
+      // banned or missing file it took the first reply's (and an inlined quote can come
+      // before a post's own file).
       Object.keys(filenameLocations).some(function(selector) {
-        const node = post.querySelector(selector);
+        const node = Player.posts._own(post, selector);
         return node && (filename = node[filenameLocations[selector]]);
       });
 
@@ -5983,7 +5987,7 @@ module.exports = {
 
       selectors.filenameParser && (filename = selectors.filenameParser(filename));
 
-      const thumbContainer = post.querySelector(selectors.thumb);
+      const thumbContainer = Player.posts._own(post, selectors.thumb);
       const fileThumb = thumbContainer && thumbContainer.closest('a');
       const imageSrc = fileThumb && fileThumb.href;
       if (!imageSrc) {
@@ -5996,8 +6000,11 @@ module.exports = {
       const thumbSrc = thumbEl && (thumbEl.nodeName === 'VIDEO'
         ? thumbEl.poster
         : thumbEl.src || thumbEl.dataset.src) || null;
+      // Fuuka's "View same" link holds the MD5, in URL-safe base64 (the link after the
+      // file line is the image itself, whose name was taken for it).
+      const viewSame = Site === 'Fuuka' && post.querySelector(':scope > a[href*="/image/"]');
       const imageMD5 = Site === 'Fuuka'
-        ? post.querySelector(':scope > br + a').href.split('/').pop()
+        ? viewSame && Player.posts._md5FromUrlSafe(viewSame.getAttribute('href').split('/').pop())
         : thumbEl && thumbEl.getAttribute('data-md5');
 
       if (imageMD5 === 'HO0kbeZNQqBye1CF7Tq7hg==' && post.innerHTML.includes('[futari no christmas]')) {
@@ -6012,7 +6019,8 @@ module.exports = {
       // A post rebuilt after its sounds were removed still needs its restore link.
       if (sounds.length || filtered.length || sounds.length !== parsed.sounds.length) {
         sounds.forEach(sound => Player.add(sound, skipRender));
-        filtered.forEach(sound => Player.filteredSounds.push(sound));
+        // Once each: a post parsed again (its preview, a rebuilt post) piled up copies.
+        filtered.forEach(sound => !Player.filteredSounds.some(s => s.id === sound.id) && Player.filteredSounds.push(sound));
         Player.posts.updateButtons(postID);
         filtered.length && Player.trigger('filters-applied');
       }
@@ -6219,11 +6227,27 @@ module.exports = {
   },
 
   /**
+	 * The first element matching a selector that's the post's own, not one of a post nested
+	 * in it (an inline quote, a FoolFuuka OP's replies).
+	 */
+  _own(post, selector) {
+    return Array.from(post.querySelectorAll(selector)).find(el => el.closest(selectors.posts) === post) || null;
+  },
+
+  /**
+	 * An MD5 from URL-safe base64 (Fuuka's links) in the standard form 4chan uses.
+	 */
+  _md5FromUrlSafe(value) {
+    const b64 = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+    return b64 ? b64 + '='.repeat((4 - b64.length % 4) % 4) : null;
+  },
+
+  /**
 	 * A post's own play or add link, wherever it was put, but not one of a post nested in it
 	 * (an inline quote, a FoolFuuka OP's replies).
 	 */
   _ownLink(post, className) {
-    return Array.from(post.querySelectorAll(`.${className}`)).find(link => link.closest(selectors.posts) === post) || null;
+    return Player.posts._own(post, `.${className}`);
   },
 
   getFilters(postId) {
@@ -6731,10 +6755,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.610") {
+    if (storedVersion !== "3.7.2.612") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.610"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.612"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7050,7 +7074,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.610";
+      settings.VERSION = "3.7.2.612";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7066,7 +7090,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.610") {
+    if (!fromVersion || fromVersion === "3.7.2.612") {
       return {};
     }
     const changes = {};
@@ -7570,7 +7594,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.610"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.612"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10686,7 +10710,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.610"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.612"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12129,7 +12153,7 @@ const Player =
        * (_origSrc), so a filter added while the rerouter was on stays effective when it's
        * off, and vice versa.
        */
-      disallowedSound({ src, imageMD5, _origSrc }) {
+      disallowedSound({ src, imageMD5, _origSrc, standaloneVideo }) {
         try {
           const link = new URL(src);
           const stripped = src.replace(/^(https?:)?\/\//, '');
@@ -12143,7 +12167,10 @@ const Player =
             return { invalid: true };
           }
           const result = {};
-          result.host =
+          // A video without a sound plays the post's own file from the site's media host
+          // (an archive's isn't in Allowed Hosts, so every video there came up as blocked),
+          // so only the filters apply to it.
+          result.host = !standaloneVideo &&
             !Player.config.allow.find(
               // Hostnames are case-insensitive; `host` is already lowercased, so
               // lowercase the allow entry too or a user-typed `Catbox.moe` never matches.
@@ -13492,15 +13519,19 @@ module.exports = {
   Fuuka: {
     postIdPrefix: 'p',
     posts: '.content > div, td.reply',
+    // A reply's file line follows its first <br>; an OP's is its first child.
     filename: {
-      ':scope > br + span': 'textContent'
+      ':scope > br + span': 'textContent',
+      ':scope > span:first-child': 'textContent'
     },
     filenameParser: v => v.split(', ').slice(2).join(', '),
     thumb: '.thumb',
     playLink: {
       class: '',
       text: 'play',
-      relative: 'br:nth-of-type(2)',
+      // The <br> after the file line, for replies and OPs alike (the second <br> anywhere
+      // in an OP was one inside its comment).
+      relative: [ ':scope > br + span ~ br', ':scope > span:first-child ~ br' ],
       position: 'beforebegin',
       prependText: ' [',
       appendText: ']',
