@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.624
+// @version      3.7.2.626
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -3540,6 +3540,10 @@ module.exports = {
       });
     });
 
+    // Expanded media already on the page when its post's sounds are read: 4chan X's Expand
+    // All Images expands new replies as they're added, before the player has read them.
+    Player.on('add', sound => sound.post && Player.inline._queueExpandedCheck(sound.post));
+
     Player.on('config:playExpandedImages', Player.inline._handleConfChange);
     Player.on('config:playHoveredImages', Player.inline._handleConfChange);
     Player.inline._handleConfChange();
@@ -3592,8 +3596,20 @@ module.exports = {
       if (node.nodeName !== 'IMG' && node.nodeName !== 'VIDEO') {
         return;
       }
-      const isExpandedImage = Player.config.playExpandedImages && node.matches(selectors.expandedImage);
-      const isHoverImage = Player.config.playHoveredImages && node.matches(selectors.hoverImage);
+      // A hover preview first: 4chan X reuses the expanded element for it, still classed as one.
+      const inHover = node.matches(selectors.hoverImage);
+      const isExpandedImage = !inHover && Player.config.playExpandedImages && node.matches(selectors.expandedImage);
+      const isHoverImage = inHover && Player.config.playHoveredImages;
+
+      // Moved with its player. Still what it was (4chan X re-threading moves posts): keep it.
+      // Something else now (4chan X reuses an expanded video for the hover preview): stop the
+      // old player, which was left playing beside a new one.
+      if (node._inlineAudio) {
+        if ((isExpandedImage || isHoverImage) && node._inlinePlayer.expanded === isExpandedImage) {
+          return;
+        }
+        Player.inline._removeForNode(node);
+      }
 
       if (isExpandedImage || isHoverImage) {
         const isVideo = node.nodeName === 'VIDEO';
@@ -3669,10 +3685,12 @@ module.exports = {
         // otherwise each pause the other.)
         isExpandedImage && audio.addEventListener('play', () => !audio.paused && Player.inline._pauseOtherExpanded(audio));
         // Hiding the post (4chan X's [–]) leaves the expanded media in place but not shown:
-        // stop the sound there, as there's nothing left to stop it with.
+        // stop the sound there, as there's nothing left to stop it with. Only for a hidden
+        // post: an image is also not shown while it loads, or while 4chan X shows the post
+        // inline somewhere else (Forward Hiding), and the sound carries on then.
         if (isExpandedImage) {
           node._inlinePlayer.hiddenCheck = () => {
-            if (document.visibilityState === 'visible' && !node.getClientRects().length) {
+            if (document.visibilityState === 'visible' && !node.getClientRects().length && Player.inline._inHiddenPost(node)) {
               const master = node._inlinePlayer.master || audio;
               !master.paused && master.pause();
             }
@@ -3697,7 +3715,12 @@ module.exports = {
             // Held down (scrubbing the seek bar) counts the whole time, and a second after.
             node._inlinePlayer.lastPress = 0;
             node._inlinePlayer.pressing = false;
-            const endPress = () => {
+            // Whichever of the pair ends it, the other goes too: one left behind made a later
+            // unrelated release (a touch scroll starting) count as a press on the video.
+            const endPress = node._inlinePlayer.endPress = () => {
+              window.removeEventListener('pointerup', endPress, true);
+              window.removeEventListener('pointercancel', endPress, true);
+              clearTimeout(node._inlinePlayer.pressTimeout);
               node._inlinePlayer.lastPress = performance.now();
               node._inlinePlayer.pressing = false;
             };
@@ -3720,29 +3743,51 @@ module.exports = {
             // Chrome's built-in controls send the page no pointer events at all, so a change
             // to a video that's on show in a visible tab counts as the user's too (4chan X
             // pauses videos when they leave the screen or the tab is hidden), except the ones
-            // the sync itself makes.
-            const onShow = () => document.visibilityState === 'visible' && (() => {
+            // the sync itself makes. On show: its controls along the bottom are, clear of a
+            // fixed header (4chan X counts a video under its header as gone, and pauses it).
+            const onShow = () => {
+              if (document.visibilityState !== 'visible') {
+                return false;
+              }
               const rect = node.getBoundingClientRect();
-              return rect.width > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
-            })();
+              const { top, bottom } = Player.position.getHeaderOffset();
+              return rect.width > 0 && rect.bottom > top + 20 && rect.bottom - 40 < window.innerHeight - bottom;
+            };
             const byUser = () => ownControls && (node._inlinePlayer.pressing
               || performance.now() - node._inlinePlayer.lastPress < 1000
               || (onShow() && performance.now() - (node._syncPauseAt || 0) > 300));
-            node._inlinePlayer.resync = () => audio.paused && byUser()
-              ? audio.play().catch(() => {})
-              : Player.controls.sync(audio);
+            // 4chan X plays a video again by itself after pausing it (back on screen, the tab
+            // shown again): that's not the user starting it.
+            node._inlinePlayer.resync = () => {
+              const autoResume = node._inlinePlayer.autoPaused;
+              node._inlinePlayer.autoPaused = false;
+              audio.paused && !autoResume && byUser()
+                ? audio.play().catch(() => {})
+                : Player.controls.sync(audio);
+            };
             node.addEventListener('play', node._inlinePlayer.resync);
             if (ownControls) {
-              node._inlinePlayer.forwardPause = () => byUser() && !audio.paused && audio.pause();
-              // A seek the user started is forwarded however long it takes to finish.
-              node._inlinePlayer.noteSeek = () => byUser() && (node._inlinePlayer.userSeek = true);
+              node._inlinePlayer.forwardPause = () => {
+                if (byUser()) {
+                  !audio.paused && audio.pause();
+                } else if (performance.now() - (node._syncPauseAt || 0) > 300) {
+                  node._inlinePlayer.autoPaused = true;
+                }
+              };
+              // A seek the user started is forwarded however long it takes to finish. Where it
+              // started from, read now: by 'seeked' a loop wrapping round has already reported
+              // its new time.
+              node._inlinePlayer.noteSeek = () => {
+                node._inlinePlayer.seekFrom = node._inlinePlayer.lastTime;
+                byUser() && (node._inlinePlayer.userSeek = true);
+              };
               // Where the video was, to tell its loop wrapping round from a seek.
               node._inlinePlayer.trackTime = () => node._inlinePlayer.lastTime = node.currentTime;
               node.addEventListener('timeupdate', node._inlinePlayer.trackTime);
               node._inlinePlayer.forwardSeek = () => {
                 const userSeek = node._inlinePlayer.userSeek || byUser();
                 node._inlinePlayer.userSeek = false;
-                const wrapped = node.loop && node.currentTime < 0.5 && node._inlinePlayer.lastTime > node.duration - 1;
+                const wrapped = node.loop && node.currentTime < 0.5 && node._inlinePlayer.seekFrom > node.duration - 1;
                 // Not the seeks the sync makes, or the loop.
                 if (!userSeek || wrapped || performance.now() - (node._syncSeekAt || 0) < 1000) {
                   return;
@@ -3937,6 +3982,37 @@ module.exports = {
     });
   },
 
+  /**
+	 * Look for expanded media in posts whose sounds were just added (once all of a batch are).
+	 */
+  _queueExpandedCheck(postId) {
+    if (!Player.config.playExpandedImages) {
+      return;
+    }
+    (Player.inline._pendingPosts = Player.inline._pendingPosts || new Set()).add(postId);
+    Player.inline._pendingTimer = Player.inline._pendingTimer || setTimeout(() => {
+      const posts = Player.inline._pendingPosts;
+      Player.inline._pendingPosts = new Set();
+      Player.inline._pendingTimer = null;
+      posts.forEach(id => {
+        const post = document.getElementById(selectors.postIdPrefix + id);
+        post && post.querySelectorAll(selectors.expandedImage).forEach(media => {
+          !media._inlineAudio && Player.inline.handleAddedNode(media);
+        });
+      });
+    });
+  },
+
+  /**
+	 * Whether the post a node is in has been hidden: by 4chan X (the post hidden, or replaced
+	 * by a stub) or by 4chan itself.
+	 */
+  _inHiddenPost(node) {
+    const root = node.closest('.postContainer, .thread');
+    return !!(node.closest('[hidden], .post-hidden')
+      || (root && root.firstElementChild && root.firstElementChild.classList.contains('stub')));
+  },
+
   _removeForNode(node) {
     // Stop removing controls.
     node.controlsObserver && node.controlsObserver.disconnect();
@@ -3950,6 +4026,7 @@ module.exports = {
     node._inlinePlayer.hiddenCheck && node._inlineAudio.removeEventListener('timeupdate', node._inlinePlayer.hiddenCheck);
     node._inlinePlayer.markPress && [ 'pointerdown', 'pointerup', 'pointercancel', 'keydown', 'contextmenu' ]
       .forEach(type => node.removeEventListener(type, node._inlinePlayer.markPress));
+    node._inlinePlayer.endPress && node._inlinePlayer.endPress();
     clearTimeout(node._inlinePlayer.pressTimeout);
     node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
@@ -6988,10 +7065,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.624") {
+    if (storedVersion !== "3.7.2.626") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.624"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.626"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -7307,7 +7384,7 @@ module.exports = {
       const view = Player.config.viewStyle;
       settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.624";
+      settings.VERSION = "3.7.2.626";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -7323,7 +7400,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.624") {
+    if (!fromVersion || fromVersion === "3.7.2.626") {
       return {};
     }
     const changes = {};
@@ -7827,7 +7904,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.624"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.626"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -10943,7 +11020,7 @@ module.exports = {
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(removedCountRE, () => Player.playlist.removedCount())
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.624"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.626"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -12790,6 +12867,14 @@ module.exports = (data = {}) => `.${ns}-colorpicker {
 
 span.${ns}-chan-x-controls {
   max-width: min(40vw, 30rem);
+  min-width: 0;
+  overflow: hidden;
+}
+span.${ns}-chan-x-controls > * {
+  flex-shrink: 0;
+}
+span.${ns}-chan-x-controls > .${ns}-truncate-text, span.${ns}-chan-x-controls > :has(.${ns}-truncate-text) {
+  flex-shrink: 1;
   min-width: 0;
   overflow: hidden;
 }
