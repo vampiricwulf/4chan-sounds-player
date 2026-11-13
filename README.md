@@ -133,7 +133,7 @@ __Sound Properties__
 - `sound-title` - The name of the sound. If you want to scroll long sound names use `sound-title-marquee`.
 - `sound-src` - The src for the sound file.
 - `sound-id` - An identifier for the sound.
-- `sound-name` - Same as sound-title but without being wrapped in any html.
+- `sound-name` - The name written before the `[sound=]` tag, without any html. Empty when the filename has none (`sound-title` then shows the post number).
 - `sound-post` - The post identifier for the sound.
 - `sound-imageOrThumb` - Full size image URL for images, or thumbnail URL for webms.
 - `sound-image` - Full image/webm URL.
@@ -167,7 +167,7 @@ They're the ones defined in Settings > Display.
 
 __Links/Buttons__
 
-All the values here can be followed by `:""` to specify the text, otherwise they will default to icons with 4chan X or short text displays. Each one works with either a `-button` or a `-link` ending.
+All the values here can be followed by `:""` to specify the text, otherwise they show an icon. Each one works with either a `-button` or a `-link` ending.
 - `playing-link` - Jumps to the sound in the playlist.
 - `post-link` - Jumps to the post for the sound.
 - `image-link` - Opens the sounds image in a new tab.
@@ -228,12 +228,12 @@ For example, `{ action: 'next', arguments: [ { group: true } ] }`.
 - `toggleMute()` - Mute/unmute.
 - `show()` - Display the player.
 - `hide()` - Minimise the player.
-- `playlist.search(value)` - Show search results for the given value in the playlist.
+- `playlist.search(value)` - Filter the playlist as the search box does (case doesn't matter). Pass nothing to clear it.
 - `theme.switch(name)` - Switch theme.
 - `theme.next()` - Switch to the next theme, according to the configured order.
 - `theme.previous()` - Switch to the previous theme, according to the configured order.
 - `set(property, value, { bypassValidation } )` - Set a config value. If `bypassValidation` is not set the value will be checked for changes and ignored if it's the same. Only on/off, number and choice settings can be set this way, with a value of the right type; templates, CSS, colors, hosts, filters and the allowed hosts can't, since any script on the page can send these events.
-- `settings.reset(property)` - Reset a config value to its default.
+- `settings.reset(property)` - Reset a config value to its default. Limited to the settings `set` can change.
 - `settings.export()` - Trigger an export of the user settings.
 - `settings.import()` - Trigger a file input to import user settings.
 - `settings.load(settings)` - Load a user settings object. Settings not included are left unchanged. As with `set`, only on/off, number and choice settings are applied; the rest are ignored.

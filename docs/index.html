@@ -190,7 +190,7 @@
     </div>
     <div class="build">
       <h4>Beta</h4>
-      <p>Rebuilt on every change to <code>master</code>. Its version carries the commit hash, for example <code>{{VERSION}}-abc1234</code>.</p>
+      <p>Rebuilt on every change to <code>master</code>. Its version ends in the build number, for example <code>{{VERSION}}.590</code>.</p>
       <a class="btn" href="https://raw.githubusercontent.com/vampiricwulf/4chan-sounds-player/master/dist/4chan-sounds-player-beta.user.js">Install beta</a>
     </div>
   </div>
@@ -200,7 +200,7 @@
   </div>
 
   <h3 id="install-sites">Supported sites</h3>
-  <p>The script runs on 4chan and on these archives. Archived threads get the playlist and most features. Some archives block the video encoder (see <a href="#video-archives">Archive support</a>).</p>
+  <p>The script runs on 4chan and on these archives. Archived threads get the playlist and most features, but not <a href="#settings-inline">inline playback</a>. Some archives block the video encoder (see <a href="#video-archives">Archive support</a>).</p>
   <ul class="chip-list">
     <li><code>boards.4chan.org</code></li>
     <li><code>boards.4channel.org</code></li>
@@ -244,7 +244,7 @@
   <ol>
     <li><strong>Open a thread with sounds.</strong> The player appears with the first sound loaded. If it doesn't, click <strong>Sounds</strong> at the top of the page.</li>
     <li><strong>Press play</strong> or click any playlist row. When a sound finishes, the next one starts.</li>
-    <li><strong>Move the player</strong> by dragging its header, and <strong>resize it</strong> by dragging the bottom-right corner.</li>
+    <li><strong>Move the player</strong> by dragging its header, and <strong>resize it</strong> by dragging any of its corners.</li>
     <li><strong>Right-click a playlist row</strong> for its menu: jump to the post, read the track details, download, filter or remove it.</li>
     <li><strong>Hide the player</strong> with the <span aria-label="close">✕</span> button or <kbd>H</kbd>. Hiding pauses playback, unless you turn off <a href="#s-pauseOnHide">Pause On Hide</a>.</li>
     <li><strong>Open settings</strong> from the view menu (the <span aria-hidden="true">▾</span> button in the header) and pick <em>Settings</em>.</li>
@@ -271,7 +271,7 @@
   <p>The player adds a button to each post that has a sound:</p>
   <ul>
     <li><strong>Play</strong> (a <span aria-hidden="true">▶</span> icon after the filename on 4chan, <em>Play</em> on FoolFuuka archives, <em>[play]</em> on warosu) plays that post's sound in the player.</li>
-    <li><strong>Filter / Add</strong> appears when a post's sound was blocked by your <a href="#s-filters">filters</a> or isn't on an <a href="#s-allow">allowed host</a>, or when you removed it from the playlist. Hover over it to see why. Click it to allow that sound once, or to bring back the one you removed, and add it to the playlist.</li>
+    <li><strong>Filter / Add</strong> appears when a post's sound was blocked by your <a href="#s-filters">filters</a> or isn't on an <a href="#s-allow">allowed host</a>, or when you removed it from the playlist. Hover over it to see why. Clicking it adds the sound to the playlist: for a filtered sound it adds the host to <a href="#s-allow">Allowed Hosts</a> and removes the lines in <a href="#s-filters">Filters</a> that blocked it. That's saved, so it applies to every post with that host, image or link. For a sound you removed, it just brings it back.</li>
   </ul>
 
   <h3 id="player-header">Header</h3>
@@ -280,7 +280,7 @@
     <tr><th>Button</th><th>What it does</th></tr>
     <tr><td>Repeat</td><td>Cycles <a href="#s-repeat">Repeat</a> through <em>All</em>, <em>One</em> and <em>None</em>. A circular arrow means <em>One</em>. A faded icon means <em>None</em>.</td></tr>
     <tr><td>Shuffle</td><td>Turns <a href="#s-shuffle">Shuffle</a> on and off. Faded means the playlist plays in order.</td></tr>
-    <tr><td>Hover images</td><td>Shows a large preview of a row's image when you hover over it in the playlist.</td></tr>
+    <tr><td>Hover images</td><td>Shows a row's thumbnail, up to 125&nbsp;px, next to the cursor when you hover over it in the playlist.</td></tr>
     <tr><td>Playlist</td><td>Switches between the playlist view and the image-only view.</td></tr>
     <tr><td>Title</td><td>The playing sound's name. Long names scroll.</td></tr>
     <tr><td>View menu <span aria-hidden="true">▾</span></td><td>Switches to Player, Settings, Threads or Tools.</td></tr>
@@ -329,7 +329,7 @@
     <li><strong>Open [ image sound ]:</strong> opens either file in a new tab.</li>
     <li><strong>Download [ image sound video ]:</strong> the same downloads as in the row menu.</li>
   </ul>
-  <p>Drag the bottom-right corner to resize the player. You can change the footer with the <a href="#s-footerTemplate">footer template</a>.</p>
+  <p>Drag any corner to resize the player. You can change the footer with the <a href="#s-footerTemplate">footer template</a>.</p>
 
   <h3 id="player-modes">Display modes</h3>
   <h4>Image view</h4>
@@ -341,7 +341,7 @@
   <figure><img src="images/playlist-fixed.png" alt="The fixed playlist theme docked on the right of a thread" width="1137" height="799" loading="lazy"><figcaption>The Fixed Playlist theme.</figcaption></figure>
 
   <h4>Minimised</h4>
-  <p>While the player is hidden and a sound is playing, a <a href="#s-pip">thumbnail</a> of it can stay in the bottom-right corner of the page. Click it to bring the player back. With 4chan X you can also show <a href="#s-chanXControls">playback controls in the 4chan X header</a>.</p>
+  <p>While the player is hidden and a sound is selected, playing or paused, a <a href="#s-pip">thumbnail</a> of it can stay in the bottom-right corner of the page. Click it to bring the player back. With 4chan X you can also show <a href="#s-chanXControls">playback controls in the 4chan X header</a>.</p>
   <figure><img src="images/minimised-image.png" alt="A thumbnail of the playing sound in the corner of the page" width="508" height="392" loading="lazy"><figcaption>The minimised thumbnail. Its size is set by <a href="#s-maxPIPWidth">Max Width</a>.</figcaption></figure>
 
   <h4>Media keys and system controls</h4>
@@ -432,7 +432,7 @@
   </article>
 
   <h3 id="tools-encode">Encode / Decode URL</h3>
-  <p>A converter between a normal URL and the encoded form used inside filenames. Type a link like <code>https://files.catbox.moe/abc.mp3</code> in the left box to get <code>https%3A%2F%2Ffiles.catbox.moe%2Fabc.mp3</code> on the right. It works in reverse too. Use it to <a href="#sound-files">write a sound filename by hand</a>.</p>
+  <p>A converter between a normal URL and the encoded form used inside filenames. Type a link like <code>https://files.catbox.moe/abc.mp3</code> in the left box to get <code>https%3A%2F%2Ffiles.catbox.moe%2Fabc.mp3</code> on the right. It also encodes <code>(</code> and <code>)</code>, as <code>%28</code> and <code>%29</code>. It works in reverse too. Use it to <a href="#sound-files">write a sound filename by hand</a>.</p>
 </section>
 
 <!-- ================================================================ THREADS -->
@@ -591,11 +591,11 @@ previous</code></pre>
     <p>What remains on the page while the player is hidden.</p>
     <article class="entry" id="s-pip" data-setting="pip" data-context="Settings › Display › Minimised Display" data-keywords="picture in picture thumbnail">
       <header><h5>Thumbnail</h5><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code></span></header>
-      <p>While a sound is playing with the player hidden, shows its image or video in the bottom-right corner of the page. Click it to bring the player back.</p>
+      <p>While a sound is selected (playing or paused) with the player hidden, shows its image or video in the bottom-right corner of the page. Click it to bring the player back.</p>
     </article>
     <article class="entry" id="s-maxPIPWidth" data-setting="maxPIPWidth" data-context="Settings › Display › Minimised Display">
       <header><h5>Max Width</h5><span class="badge">Text</span><span class="default">Default: <code>150px</code></span></header>
-      <p>The widest the thumbnail can be. Any CSS length works, such as <code>200px</code>, <code>15vw</code> or <code>10rem</code>. A number on its own is in pixels.</p>
+      <p>The widest the thumbnail can be. Any CSS length works, such as <code>200px</code>, <code>15vw</code> or <code>10rem</code>. A number on its own is in pixels. It limits the height too.</p>
     </article>
     <article class="entry" id="s-chanXControls" data-setting="chanXControls" data-context="Settings › Display › Minimised Display" data-keywords="4chan x header">
       <header><h5>4chan X Header Controls</h5><span class="badge type-select">Dropdown</span><span class="badge chanx">4chan X only</span><span class="default">Default: <code>Only with the player closed</code></span></header>
@@ -690,7 +690,7 @@ previous</code></pre>
 
   <div class="subgroup" id="settings-inline">
     <h4>Inline Player</h4>
-    <p>Plays a post's sound when you open its image on the page, without using the main player. If you use 4chan External Sounds, turn off <em>Expanded Image</em> and <em>Hover Image</em> here so both don't play at once.</p>
+    <p>Plays a post's sound when you open its image on the page, without using the main player. Only on 4chan, not on archives. If you use 4chan External Sounds, turn off <em>Expanded Image</em> and <em>Hover Image</em> here so both don't play at once.</p>
     <article class="entry" id="s-playExpandedImages" data-setting="playExpandedImages" data-context="Settings › Playback › Inline Player" data-keywords="expand click">
       <header><h5>Expanded Image</h5><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code></span></header>
       <p>Plays the sound when you click a thumbnail to expand it in the thread. Closing the image stops it.</p>
@@ -713,7 +713,7 @@ previous</code></pre>
     </article>
     <article class="entry" id="s-expandedRepeat" data-setting="expandedRepeat" data-context="Settings › Playback › Inline Player">
       <header><h5>Repeat</h5><span class="badge type-select">Dropdown</span><span class="default">Default: <code>All</code></span></header>
-      <p>For expanded images with several sounds:</p>
+      <p>How an expanded sound image repeats. With a single sound, <em>None</em> plays it once and the others loop it. With several:</p>
       <dl class="options">
         <dt>All</dt><dd>Play each sound in turn, then start again.</dd>
         <dt>One</dt><dd>Loop the current sound.</dd>
@@ -730,7 +730,7 @@ previous</code></pre>
 <!-- ---------------- FILTER ---------------- -->
 <section class="doc" id="settings-filter">
   <h2>Filter settings</h2>
-  <p class="group-intro">Which sounds get into the playlist. A filtered sound's post gets a <a href="#player-posts">filter button</a> so you can still let it through once.</p>
+  <p class="group-intro">Which sounds get into the playlist. A filtered sound's post gets a <a href="#player-posts">filter button</a> that lets it through, by allowing its host and removing the filters that blocked it.</p>
 
   <article class="entry" id="s-addWebm" data-setting="addWebm" data-context="Settings › Filter" data-keywords="webm mp4 video">
     <header><h4>Include Video</h4><span class="badge type-select">Dropdown</span><span class="default">Default: <code>Boards with sound</code></span></header>
@@ -747,7 +747,7 @@ previous</code></pre>
   </article>
   <article class="entry" id="s-allow" data-setting="allow" data-context="Settings › Filter" data-keywords="whitelist domain host">
     <header><h4>Allowed Hosts</h4><span class="badge">List</span></header>
-    <p>The domains sounds can be loaded from, one per line. A domain also allows its subdomains, so <code>catbox.moe</code> covers <code>files.catbox.moe</code>. Sounds from other hosts are left out, though you can still add one with its post's <a href="#player-posts">filter button</a>. Changes apply to the playlist straight away. <em>Reset</em> restores the default list.</p>
+    <p>The domains sounds can be loaded from, one per line. A domain also allows its subdomains, so <code>catbox.moe</code> covers <code>files.catbox.moe</code>. Sounds from other hosts are left out, though you can add one with its post's <a href="#player-posts">filter button</a>, which adds its host here. Changes apply to the playlist straight away. <em>Reset</em> restores the default list.</p>
     <pre><code>4cdn.org
 catbox.moe
 fatbox.moe
@@ -780,7 +780,7 @@ files.catbox.moe/abc123.mp3</code></pre>
 
   <div class="callout">
     <strong class="label">Setting a key</strong>
-    Click a key field and press the combination you want, with <kbd>Ctrl</kbd>, <kbd>Shift</kbd> or <kbd>Meta</kbd> if you like. Press <kbd>Backspace</kbd> to clear it. The change saves when you click away. <kbd>Alt</kbd> combinations can't be recorded.
+    Click a key field and press the combination you want, with <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd> or <kbd>Meta</kbd> if you like. Press <kbd>Backspace</kbd> to clear it. <kbd>Tab</kbd> moves to the next field rather than being recorded. The change saves when you click away.
   </div>
   <p>Shortcuts don't fire while you're typing in a text box. <em>Toggle Fullscreen</em> and <em>Toggle Playlist Search</em> are the exceptions.</p>
 
@@ -796,7 +796,7 @@ files.catbox.moe/abc123.mp3</code></pre>
     </article>
     <article class="entry" id="s-hardwareMediaKeys" data-setting="hardwareMediaKeys" data-context="Settings › Keybinds" data-keywords="media session play pause headphones">
       <header><h5>Hardware Media Keys</h5><span class="badge type-check">Checkbox</span><span class="default">Default: <code>on</code> when supported</span></header>
-      <p>Lets the keyboard's media keys, headset buttons and your system's media panel control the player. It also sends the track title, artist and artwork to that panel. Your browser has to support media sessions. If it doesn't, the box is greyed out. Reload the page after changing it.</p>
+      <p>Lets the keyboard's media keys, headset buttons and your system's media panel control the player. It also sends the track title, artist and artwork to that panel. Your browser has to support media sessions. If it doesn't, the box is greyed out. It takes effect straight away.</p>
     </article>
   </div>
 
@@ -817,7 +817,7 @@ files.catbox.moe/abc123.mp3</code></pre>
     </article>
     <article class="entry" id="s-hotkey_bindings-previousGroup" data-setting="hotkey_bindings.previousGroup" data-context="Settings › Keybinds › Playback">
       <header><h5>Previous Group</h5><span class="badge">Key</span><span class="default">Default: <kbd>Shift</kbd>+<kbd>←</kbd></span></header>
-      <p>Go back to the first sound of the previous <em>post</em>, skipping any other sounds in the current one. Useful when a single image carries several sounds.</p>
+      <p>Go back to the first sound of the previous <em>post</em>, skipping any other sounds in the current one. Useful when a single image carries several sounds. Like <em>Previous</em>, more than <a href="#s-restartSeconds">Restart After</a> seconds into a track it restarts the track instead.</p>
     </article>
     <article class="entry" id="s-hotkey_bindings-nextGroup" data-setting="hotkey_bindings.nextGroup" data-context="Settings › Keybinds › Playback">
       <header><h5>Next Group</h5><span class="badge">Key</span><span class="default">Default: <kbd>Shift</kbd>+<kbd>→</kbd></span></header>
@@ -937,7 +937,7 @@ view-menu-button add-button theme-menu-button close-button</code></pre>
   </article>
   <article class="entry" id="s-footerTemplate" data-setting="footerTemplate" data-context="Settings › Theme" data-keywords="template">
     <header><h4>Footer</h4><span class="badge">Template</span></header>
-    <p>The bar under the playlist. The default includes the corner resize handle, the <code>fcsp-expander</code> line. Keep it if you want to be able to resize the player.</p>
+    <p>The bar under the playlist. The player adds resize handles to all four corners itself, so the default's <code>fcsp-expander</code> line is optional.</p>
     <pre><code>playing-button:"sound-index /&amp;nbsp;" sound-count sounds d:{ (+ dead-count dead)} r:{ restore-link:"&amp;nbsp;(removed-count removed)"}
 &lt;div class="fcsp-col"&gt;&lt;/div&gt;
 p:{
@@ -1062,7 +1062,7 @@ p:{
     <tr><td><code>dead-count</code></td><td>How many sounds failed to load.</td></tr>
     <tr><td><code>removed-count</code></td><td>How many sounds you removed from the playlist.</td></tr>
     <tr><td><code>filtered-count</code></td><td>How many sounds your filters or allowed hosts kept out.</td></tr>
-    <tr><td><code>sound-name</code></td><td>The name as plain text, with no HTML around it, so it can go inside attributes.</td></tr>
+    <tr><td><code>sound-name</code></td><td>The name written before the <code>[sound=]</code> tag, as plain text with no HTML around it, so it can go inside attributes. Empty when the filename has none; <code>sound-title</code> then shows the post number.</td></tr>
     <tr><td><code>sound-src</code></td><td>The audio URL.</td></tr>
     <tr><td><code>sound-id</code></td><td>The player's internal ID for the sound.</td></tr>
     <tr><td><code>sound-post</code></td><td>The number of the post the sound is in.</td></tr>
@@ -1130,7 +1130,7 @@ p:{
   </table></div>
 
   <h3 id="tpl-css">Custom CSS</h3>
-  <p>Custom CSS can use <code>$config[…]</code> and sound tokens, but not buttons or blocks. The player's elements all have class names starting with <code>fcsp-</code>, and the window is <code>#fcsp-container</code>. Its <code>data-view-style</code> attribute tells you which view is showing: <code>playlist</code>, <code>image</code>, <code>settings</code>, <code>threads</code>, <code>tools</code> or <code>fullscreen</code>. To see working examples, switch to the <em>Fixed Playlist</em> theme and read its Custom CSS.</p>
+  <p>Custom CSS can use <code>$config[…]</code> and the sound property and count tokens, but not <code>sound-title</code>, <code>sound-title-marquee</code>, <code>%v</code>, buttons or blocks. The player's elements all have class names starting with <code>fcsp-</code>, and the window is <code>#fcsp-container</code>. Its <code>data-view-style</code> attribute tells you which view is showing: <code>playlist</code>, <code>image</code>, <code>settings</code>, <code>threads</code>, <code>tools</code> or <code>fullscreen</code>. To see working examples, switch to the <em>Fixed Playlist</em> theme and read its Custom CSS.</p>
 
   <h3 id="tpl-examples">Examples</h3>
   <h4>A compact header with text buttons</h4>
@@ -1196,7 +1196,7 @@ p:{ post-link dl-video-button }
   <div class="table-wrap"><table>
     <tr><th>Action</th><th>Arguments</th><th>Effect</th></tr>
     <tr><td><code>show</code> / <code>hide</code></td><td></td><td>Show or hide the player.</td></tr>
-    <tr><td><code>playlist.search</code></td><td><code>value</code></td><td>Filter the playlist as if you'd typed in its search box.</td></tr>
+    <tr><td><code>playlist.search</code></td><td><code>value</code></td><td>Filter the playlist as the search box does (case doesn't matter). The search box itself isn't changed. Pass nothing to clear it.</td></tr>
     <tr><td><code>theme.switch</code></td><td><code>name</code></td><td>Switch to a theme by name.</td></tr>
     <tr><td><code>theme.next</code> / <code>theme.previous</code></td><td></td><td>Step through themes in your saved order.</td></tr>
   </table></div>
@@ -1205,7 +1205,7 @@ p:{ post-link dl-video-button }
   <div class="table-wrap"><table>
     <tr><th>Action</th><th>Arguments</th><th>Effect</th></tr>
     <tr><td><code>set</code></td><td class="wrap"><code>property, value, { bypassValidation }</code></td><td>Change a setting, such as <code>'repeat', 'one'</code>. A value equal to the current one is ignored unless you pass <code>bypassValidation: true</code>. Only on/off, number and choice settings, with a value of the right type: templates, CSS, colors, hosts, filters and the allowed hosts can't be changed this way, because any script on the page can send these events.</td></tr>
-    <tr><td><code>settings.reset</code></td><td><code>property</code></td><td>Put one setting back to its default.</td></tr>
+    <tr><td><code>settings.reset</code></td><td><code>property</code></td><td>Put one setting back to its default. Only the settings <code>set</code> can change.</td></tr>
     <tr><td><code>settings.export</code></td><td></td><td>Download your settings, as the Export button does.</td></tr>
     <tr><td><code>settings.import</code></td><td></td><td>Open a file picker to import settings.</td></tr>
     <tr><td><code>settings.load</code></td><td class="wrap"><code>settings</code></td><td>Load a settings object. Anything not in it is left as it is. Like <code>set</code>, it only applies on/off, number and choice settings.</td></tr>
@@ -1228,7 +1228,7 @@ send('theme.switch', 'Fixed Playlist');</code></pre>
   </details>
   <details>
     <summary>Some sounds in the thread are missing from the playlist</summary>
-    <p>Look for a <a href="#player-posts">filter button</a> on the post and hover over it to see the reason. Usually the audio is on a host that isn't in <a href="#s-allow">Allowed Hosts</a>, or it matches one of your <a href="#s-filters">Filters</a>. Click the button to add the sound once. To allow it every time, edit the list. The playlist updates as soon as you click out of the field.</p>
+    <p>Look for a <a href="#player-posts">filter button</a> on the post and hover over it to see the reason. Usually the audio is on a host that isn't in <a href="#s-allow">Allowed Hosts</a>, or it matches one of your <a href="#s-filters">Filters</a>. Clicking the button adds the sound, and saves the change: its host is added to Allowed Hosts and the filters that blocked it are removed. To change those lists by hand, edit them in the settings. The playlist updates as soon as you click out of the field.</p>
   </details>
   <details>
     <summary>A row is marked dead or a sound won't play</summary>
