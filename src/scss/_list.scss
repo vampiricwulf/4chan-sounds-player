@@ -100,3 +100,39 @@
 .dialog .tags-dialog .entry {
 	cursor: initial;
 }
+
+// The search box under a header that a theme lays over the playlist, hidden until hovered
+// (Fixed Playlist): it goes with the header, just below it (placed by playlist.fitSearch).
+// Hovering the header shows both, and they stay while either is hovered, the box is typed in
+// or it has a search in it. Hidden, the box lets clicks through to the list under it; it
+// stays hoverable while it fades, to get from the header to it.
+.#{$ns}-search-overlay {
+	.#{$ns}-playlist-search {
+		position: absolute;
+		left: 0;
+		z-index: 9;
+		opacity: 0;
+		visibility: hidden;
+		transition: opacity .3s ease, visibility 0s linear .3s;
+
+		&:not(:placeholder-shown) {
+			opacity: 1;
+			visibility: visible;
+			transition: opacity .3s ease;
+		}
+	}
+	// !important: the theme hides the header with a more specific rule.
+	&:has(.#{$ns}-header:hover, .#{$ns}-playlist-search:hover, .#{$ns}-playlist-search:focus) {
+		.#{$ns}-header, .#{$ns}-playlist-search {
+			opacity: 1 !important;
+		}
+		.#{$ns}-playlist-search {
+			visibility: visible;
+			transition: opacity .3s ease;
+		}
+	}
+	// While it's in use, the list starts below it.
+	&:has(.#{$ns}-playlist-search:focus, .#{$ns}-playlist-search:not(:placeholder-shown)) .#{$ns}-list-container {
+		padding-top: var(--#{$ns}-search-pad, 0);
+	}
+}

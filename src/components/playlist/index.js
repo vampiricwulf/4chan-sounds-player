@@ -973,9 +973,10 @@ module.exports = {
   },
 
   /**
-   * Keep the search box out from under a header that a theme lays over the playlist. Fixed
-   * Playlist does, hidden until hovered: hovering the search box showed the header instead,
-   * so the box could never be clicked.
+   * A theme can lay the header over the top of the playlist, hidden until hovered (Fixed
+   * Playlist does). The search box was under it, so hovering the box showed the header
+   * instead and the box could never be clicked. The box goes with the header then: just
+   * below it, hidden with it, and hovering either shows both (see _list.scss).
    */
   fitSearch() {
     const search = Player.$(`.${ns}-playlist-search`);
@@ -983,16 +984,20 @@ module.exports = {
     if (!search || !header) {
       return;
     }
-    const margin = parseFloat(search.style.marginTop) || 0;
-    let needed = 0;
-    if (!Player.isHidden && search.getClientRects().length && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+    let overlay = false;
+    if (!Player.isHidden && search.style.display !== 'none' && [ 'absolute', 'fixed' ].includes(getComputedStyle(header).position)) {
+      // Where the box is when it's not with the header: at the top of the list.
+      const list = search.parentNode;
+      const l = list.getBoundingClientRect();
+      const top = l.top + list.clientTop + parseFloat(getComputedStyle(list).paddingTop);
       const h = header.getBoundingClientRect();
-      const s = search.getBoundingClientRect();
-      // Where the box would be, scrolled to the top and without the space it's been given.
-      const top = s.top + search.parentNode.scrollTop - margin;
-      needed = h.top < top + s.height && h.bottom > top && h.left < s.right && h.right > s.left ? Math.ceil(h.bottom - top) : 0;
+      overlay = l.width > 0 && h.top < top + search.offsetHeight && h.bottom > top && h.left < l.right && h.right > l.left;
+      // While it's in use the list starts below it, not under it (the first result was hidden).
+      overlay && Player.container.style.setProperty(`--${ns}-search-pad`, Math.ceil(h.bottom + search.offsetHeight - top) + 'px');
     }
-    needed !== margin && (search.style.marginTop = needed ? needed + 'px' : null);
+    search.style.top = overlay ? (header.offsetTop + header.offsetHeight) + 'px' : null;
+    overlay || Player.container.style.removeProperty(`--${ns}-search-pad`);
+    Player.container.classList.toggle(`${ns}-search-overlay`, overlay);
   },
 
   toggleSearch(show) {
