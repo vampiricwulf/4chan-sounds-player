@@ -150,6 +150,15 @@ span.#{$ns}-chan-x-controls {
 	min-width: 0;
 	overflow: hidden;
 
+	// The title gives way, not the buttons and times (they were pushed out of the box).
+	& > * {
+		flex-shrink: 0;
+	}
+	& > .#{$ns}-truncate-text, & > :has(.#{$ns}-truncate-text) {
+		flex-shrink: 1;
+		min-width: 0;
+		overflow: hidden;
+	}
 	.#{$ns}-truncate-text {
 		min-width: 0;
 	}
