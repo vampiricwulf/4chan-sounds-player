@@ -4,9 +4,9 @@
 // (e.g. some archives). Returns null for anything it can't safely parse — the
 // caller then falls back to new Function. Kept Player-free so it's unit-testable.
 
-// Split a comma-separated arg list at top level (respecting quotes / brackets /
-// braces / parens). Returns an array of trimmed sources, or null if unbalanced.
-function splitArgs(src) {
+// Split src at top-level `sep` characters (respecting quotes / brackets / braces /
+// parens). Returns an array of trimmed sources, or null if unbalanced.
+function splitTopLevel(src, sep) {
   src = src.trim();
   if (src === '') {
     return [];
@@ -33,7 +33,7 @@ function splitArgs(src) {
     } else if (c === '}' || c === ']' || c === ')') {
       depth--;
       cur += c;
-    } else if (c === ',' && depth === 0) {
+    } else if (c === sep && depth === 0) {
       out.push(cur.trim());
       cur = '';
     } else {
@@ -45,6 +45,18 @@ function splitArgs(src) {
   }
   out.push(cur.trim());
   return out;
+}
+
+// Split a comma-separated arg list at top level.
+function splitArgs(src) {
+  return splitTopLevel(src, ',');
+}
+
+// Split a handler like `a.b;c.d($event)` into its statements, dropping empty ones (a
+// trailing `;`). A `;` inside a string argument doesn't split. Null if unbalanced.
+function splitStatements(src) {
+  const parts = splitTopLevel(src, ';');
+  return parts && parts.filter(Boolean);
 }
 
 // Un-escape a single/double quoted string literal to its value, or null if malformed.
@@ -197,4 +209,4 @@ function compileAction(action, resolve) {
   };
 }
 
-module.exports = { compileAction, splitArgs, parseString, parseObject, compileArg, topColon };
+module.exports = { compileAction, splitArgs, splitStatements, parseString, parseObject, compileArg, topColon };

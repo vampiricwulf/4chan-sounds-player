@@ -1,4 +1,4 @@
-const { compileAction } = require('./parse-action');
+const { compileAction, splitStatements } = require('./parse-action');
 
 module.exports = {
   atRoot: ['on', 'off', 'trigger'],
@@ -87,17 +87,21 @@ module.exports = {
     //   2. compileAction — parse a simple `method(args)` call and dispatch without
     //      eval, so arg-bearing handlers work under CSPs lacking 'unsafe-eval'.
     //   3. new Function — the general fallback (blocked by such CSPs, hence 1 & 2).
+    // Several statements (`a.b;c.d($event)`) are resolved one by one and run in order.
+    // They used to fall through to new Function, where a bare `a.b` is only referenced,
+    // never called.
+    const statements = action ? splitStatements(action) : [];
+    const compiled = statements && statements.map(Player.events._compileStatement);
     let handler =
       action &&
-      (Player.getHandler(action) ||
-        compileAction(action, path => {
-          const fn = _.get(Player, path);
-          if (typeof fn !== 'function') {
-            return null;
+      (compiled && compiled.length && compiled.every(Boolean) && (compiled.length === 1
+        ? compiled[0]
+        : function (...args) {
+          let result;
+          for (const fn of compiled) {
+            result = fn.apply(this, args);
           }
-          const lastDot = path.lastIndexOf('.');
-          const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
-          return { fn, scope };
+          return result;
         }) ||
         function ($event) {
           try {
@@ -165,6 +169,26 @@ module.exports = {
   },
 
   /**
+   * Resolve one handler statement without eval: a bare method path, or a simple
+   * `method(args)` call. Returns a function or null.
+   */
+  _compileStatement(statement) {
+    const fn = Player.getHandler(statement);
+    if (typeof fn === 'function') {
+      return fn;
+    }
+    return compileAction(statement, path => {
+      const fn = _.get(Player, path);
+      if (typeof fn !== 'function') {
+        return null;
+      }
+      const lastDot = path.lastIndexOf('.');
+      const scope = lastDot > -1 ? _.get(Player, path.slice(0, lastDot)) : Player;
+      return { fn, scope };
+    });
+  },
+
+  /**
    * Create an event listener on the player.
    *
    * @param {String} evt The name of the events.
@@ -199,9 +223,16 @@ module.exports = {
    * @param {*} data Data passed to the handler.
    */
   async trigger(evt, ...data) {
-    const events = Player.events._events[evt] || [];
+    // Iterate a copy: a handler that removes itself (threads._initialFetch does) would
+    // otherwise make the loop skip the handler after it.
+    const events = (Player.events._events[evt] || []).slice();
     for (let handler of events) {
-      await handler(...data);
+      // One failing handler shouldn't stop the rest of the components reacting.
+      try {
+        await handler(...data);
+      } catch (err) {
+        console.error(`[4chan sounds player] Error handling '${evt}'`, err);
+      }
     }
   },
 

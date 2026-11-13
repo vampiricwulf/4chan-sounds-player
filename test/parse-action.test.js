@@ -25,6 +25,15 @@ function resolve(path) {
   return { fn, scope: i > -1 ? get(Player, path.slice(0, i)) : Player };
 }
 
+// --- splitStatements ---
+assert.deepStrictEqual(p.splitStatements('playlist.restore'), ['playlist.restore']);
+assert.deepStrictEqual(p.splitStatements('tools.handleImageSelect;tools.handleFileSelect($event.target)'),
+  ['tools.handleImageSelect', 'tools.handleFileSelect($event.target)']);
+assert.deepStrictEqual(p.splitStatements('theme.switch("a;b"); playlist.restore;'), ['theme.switch("a;b")', 'playlist.restore'],
+  'a ; inside a string does not split, and a trailing ; adds nothing');
+assert.deepStrictEqual(p.splitStatements(''), []);
+assert.strictEqual(p.splitStatements('a("x;y'), null, 'unbalanced');
+
 // --- splitArgs ---
 assert.deepStrictEqual(p.splitArgs(''), []);
 assert.deepStrictEqual(p.splitArgs('$event, "a"'), ['$event', '"a"']);
