@@ -1,7 +1,7 @@
 `<div class="${ns}-theme-save-options ${ns}-dialog fields-collapsed dialog" data-allow-click="true" style="top: 0px; left: 0px;">
 	<div class="${ns}-row ${ns}-align-center">
 		<div class="${ns}-col">
-			<input type="text" class="${ns}-save-theme-name" @input="theme.toggleSaveButtonText" placeholder="Name">
+			<input type="text" class="${ns}-save-theme-name" @input="theme.toggleSaveButtonText" @keydown="theme.handleNameKey" placeholder="Name">
 		</div>
 		<div class="${ns}-col">
 			<a class="${ns}-save-theme" @click.prevent="theme.save" href="#">Create</a>

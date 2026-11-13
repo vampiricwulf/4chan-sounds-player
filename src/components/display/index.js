@@ -134,6 +134,12 @@ module.exports = {
       // Create the main player. For native threads put it in the threads to get free quote previews.
       const parent = Thread && !isChanX && document.body.querySelector('.board') || document.body;
       Player.container = _.element(Player.display.template(), parent);
+      // That's inside 4chan's post form (#delform): Enter in one of the player's text fields
+      // submitted it, clicking the player's first button (Create, which uploads) or the
+      // form's Delete button. Enter in a field does nothing beyond the field's own handling.
+      Player.container.addEventListener('keydown', e => {
+        e.key === 'Enter' && e.target.nodeName === 'INPUT' && e.target.form && e.preventDefault();
+      });
 
       await Player.trigger('rendered');
     } catch (err) {

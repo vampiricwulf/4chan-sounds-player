@@ -319,6 +319,16 @@ module.exports = {
     Player.$(`.${ns}-save-theme`).innerHTML = Player.config.savedThemes[e.currentTarget.value] ? 'Update' : 'Create';
   },
 
+  /**
+	 * Enter in the theme name box saves, like the Create/Update link.
+	 */
+  handleNameKey(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      Player.theme.save();
+    }
+  },
+
   save() {
     const name = Player.$(`.${ns}-save-theme-name`).value;
     if (!name) {

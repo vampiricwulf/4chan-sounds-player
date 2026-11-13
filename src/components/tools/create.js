@@ -180,7 +180,11 @@ const createTool = module.exports = {
           // URLs (files.catbox.moe/x.mp3) are the format sound filenames use, so accept them.
           soundURLs = soundURLs.map(url => {
             const bare = url.replace(/^(https?:)?\/\//, '');
-            new URL('https://' + bare);
+            // Browsers accept a lot as a URL ("not a url at all" included): require a host
+            // with a dot and no spaces.
+            if (/\s/.test(bare) || !new URL('https://' + bare).hostname.includes('.')) {
+              throw new Error('Invalid URL');
+            }
             return bare;
           });
         } catch (err) {

@@ -937,15 +937,14 @@ view-menu-button add-button theme-menu-button close-button</code></pre>
   </article>
   <article class="entry" id="s-footerTemplate" data-setting="footerTemplate" data-context="Settings › Theme" data-keywords="template">
     <header><h4>Footer</h4><span class="badge">Template</span></header>
-    <p>The bar under the playlist. The player adds resize handles to all four corners itself, so the default's <code>fcsp-expander</code> line is optional.</p>
+    <p>The bar under the playlist. The player adds resize handles to all four corners itself.</p>
     <pre><code>playing-button:"sound-index /&amp;nbsp;" sound-count sounds d:{ (+ dead-count dead)} r:{ restore-link:"&amp;nbsp;(removed-count removed)"}
 &lt;div class="fcsp-col"&gt;&lt;/div&gt;
 p:{
 		post-link
 		Open [ image-link sound-link ]
 		Download [ dl-image-button dl-sound-button dl-video-button ]
-}
-&lt;div class="fcsp-expander" data-direction="se"&gt;&lt;/div&gt;</code></pre>
+}</code></pre>
   </article>
   <article class="entry" id="s-chanXTemplate" data-setting="chanXTemplate" data-context="Settings › Theme" data-keywords="template 4chan x header">
     <header><h4>4chan X Header</h4><span class="badge">Template</span><span class="badge chanx">4chan X only</span></header>
@@ -1144,8 +1143,7 @@ h:{ dl-sound-button menu-button }</code></pre>
   <h4>A footer that shows the playing position and filtered count</h4>
   <pre><code>p:{ sound-index / } sound-count sounds (filtered-count filtered)
 &lt;div class="fcsp-col"&gt;&lt;/div&gt;
-p:{ post-link dl-video-button }
-&lt;div class="fcsp-expander" data-direction="se"&gt;&lt;/div&gt;</code></pre>
+p:{ post-link dl-video-button }</code></pre>
   <h4>Rounder corners and a tinted playing row</h4>
   <pre><code>#fcsp-container { border-radius: 10px; overflow: hidden; }
 #fcsp-container .fcsp-list-item.playing {

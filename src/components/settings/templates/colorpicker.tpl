@@ -26,6 +26,6 @@
 			`).join('')}
 		</table>
 
-		<button @click.stop.prevent="colorpicker.apply">Apply</button><br>
+		<button type="button" @click.stop.prevent="colorpicker.apply">Apply</button><br>
 	</div>
 </div>`

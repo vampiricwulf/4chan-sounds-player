@@ -35,7 +35,7 @@
 			${Icons.volumeMute} ${Icons.volumeMuteFill}
 			${Icons.volumeUp} ${Icons.volumeUpFill}
 		</div>
-		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' data-hide-id="volume-bar">
+		<div class="${ns}-volume-bar ${ns}-progress-bar" @pointdrag.prevent='${data.actions.volume}' @pointdragstart="controls.volumeDragStart" @pointdragend="controls.volumeDragEnd" data-hide-id="volume-bar">
 			<div class="${ns}-full-bar">
 				<div class="${ns}-current-bar" style="width: ${Player.audio.volume * 100}%"></div>
 			</div>

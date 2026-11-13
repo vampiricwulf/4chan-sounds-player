@@ -260,8 +260,9 @@ module.exports = {
 	 * Apply the filter input to the already fetched threads.
 	 */
   filter(search, skipRender) {
-    search = search.toLowerCase();
+    // The box shows what was typed; matching ignores case.
     Player.threads.filterValue = search || '';
+    search = (search || '').toLowerCase();
     if (Player.threads.soundThreads === null) {
       return;
     }

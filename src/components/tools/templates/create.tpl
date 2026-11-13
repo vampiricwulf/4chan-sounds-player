@@ -84,7 +84,7 @@
 
 		<div class="${ns}-row mt-4">
 			<div class="${ns}-col-auto">
-				<button class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
+				<button type="button" class="${ns}-create-button" @click.prevent="tools.handleCreate">Create</button>
 			</div>
 		</div>
 	</div>

@@ -40,6 +40,10 @@ module.exports = {
     // manual navigation and a recovered source within the 3s window).
     Player.on('playsound', () => clearTimeout(Player._errorAdvanceTO));
 
+    // Hide controls that don't fit once the player is shown: on the first show nothing
+    // could be measured when it rendered, so they wrapped onto a second line.
+    Player.on('show', () => Player.controls.preventWrapping());
+
     // Only poll for the loaded data when the player is open.
     Player.on('show', () => Player._hiddenWhilePolling && Player.controls.pollForLoading());
     Player.on('hide', () => {
@@ -285,7 +289,9 @@ module.exports = {
     const vol = audio.volume;
     // Store volume of the main player.
     if (audio === Player.audio) {
-      vol > 0 && (Player._lastVolume = vol);
+      // Not while dragging the bar: dragging to 0 passed through near-zero volumes, and
+      // unmuting then restored one of those.
+      vol > 0 && !Player.controls._volumeDragging && (Player._lastVolume = vol);
       saveVolume(vol);
     }
     controls && controls.querySelectorAll(`.${ns}-volume-button[data-audio="${audio.dataset.id}"]`).forEach(el => {
@@ -321,6 +327,18 @@ module.exports = {
   },
 
   /**
+	 * Volume bar drags: the volume to unmute to is the one the drag ends on.
+	 */
+  volumeDragStart() {
+    Player.controls._volumeDragging = true;
+  },
+
+  volumeDragEnd() {
+    Player.controls._volumeDragging = false;
+    Player.audio && Player.audio.volume > 0 && (Player._lastVolume = Player.audio.volume);
+  },
+
+  /**
 	 * Handle the user interacting with the volume bar.
 	 */
   handleVolume(e, audioId) {
@@ -330,7 +348,8 @@ module.exports = {
 
   _getBarXRatio(e) {
     const offset = 0.4 * Player.remSize;
-    const offsetX = e.offsetX || (e.targetTouches[0].pageX - e.currentTarget.getBoundingClientRect().left);
+    // offsetX is 0 on the bar's first pixel, so test for it rather than falling through.
+    const offsetX = typeof e.offsetX === 'number' ? e.offsetX : (e.targetTouches[0].pageX - e.currentTarget.getBoundingClientRect().left);
     return Math.max(0, Math.min(1, (offsetX - offset) / (parseInt(getComputedStyle(e.currentTarget).width, 10) - (2 * offset))));
   },
 

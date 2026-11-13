@@ -49,8 +49,7 @@ module.exports = [
 			+ '		post-link\n'
 			+ '		Open [ image-link sound-link ]\n'
 			+ '		Download [ dl-image-button dl-sound-button dl-video-button ]\n'
-			+ '}\n'
-			+ `<div class="${ns}-expander" data-direction="se"></div>\n`,
+			+ '}\n',
     displayGroup: 'Theme',
     displayMethod: 'textarea',
     attrs: 'rows="10"',

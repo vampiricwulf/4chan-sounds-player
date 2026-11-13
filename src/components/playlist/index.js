@@ -86,7 +86,8 @@ module.exports = {
       Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
-      container.href = '#';
+      // No link (with target _blank, "#" opened the thread again in a new tab).
+      container.removeAttribute('href');
       document.querySelector(`.${ns}-background-image`).src = Player.video.src = '';
       document.querySelector(`.${ns}-image`).src =
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;

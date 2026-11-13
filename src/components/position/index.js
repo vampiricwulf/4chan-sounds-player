@@ -33,6 +33,10 @@ module.exports = {
       }
     });
 
+    // Put the saved size back after a temporary one, when the view or theme changes (the
+    // Fixed Playlist width handle's size carried over to the default layout, cut off).
+    Player.on([ 'view', 'config:selectedTheme' ], Player.position.restoreSize);
+
     // Remove post width limiting when the player is hidden.
     Player.on('hide', function () {
       Player.position.setPostWidths();
@@ -205,12 +209,27 @@ module.exports = {
 
     const { width, height } = Player.container.getBoundingClientRect();
 
+    // A handle that doesn't save (the Fixed Playlist theme's width handle) only sizes the
+    // player for the current layout: note it, so the saved size comes back on a change.
+    Player.position._temporarySize = Player._resizeTarget.dataset.bypassSave === 'true';
     if (Player._resizeTarget.dataset.bypassSave !== 'true') {
       GM.setValue('size', width + ':' + height);
       if (Player._resizeMoveX || Player._resizeMoveY) {
         GM.setValue('position', parseInt(Player.container.style.left, 10) + ':' + parseInt(Player.container.style.top, 10));
       }
     }
+  },
+
+  /**
+	 * Go back to the saved size (or the default one) after a temporary resize.
+	 */
+  async restoreSize() {
+    if (!Player.position._temporarySize || !Player.container) {
+      return;
+    }
+    Player.position._temporarySize = false;
+    const [ width, height ] = (await GM.getValue('size') || '').split(':');
+    +width && +height ? Player.position.resize(+width, +height, true) : Player.position.resize(360, 360, true);
   },
 
   /**

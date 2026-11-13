@@ -373,9 +373,10 @@ module.exports = {
         }
         return settings;
       }, {});
-      // Show the playlist or image view on load, whichever was last shown.
-      // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
-      settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
+      // Show the playlist or image view on load, whichever was last shown. The current view
+      // when it's one of them (the 'view' event that records it comes after this save).
+      const view = Player.config.viewStyle;
+      settings.viewStyle = view === 'playlist' || view === 'image' ? view : Player.playlist._lastView || view;
       // Store the player version with the settings.
       settings.VERSION = VERSION;
       // Save the settings. The surrounding try/catch only covers synchronous
@@ -599,6 +600,10 @@ module.exports = {
         // Update the setting.
         Player.set(property, newValue, { bypassValidation: true, bypassRender: 'self', settingConfig });
       }
+      // The field isn't re-rendered, so show a number setting's kept value ("abc" became 0
+      // but stayed in the box).
+      const kept = _.get(Player.config, property);
+      typeof settingConfig.default === 'number' && input.value !== String(kept) && (input.value = kept);
     } catch (err) {
       Player.logError('There was an error updating the setting.', err);
     }
