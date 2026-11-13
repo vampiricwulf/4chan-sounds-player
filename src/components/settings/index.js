@@ -17,7 +17,7 @@ module.exports = {
     textarea: require('./templates/inputs/textarea.tpl')
   },
 
-  changelog: 'https://github.com/rcc11/4chan-sounds-player/releases',
+  changelog: 'https://github.com/vampiricwulf/4chan-sounds-player/releases',
   groups: settingsConfig.reduce((groups, setting) => {
     if (setting.displayGroup) {
       groups[setting.displayGroup] || (groups[setting.displayGroup] = []);
