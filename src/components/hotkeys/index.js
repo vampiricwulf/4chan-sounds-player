@@ -185,7 +185,9 @@ module.exports = {
     const target = e.target;
     const inputFocused = [ 'INPUT', 'SELECT', 'TEXTAREA', 'BUTTON' ].includes(target.nodeName)
       || target.isContentEditable
-      || (target.getAttribute && target.getAttribute('role') === 'button');
+      || (target.getAttribute && target.getAttribute('role') === 'button')
+      // A video or audio with its own controls (an expanded webm) uses Space and the arrows.
+      || ((target.nodeName === 'VIDEO' || target.nodeName === 'AUDIO') && target.controls);
     const k = e.key.toLowerCase();
     const bindings = Player.config.hotkey_bindings || {};
 
@@ -193,6 +195,9 @@ module.exports = {
     Object.entries(bindings).forEach(function checkBinding([ name, keyDef ]) {
       if (Array.isArray(keyDef)) {
         return keyDef.find(_def => checkBinding([ name, _def ]));
+      }
+      if (!keyDef || typeof keyDef.key !== 'string') {
+        return;
       }
       const bindingConfig = k === keyDef.key
 				&& (!!keyDef.shiftKey === !!e.shiftKey) && (!!keyDef.ctrlKey === !!e.ctrlKey) && (!!keyDef.metaKey === !!e.metaKey)
@@ -202,9 +207,9 @@ module.exports = {
 				&& (!(keyConfigs[name] && keyConfigs[name].ignoreRepeat) || !e.repeat)
 				&& keyConfigs[name];
 
-      // allowFocusedInput is for the player's own inputs (its search box), not the page's:
-      // a printable binding would otherwise be swallowed while typing a reply.
-      if (bindingConfig && (!inputFocused || (bindingConfig.allowFocusedInput && Player.container && Player.container.contains(target)))) {
+      // allowFocusedInput is for the playlist search box only. Anywhere else (a reply, the
+      // settings or tools fields) a printable binding would be swallowed while typing.
+      if (bindingConfig && (!inputFocused || (bindingConfig.allowFocusedInput && target.classList.contains(`${ns}-playlist-search`)))) {
         e.preventDefault();
         e._binding = keyDef;
         Player.getHandler(bindingConfig.keyHandler)(e);
@@ -216,7 +221,8 @@ module.exports = {
 	 * Turn a hotkey definition or key event into an input string.
 	 */
   stringifyKey(key) {
-    let k = key.key.toLowerCase();
+    let k = String((key && key.key) || '').toLowerCase();
+    key = key || {};
     Player.hotkeys._keyMap[k] && (k = Player.hotkeys._keyMap[k]);
     return (key.ctrlKey ? 'Ctrl+' : '') + (key.altKey ? 'Alt+' : '') + (key.shiftKey ? 'Shift+' : '') + (key.metaKey ? 'Meta+' : '') + k;
   },

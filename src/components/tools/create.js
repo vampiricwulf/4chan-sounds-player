@@ -221,7 +221,10 @@ const createTool = module.exports = {
         try {
           soundURLs = await Promise.all(sounds.map(async sound => Player.tools.postFile(sound, host)));
         } catch (err) {
-          throw new PlayerError('Upload failed.', 'error', err);
+          // Say why where we know: a misconfigured host, or the host's answer.
+          const why = err instanceof PlayerError ? ` ${err.reason}`
+            : err && err.status ? ` The host answered ${err.status}${err.statusText ? ` ${err.statusText}` : ''}.` : '';
+          throw new PlayerError(`Upload failed.${why}`, 'error', err);
         }
       }
 
@@ -229,10 +232,18 @@ const createTool = module.exports = {
         throw new PlayerError('No sounds selected.', 'warning');
       }
 
-      // Create a new file that includes [sound=url] in the name.
+      // Create a new file that includes [sound=url] in the name. encodeURIComponent leaves
+      // ( and ) alone, but a tag can also end at ")", so "song(1).mp3" cut the link short.
+      const encodeLink = url => encodeURIComponent(url.replace(/^(https?:)?\/\//, '')).replace(/\(/g, '%28').replace(/\)/g, '%29');
       let filename = '';
       for (let i = 0; i < soundURLs.length; i++) {
-        filename += (names[i] || '') + '[sound=' + encodeURIComponent(soundURLs[i].replace(/^(https?:)?\/\//, '')) + ']';
+        filename += (names[i] || '') + '[sound=' + encodeLink(soundURLs[i]) + ']';
+      }
+      // Read it back as the player will, so a name that reads as a sound link of its own
+      // ("[sound=x.mp3]" typed into the name) is caught here rather than in the thread.
+      const readBack = Player.posts.getSounds(filename + '.png', 'created.png', 'created', null, null, true).sounds;
+      if (readBack.length !== soundURLs.length) {
+        throw new PlayerError('The name contains text that reads as a sound link. Change the name and try again.', 'warning');
       }
       // The checks above estimate the URL lengths before uploading; check the real name.
       // 4chan cuts longer names, which loses the last [sound=] tag.
@@ -297,10 +308,19 @@ const createTool = module.exports = {
 
     createTool.status.innerHTML += `<br><span class="${ns}-upload-status-${idx}">Uploading ${_.escHTML(file.name)}</span>`;
 
+    // Responses are matched as text: compile the pattern up front so a broken one is reported.
+    let responseRE;
+    try {
+      responseRE = host.responseMatch && new RegExp(host.responseMatch);
+    } catch (err) {
+      throw new PlayerError('The host\'s response match isn\'t a valid regular expression.', 'error');
+    }
+
     return new Promise((resolve, reject) => {
       GM.xmlHttpRequest({
         method: 'POST',
-        url: host.url,
+        // A URL saved without its scheme would be read relative to the page.
+        url: /^https?:\/\//i.test(host.url) ? host.url : `https://${String(host.url).replace(/^\/\//, '')}`,
         data: formData,
         responseType: host.responsePath ? 'json' : 'text',
         // Like the form data, leave out headers set to null (the default hosts' empty
@@ -315,8 +335,8 @@ const createTool = module.exports = {
           try {
             const responseVal = host.responsePath
               ? _.get(response.response, host.responsePath)
-              : host.responseMatch
-                ? (response.responseText.match(new RegExp(host.responseMatch)) || [])[1]
+              : responseRE
+                ? (response.responseText.match(responseRE) || [])[1]
                 : response.responseText;
             // A host that answers 200 with an error body has no link at the expected place.
             // (A number is fine, e.g. a file id used with the file URL format.)

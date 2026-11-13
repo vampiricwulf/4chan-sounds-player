@@ -1,3 +1,17 @@
+// The form data must send the file somewhere: a "$file" value in a JSON object.
+function validData(data) {
+  return !!data && typeof data === 'object' && !Array.isArray(data) && Object.values(data).includes('$file');
+}
+
+// A response match must compile and capture the link.
+function validMatch(value) {
+  try {
+    return new RegExp(`${value}|`).exec('').length > 1;
+  } catch (err) {
+    return false;
+  }
+}
+
 function validURL(value) {
   try {
     // Regex was missing the `:` so it never matched a real protocol — it would
@@ -21,11 +35,22 @@ module.exports = {
   },
 
   parse(newValue, hosts, e) {
-    hosts = { ...hosts };
     const container = e.currentTarget.closest(`.${ns}-host-input`);
     let name = container.getAttribute('data-host-name');
-    let host = hosts[name] = { ...hosts[name] };
     const changedField = e.currentTarget.getAttribute('name');
+    // Settings save on every focusout: leaving a field without editing it isn't a change.
+    // (Writing it back anyway, as name or an empty string, made a built-in host a stored
+    // custom copy.)
+    const current = hosts[name] || {};
+    const shown = changedField === 'name' ? name
+      : changedField === 'data' ? JSON.stringify(current.data, null, 4)
+        : changedField === 'headers' ? (current.headers ? JSON.stringify(current.headers, null, 4) : '')
+          : current[changedField] == null ? '' : String(current[changedField]);
+    if (newValue === shown) {
+      return hosts;
+    }
+    hosts = { ...hosts };
+    let host = hosts[name] = { ...hosts[name] };
 
     try {
       // If the name was changed then reassign in hosts and update the data-host-name attribute.
@@ -51,6 +76,15 @@ module.exports = {
       if ((changedField === 'url' || changedField === 'soundUrl' && newValue) && !validURL(newValue)) {
         throw new PlayerError('The value must be a valid URL.', 'warning');
       }
+      // Uploads go to the URL as given, so store it with its scheme: without one it was read
+      // relative to the page.
+      if (changedField === 'url' && !/^https?:\/\//i.test(newValue)) {
+        newValue = `https://${newValue.replace(/^\/\//, '')}`;
+        e.currentTarget.value = newValue;
+      }
+      if (changedField === 'responseMatch' && newValue && !validMatch(newValue)) {
+        throw new PlayerError('The response match must be a regular expression with a capture group, ( ), around the link.', 'warning');
+      }
 
       // Parse the data
       if (changedField === 'data') {
@@ -58,6 +92,9 @@ module.exports = {
           newValue = JSON.parse(newValue);
         } catch (err) {
           throw new PlayerError('The data must be valid JSON.', 'warning');
+        }
+        if (!validData(newValue)) {
+          throw new PlayerError('The data must be a JSON object with "$file" as the value of the file\'s field.', 'warning');
         }
       }
 
@@ -74,18 +111,23 @@ module.exports = {
       throw err;
     }
 
-    if (newValue === undefined) {
-      delete host[changedField];
-    } else {
-      host[changedField] = newValue;
+    // The name is the key, not a field; an emptied optional field is left out.
+    if (changedField !== 'name') {
+      if (newValue === undefined || newValue === '') {
+        delete host[changedField];
+      } else {
+        host[changedField] = newValue;
+      }
     }
 
     try {
       const soundUrlValue = container.querySelector('[name=soundUrl]').value;
       const headersValue = container.querySelector('[name=headers]').value;
+      const matchValue = container.querySelector('[name=responseMatch]').value;
       if (name
-				&& JSON.parse(container.querySelector('[name=data]').value)
+				&& validData(JSON.parse(container.querySelector('[name=data]').value))
 				&& validURL(container.querySelector('[name=url]').value)
+				&& (!matchValue || validMatch(matchValue))
 				&& (!soundUrlValue || validURL(soundUrlValue))
 				&& (!headersValue || JSON.parse(headersValue))) {
 
@@ -133,7 +175,7 @@ module.exports = {
     }
 
     Object.keys(Player.config.uploadHosts).forEach(name => {
-      const checkbox = Player.$(`.${ns}-host-input[data-host-name="${name}"] input[data-property="defaultUploadHost"]`);
+      const checkbox = Player.$(`.${ns}-host-input[data-host-name="${CSS.escape(name)}"] input[data-property="defaultUploadHost"]`);
       checkbox && (checkbox.checked = name === selected);
     });
     return selected;

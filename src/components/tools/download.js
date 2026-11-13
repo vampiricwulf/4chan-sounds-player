@@ -4,6 +4,14 @@ const videoUtil = require('./video-util');
 // File types that run or render as code when opened.
 const RISKY_EXTENSIONS = /\.(exe|com|bat|cmd|scr|pif|cpl|msi|msp|hta|html?|xhtml|mht|svg|js|jse|vbs|vbe|wsf|wsh|ps1|psm1|lnk|url|reg|jar|sh|app|dmg|pkg|deb|rpm|apk)$/i;
 
+// A file name that can't be saved as something that runs: posts choose both the name and
+// the link, so either can carry the extension. Windows drops trailing dots and spaces
+// ("invoice.exe." saves as invoice.exe), so those go first; a risky extension gets .bin.
+function safeFileName(name) {
+  name = String(name || '').replace(/[. ]+$/, '') || 'download';
+  return RISKY_EXTENSIONS.test(name) ? `${name}.bin` : name;
+}
+
 const get = (src, opts) => {
   let xhr;
   // Wrap so aborting rejects.
@@ -106,7 +114,7 @@ const downloadTool = module.exports = {
       const urlExt = (String(src).split(/[?#]/)[0].match(/\.([a-z0-9]{1,5})$/i) || [])[1];
       name = String(name || 'download');
       const base = name.replace(/\.[a-z0-9]{1,5}$/i, '') || 'download';
-      name = urlExt ? `${base}.${urlExt}` : RISKY_EXTENSIONS.test(name) ? base : name;
+      name = safeFileName(urlExt ? `${base}.${urlExt}` : name);
       const blob = await get(src);
       const a = _.element(`<a href="${URL.createObjectURL(blob)}" download="${_.escAttr(name)}" rel="noopener" target="_blank"></a>`);
       a.click();
@@ -189,6 +197,7 @@ const downloadTool = module.exports = {
     // names), so number repeats. Case-insensitive, as most file systems are.
     const usedNames = new Set();
     const addFile = (name, content) => {
+      name = safeFileName(name);
       let unique = name;
       for (let n = 2; usedNames.has(unique.toLowerCase()); n++) {
         unique = name.replace(/(\.[^./]*)?$/, ext => ` (${n})${ext}`);
@@ -287,7 +296,7 @@ const downloadTool = module.exports = {
           // Add the downloaded files to the zip, and record what arrived (the getArgs
           // catch resolves failures to undefined) so "skip downloaded" retries the rest.
           // Every sound of a multi-sound post brings the same post image: add it once.
-          imageRsp && !usedNames.has(`${prefix}${sound.filename}`.toLowerCase()) && addFile(`${prefix}${sound.filename}`, imageRsp);
+          imageRsp && !usedNames.has(safeFileName(`${prefix}${sound.filename}`).toLowerCase()) && addFile(`${prefix}${sound.filename}`, imageRsp);
           soundRsp && addFile(`${prefix}${encodeURIComponent(soundSrc)}`, soundRsp);
           imageRsp && markDownloaded(sound, ...(standalone ? [ 'image', 'sound' ] : [ 'image' ]));
           soundRsp && markDownloaded(sound, 'sound');

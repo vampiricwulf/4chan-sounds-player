@@ -1,5 +1,6 @@
 const settingsConfig = require('config');
 const migrations = require('../../migrations');
+const settingTpl = require('./templates/setting.tpl');
 
 const hosts = require('./hosts');
 
@@ -9,7 +10,20 @@ module.exports = {
   hosts,
 
   template: require('./templates/settings.tpl'),
-  settingTemplate: require('./templates/setting.tpl'),
+  // A setting that can't be shown (a bad imported value) gets a row with a Reset link
+  // instead of stopping the whole settings view, and the player with it, from rendering.
+  settingTemplate(setting) {
+    try {
+      return settingTpl(setting);
+    } catch (err) {
+      console.error('[4chan sounds player] Could not show setting', setting && setting.property, err);
+      const prop = setting && setting.property;
+      return `<div class="${ns}-row ${ns}-setting" data-property="${_.escAttr(prop || '')}">`
+        + `<div class="${ns}-col">${_.escHTML((setting && setting.title) || prop || 'A setting')} couldn't be shown.`
+        + (prop ? ` <a href="#" @click.prevent='settings.reset("${_.escAttr(prop, true)}")'>Reset it</a>` : '')
+        + '</div></div>';
+    }
+  },
   inputTemplates: {
     checkbox: require('./templates/inputs/checkbox.tpl'),
     input: require('./templates/inputs/input.tpl'),
@@ -285,6 +299,10 @@ module.exports = {
     }
     if (Array.isArray(def)) {
       return Array.isArray(value) ? value : undefined;
+    }
+    // A keybind needs its key: rendering the keybinds threw on anything else.
+    if (typeof def.key === 'string') {
+      return value && typeof value === 'object' && !Array.isArray(value) && typeof value.key === 'string' ? value : undefined;
     }
     return value && typeof value === 'object' && !Array.isArray(value) ? value : undefined;
   },
@@ -578,7 +596,16 @@ module.exports = {
 	 * Converts a key event in an input to a string representation set as the input value.
 	 */
   handleKeyChange(e) {
+    // Tab and Shift+Tab move focus as usual (a field that captured them trapped keyboard
+    // users, and a Tab binding then took over Tab on the page).
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      return;
+    }
     e.preventDefault();
+    // Keys still being composed (an IME, a dead key) aren't a key to bind.
+    if (e.isComposing || e.key === 'Process' || e.key === 'Dead' || e.key === 'Unidentified') {
+      return;
+    }
     if (e.key === 'Shift' || e.key === 'Control' || e.key === 'Meta' || e.key === 'Alt' || e.key === 'AltGraph') {
       return;
     }

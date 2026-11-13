@@ -5,7 +5,7 @@
 			<input
 				type="text"
 				@keydown="settings.handleKeyChange"
-				value="${_.escAttr(Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def.themeName === name) || { key: '' }))}"
+				value="${_.escAttr(Player.hotkeys.stringifyKey(Player.config.hotkey_bindings.switchTheme.find(def => def && def.themeName === name) || { key: '' }))}"
 				data-property="hotkey_bindings.switchTheme"
 			/>
 		</div>
