@@ -17,6 +17,9 @@ assert.strictEqual(u.muxFileName('a/b:c*d'), 'a_b_c_d.mp4', 'strips FS-illegal c
 assert.strictEqual(u.muxFileName('clip.webm'), 'clip.mp4', 'drops source extension');
 assert.strictEqual(u.muxFileName('', 'fallback.jpg'), 'fallback.mp4', 'uses fallback');
 assert.strictEqual(u.muxFileName('', ''), 'sound.mp4', 'last-resort name');
+assert.strictEqual(u.muxFileName('Mr. Blue Sky'), 'Mr. Blue Sky.mp4', 'keeps a dot that is not an extension');
+assert.strictEqual(u.muxFileName('Song v1.5 remix'), 'Song v1.5 remix.mp4', 'keeps a version number');
+assert.strictEqual(u.muxFileName('', 'pic[sound=a.b%2Fc.mp3].PNG'), 'pic[sound=a.b%2Fc.mp3].mp4', 'drops an upper-case image extension');
 
 // arg builders — assert the load-bearing flags are present and correctly ordered
 // singleFrameRate: a millisecond-resolution rational, so the single frame's

@@ -23,7 +23,9 @@ function classifyVisual(image, type) {
 // only characters that are actually illegal in filenames (and control chars).
 function muxFileName(title, fallback) {
   let base = (title || fallback || 'sound').toString();
-  base = base.replace(/\.[^/.]+$/, '');                 // drop any extension
+  // Drop a media extension only. Titles are free text, so stripping any ".xyz" suffix
+  // turned "Mr. Blue Sky" into "Mr" and "Song v1.5 remix" into "Song v1".
+  base = base.replace(/\.(webm|mp4|m4a|mp3|ogg|oga|opus|flac|wav|aac|png|jpe?g|gif|webp)$/i, '');
   // eslint-disable-next-line no-control-regex
   base = base.replace(/[\\/:*?"<>|\x00-\x1f]/g, '_');    // FS-illegal -> _
   base = base.replace(/\s+/g, ' ').trim().slice(0, 200);
