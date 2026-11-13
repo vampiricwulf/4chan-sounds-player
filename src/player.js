@@ -83,7 +83,8 @@ const Player =
           // privileges (cross-site requests with the user's cookies).
           const restricted = {
             set: Player.settings.setPublic,
-            'settings.load': Player.settings.loadPublic
+            'settings.load': Player.settings.loadPublic,
+            'settings.reset': Player.settings.resetPublic
           };
           document.addEventListener('PlayerEvent', (e) => {
             const action = e.detail && e.detail.action;

@@ -788,6 +788,9 @@ module.exports = {
   },
 
   search(v) {
+    // Matching is on lowercased text, as the search box lowercases what's typed; do the
+    // same for a value passed in (the PlayerEvent API).
+    v = typeof v === 'string' ? v.toLowerCase() : v;
     const lastSearch = Player.playlist._lastSearch;
     Player.playlist._lastSearch = v;
     if (v === lastSearch) {

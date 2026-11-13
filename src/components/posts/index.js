@@ -2,7 +2,12 @@ const selectors = require('../../selectors');
 const hosts = require('../../hosts');
 
 const protocolRE = /^(https?:)?\/\//;
-const filenameRE = new RegExp('(.*?)[[({](' + Object.keys(hosts).join('|') + ')[ =:|$](.*?)[\\])}]', 'gi');
+// A tag closes with the bracket it opened with, so "[sound=…song(1).mp3]" keeps the ")" in
+// its link. (Any closing bracket ended it before.) Mismatched ones ("[sound=…)") are still
+// read, as a last resort. Groups: name, then host and link for [ ], ( ), { } or mismatched.
+const hostAlternatives = Object.keys(hosts).join('|');
+const filenameRE = new RegExp(`(.*?)(?:\\[(${hostAlternatives})[ =:|$](.*?)\\]|\\((${hostAlternatives})[ =:|$](.*?)\\)`
+  + `|\\{(${hostAlternatives})[ =:|$](.*?)\\}|[[({](${hostAlternatives})[ =:|$](.*?)[\\])}])`, 'gi');
 // Hostname-anchored: requires // (or userinfo@) immediately before the matched
 // catbox.moe, and a path/port/query/fragment/end immediately after. So substrings
 // in paths or query strings don't match, and `xcatbox.moe` doesn't either.
@@ -211,12 +216,13 @@ module.exports = {
     // its text as part of the next sound's name.
     let carried = '';
     const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
-      const src = match[3].trim();
+      const host = match[2] || match[4] || match[6] || match[8];
+      const src = (match[3] || match[5] || match[7] || match[9] || '').trim();
       if (!src.includes('.') || /\s/.test(src)) {
         carried += match[0];
         return valid;
       }
-      valid.push([ match[0], carried + match[1], match[2], src ]);
+      valid.push([ match[0], carried + match[1], host, src ]);
       carried = '';
       return valid;
     }, []);

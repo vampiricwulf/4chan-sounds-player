@@ -26,7 +26,8 @@ module.exports = {
 	 * Encode the decoded input.
 	 */
   handleDecoded(e) {
-    Player.$(`.${ns}-encoded-input`).value = encodeURIComponent(e.currentTarget.value);
+    // ( and ) too: a tag written with parentheses would otherwise end at the first ")".
+    Player.$(`.${ns}-encoded-input`).value = encodeURIComponent(e.currentTarget.value).replace(/\(/g, '%28').replace(/\)/g, '%29');
   },
 
   /**

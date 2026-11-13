@@ -294,8 +294,8 @@
 
   /* ---------- Sound filename builder ---------- */
 
-  // Mirrors tools/create.js: the protocol is stripped, the rest is URI-encoded,
-  // and the name portion is limited to 218 characters.
+  // Mirrors tools/create.js: the protocol is stripped, the rest is URI-encoded (with ( and )
+  // too), and the name portion is limited to 218 characters.
   var MAX = 218;
   var nameIn = document.getElementById('builder-name');
   var urlIn = document.getElementById('builder-url');
@@ -314,7 +314,7 @@
     }
     var nameList = urls.length > 1 ? names.split(',').map(function (s) { return s.trim(); }) : [names.trim()];
     var filename = urls.map(function (u, i) {
-      return (nameList[i] || '') + '[sound=' + encodeURIComponent(u.replace(/^(https?:)?\/\//, '')) + ']';
+      return (nameList[i] || '') + '[sound=' + encodeURIComponent(u.replace(/^(https?:)?\/\//, '')).replace(/\(/g, '%28').replace(/\)/g, '%29') + ']';
     }).join('');
     out.textContent = filename;
     out.classList.remove('muted');

@@ -159,6 +159,18 @@ module.exports = {
   },
 
   /**
+	 * settings.reset for the PlayerEvent API: only settings the API may set, so a page script
+	 * can't wipe saved themes, filters, hosts or templates back to their defaults.
+	 */
+  resetPublic(property) {
+    const conf = Player.settings.findDefault(property);
+    if (!conf || !Player.settings._apiAllows(property, conf.default)) {
+      return console.warn('[4chan sounds player] PlayerEvent: reset not allowed:', property);
+    }
+    return Player.settings.reset(property);
+  },
+
+  /**
 	 * Player.set for the PlayerEvent API, limited to what _apiAllows.
 	 */
   setPublic(property, value, opts) {
