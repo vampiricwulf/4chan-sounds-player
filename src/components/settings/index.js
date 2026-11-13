@@ -33,14 +33,27 @@ module.exports = {
     Player.theme.applyBoardTheme({ bypassRender: true });
 
     // Load the config.
-    await Player.settings.load(await GM.getValue('settings') || {}, {
+    const stored = await GM.getValue('settings') || {};
+    await Player.settings.load(stored, {
       applyDefault: true,
       bypassAll: true
     });
 
-    // Show update notifications.
-    if (Player.config.showUpdatedNotification && Player.config.VERSION && Player.config.VERSION !== VERSION) {
-      Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${VERSION}</a>.`);
+    // VERSION is stored alongside the settings but isn't a setting itself, so read it
+    // from the stored blob (Player.config never has it). load() reports corrupt JSON.
+    let storedVersion;
+    try {
+      storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
+    } catch (err) { /* reported by load() */ }
+    if (storedVersion !== VERSION) {
+      // Show update notifications.
+      if (storedVersion && Player.config.showUpdatedNotification) {
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${VERSION}</a>.`);
+      }
+      // Persist the new version (and any migration changes) now. load() above bypasses
+      // saving, so without this the notification and migrations repeat on every page
+      // load until some unrelated setting happens to change.
+      Player.settings.save();
     }
 
     // Listen for the player closing to apply the pause on hide setting.
@@ -196,7 +209,8 @@ module.exports = {
         return settings;
       }, {});
       // Show the playlist or image view on load, whichever was last shown.
-      settings.viewStyle = Player.playlist._lastView;
+      // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
+      settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
       settings.VERSION = VERSION;
       // Save the settings. The surrounding try/catch only covers synchronous
