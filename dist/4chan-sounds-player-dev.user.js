@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         4chan sounds player
-// @version      3.7.2.578
+// @version      3.7.2.580
 // @namespace    rccom
 // @description  A player designed for 4chan sounds threads.
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0Ij48cGF0aCB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzLjIgMy4yKSBzY2FsZSgyLjQpIiBmaWxsPSIjNzg5OTIyIiBkPSJNMTEuMDcgOC44MlM5LjgwMyAxLjA3OSA1LjE0NSAxLjA5N0MyLjAwNiAxLjEwOS43OCA0LjEyNCAzLjA1NSA0LjgwMmMwIDAtMi42OTguOTczLTIuNjk4IDIuNjk3IDAgMS43MjUgNC4yNzQgMy41NCAxMC43MTMgMS4zMnptMS45MzEgNS45MjRzLjkwNCA3Ljc5MSA1LjU1OCA3Ljk5MWMzLjEzNi4xMzUgNC41MDMtMi44MiAyLjI2Mi0zLjYwNCAwIDAgMi43NC0uODQ1IDIuODItMi41NjcuMDgtMS43MjMtNC4xMDUtMy43MzctMTAuNjQtMS44MnptLTMuNjcyLTEuNTVzLTcuNTMyIDIuMTktNi45NTIgNi44MTNjLjM5IDMuMTE0IDMuNTMgMy45NjkgMy45MyAxLjYzIDAgMCAxLjI5IDIuNTU5IDMuMDAyIDIuMzUxIDEuNzEyLS4yMDggMy00LjY3LjAyLTEwLjc5NHptNS42MjMtMi40NjdzNy43MjctMS4zNSA3LjY2LTYuMDA4Yy0uMDQ2LTMuMTM4LTMuMDc0LTQuMzMzLTMuNzI4LTIuMDUxIDAgMC0xLTIuNjg2LTIuNzI2LTIuNjY4LTEuNzI0LjAxOC0zLjQ5NCA0LjMxMi0xLjIwNiAxMC43Mjd6Ii8+PGcgZmlsbD0iI2NjMmIyYiI+PHBhdGggZD0iTTEyLDIzIGg4IGwxMywtMTAgdjM4IGwtMTMsLTEwIGgtOCB6Ii8+PHBhdGggZD0iTTM3LDE2IGExNywxNyAwIDAgMSAwLDMyIiBmaWxsPSJub25lIiBzdHJva2U9IiNjYzJiMmIiIHN0cm9rZS13aWR0aD0iMy42IiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48cGF0aCBkPSJNMzcsMjQgYTguNSw4LjUgMCAwIDEgMCwxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjY2MyYjJiIiBzdHJva2Utd2lkdGg9IjMuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9nPjwvc3ZnPg==
@@ -1658,7 +1658,7 @@ module.exports = {
 	 * Poll for how much has loaded. I know there's the progress event but it unreliable.
 	 */
   pollForLoading() {
-    Player._loadingPoll = Player._loadingPoll || setInterval(Player.controls.updateLoaded, 1000);
+    Player._loadingPoll = Player._loadingPoll || setInterval(Player.controls.updateLoaded, 500);
   },
 
   /**
@@ -3818,6 +3818,8 @@ module.exports = {
 
     // Various things to do when a new sound plays.
     Player.on('playsound', (sound) => {
+      // Start the loading bars afresh, even for the same sound played again.
+      Player.playlist._loading = null;
       // Update the image/video.
       Player.playlist.showImage(sound);
       // Update the previously and the new playing rows.
@@ -3849,6 +3851,7 @@ module.exports = {
         el.classList.remove('playing'),
       );
       Player.$all(`.${ns}-row-loading`).forEach((el) => el.remove());
+      Player.playlist._loading = null;
       // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
       const container = document.querySelector(`.${ns}-image-link`);
       container.href = '#';
@@ -4544,10 +4547,11 @@ module.exports = {
     if (!Player.config.rowLoadingBars) {
       return '';
     }
-    const { video, audio, done } = Player.playlist._loadingState();
-    return `<div class="${ns}-row-loading ${done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
-      + `<div class="${ns}-row-loading-video" style="width: ${video * 100}%"></div>`
-      + `<div class="${ns}-row-loading-audio" style="width: ${audio * 100}%"></div>`
+    const state = Player.playlist._loadingState();
+    const hidden = `${ns}-row-loading-hidden`;
+    return `<div class="${ns}-row-loading ${state.done ? `${ns}-row-loaded` : ''}" aria-hidden="true">`
+      + `<div class="${ns}-row-loading-video ${state.showVideo ? '' : hidden}" style="width: ${state.video * 100}%"></div>`
+      + `<div class="${ns}-row-loading-audio ${state.showAudio ? '' : hidden}" style="width: ${state.audio * 100}%"></div>`
       + '</div>';
   },
 
@@ -4558,21 +4562,59 @@ module.exports = {
     const state = Player.playlist._loadingState();
     const bars = Player.container && Player.$(`.${ns}-list-item.playing .${ns}-row-loading`);
     if (bars) {
-      bars.children[0].style.width = `${state.video * 100}%`;
-      bars.children[1].style.width = `${state.audio * 100}%`;
+      const [ video, audio ] = bars.children;
+      video.style.width = `${state.video * 100}%`;
+      audio.style.width = `${state.audio * 100}%`;
+      video.classList[state.showVideo ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
+      audio.classList[state.showAudio ? 'remove' : 'add'](`${ns}-row-loading-hidden`);
       bars.classList[state.done ? 'add' : 'remove'](`${ns}-row-loaded`);
     }
     return state.done;
   },
 
   /**
-   * How much of the playing sound's video and audio have loaded, from 0 to 1. A standalone
-   * video is both. A sound without a video only has audio.
+   * How much of the playing sound's video and audio have loaded, from 0 to 1, and which of
+   * the two bars to show. A standalone video is both. A sound without a video only has audio.
+   *
+   * A bar only shows if its file is still downloading a moment after the sound started:
+   * one loading from the cache (or already preloaded) has finished by then. The choice is
+   * made once per sound, so a cached video's bar doesn't appear later when the browser
+   * reads further into it.
    */
   _loadingState() {
-    const video = Player.playing && Player.isVideo ? Player.playlist._loadedRatio(Player.video) : 0;
-    const audio = Player.playing ? Player.playlist._loadedRatio(Player.audio) : 0;
-    return { video, audio, done: !!Player.playing && (!Player.isVideo || video === 1) && audio === 1 };
+    const playing = Player.playing;
+    if (!playing) {
+      return { video: 0, audio: 0, showVideo: false, showAudio: false, done: false };
+    }
+    let track = Player.playlist._loading;
+    if (!track || track.sound !== playing) {
+      track = Player.playlist._loading = { sound: playing, start: Date.now(), decided: false, video: false, audio: false };
+    }
+    const hasVideo = !!Player.isVideo;
+    const video = hasVideo ? Player.playlist._loadedRatio(Player.video) : 0;
+    const audio = Player.playlist._loadedRatio(Player.audio);
+    if (!track.decided && Date.now() - track.start >= Player.playlist.LOADING_GRACE_MS) {
+      track.decided = true;
+      track.video = hasVideo && video < 1 && Player.playlist._isDownloading(Player.video);
+      track.audio = audio < 1 && Player.playlist._isDownloading(Player.audio);
+    }
+    return {
+      video,
+      audio,
+      showVideo: track.video,
+      showAudio: track.audio,
+      done: (!hasVideo || video === 1) && audio === 1
+    };
+  },
+
+  // How long after a sound starts to check whether its files are still downloading.
+  LOADING_GRACE_MS: 500,
+
+  /**
+   * Whether a media element is still fetching its file, or hasn't got far enough to play.
+   */
+  _isDownloading(media) {
+    return media.networkState === media.NETWORK_LOADING || media.readyState < media.HAVE_FUTURE_DATA;
   },
 
   /**
@@ -6004,10 +6046,10 @@ module.exports = {
     try {
       storedVersion = (typeof stored === 'string' ? JSON.parse(stored) : stored).VERSION;
     } catch (err) { /* reported by load() */ }
-    if (storedVersion !== "3.7.2.578") {
+    if (storedVersion !== "3.7.2.580") {
       // Show update notifications.
       if (storedVersion && Player.config.showUpdatedNotification) {
-        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.578"}</a>.`);
+        Player.alert(`4chan Sounds Player has been updated to <a href="${Player.settings.changelog}" target="_blank">version ${"3.7.2.580"}</a>.`);
       }
       // Persist the new version (and any migration changes) now. load() above bypasses
       // saving, so without this the notification and migrations repeat on every page
@@ -6306,7 +6348,7 @@ module.exports = {
       // _lastView isn't set until the playlist initializes, so fall back to the loaded value.
       settings.viewStyle = Player.playlist._lastView || Player.config.viewStyle;
       // Store the player version with the settings.
-      settings.VERSION = "3.7.2.578";
+      settings.VERSION = "3.7.2.580";
       // Save the settings. The surrounding try/catch only covers synchronous
       // serialization errors, so attach a .catch for an async write rejection too.
       return GM.setValue('settings', JSON.stringify(settings)).catch(err => {
@@ -6322,7 +6364,7 @@ module.exports = {
 	 */
   async migrate(fromVersion) {
     // Fall out if the player hasn't updated.
-    if (!fromVersion || fromVersion === "3.7.2.578") {
+    if (!fromVersion || fromVersion === "3.7.2.580") {
       return {};
     }
     const changes = {};
@@ -6813,7 +6855,7 @@ module.exports = (data = {}) => `<div class="${ns}-settings-tabs ${ns}-row">
 			title="Import. Settings not included in the import will be left as their current value.">
 			${Icons.boxArrowInLeft}
 		</a>
-		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.578"}">
+		<a href="${Player.settings.changelog}" class="${ns}-settings-tab" target="_blank" title="v${"3.7.2.580"}">
 			${Icons.github}
 		</a>
 	</div>
@@ -9771,7 +9813,7 @@ module.exports = {
       .replace(soundCountRE, () => Player.sounds.reduce((n, s) => s.error ? n : n + 1, 0))
       .replace(deadCountRE, () => Player.sounds.reduce((n, s) => s.error ? n + 1 : n, 0))
       .replace(soundFilterCountRE, Player.filteredSounds.length));
-    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.578"));
+    !data.ignoreVersion && (html = html.replace(/%v/g, "3.7.2.580"));
 
     // Apply any specific replacements
     if (data.replacements) {
@@ -9959,7 +10001,7 @@ module.exports = [
     property: 'rowLoadingBars',
     default: true,
     title: 'Playlist Loading Bars',
-    description: 'Show how much of the playing sound has loaded behind its playlist row: the video along the top half and the audio along the bottom half. They fade out once everything has loaded.',
+    description: 'Show how much of the playing sound has loaded with thin lines on its playlist row: the video along the top edge and the audio along the bottom edge. Files that load straight away (cached) don\'t get a line, and the lines fade out once everything has loaded.',
     displayGroup: 'Display',
     allowInTheme: true
   },
@@ -10164,16 +10206,16 @@ module.exports = [
       },
       {
         property: 'colors.loading_video',
-        default: 'rgba(46, 204, 64, 0.65)',
+        default: '#107c10',
         title: 'Row Video Loading',
-        description: 'The top half of the playing row\'s loading bars, for the video.',
+        description: 'The line along the top of the playing row while the video loads.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_video")', mods: '.prevent' } ],
       },
       {
         property: 'colors.loading_audio',
-        default: 'rgba(255, 65, 54, 0.65)',
+        default: '#e81123',
         title: 'Row Audio Loading',
-        description: 'The bottom half of the playing row\'s loading bars, for the audio.',
+        description: 'The line along the bottom of the playing row while the audio loads.',
         actions: [ { title: 'Reset', handler: 'settings.reset("colors.loading_audio")', mods: '.prevent' } ],
       },
       // Not configurable but here for access in templates.
@@ -12146,7 +12188,7 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 .${ns}-row-loading > div {
   position: absolute;
   left: 0;
-  height: 50%;
+  height: 2px;
   max-width: 100%;
   transition: width 0.3s linear;
 }
@@ -12157,6 +12199,9 @@ html:not(.fourchan-x) .${ns}-has-controls > video + .${ns}-controls {
 .${ns}-row-loading .${ns}-row-loading-audio {
   bottom: 0;
   background: var(--fcsp-loading-audio);
+}
+.${ns}-row-loading .${ns}-row-loading-hidden {
+  display: none;
 }
 .${ns}-row-loading.${ns}-row-loaded {
   opacity: 0;
