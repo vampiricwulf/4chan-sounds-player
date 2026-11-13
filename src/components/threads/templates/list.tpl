@@ -6,7 +6,7 @@ Object.keys(Player.threads.displayThreads).reduce((rows, board) => {
 					>>>/${_.escHTML(thread.board)}/${_.escHTML(thread.no)}
 				</a>
 			</td>
-			<td>${thread.sub || ''}</td>
+			<td>${_.escHTML(thread._subText)}</td>
 			<td>${_.escHTML(thread.replies)} / ${_.escHTML(thread.images)}</td>
 			<td>${_.timeAgo(thread.time)}</td>
 			<td>${_.timeAgo(thread.last_modified)}</td>
