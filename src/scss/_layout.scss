@@ -15,8 +15,10 @@
 	}
 
 	& input[type=text], input[type=number], & select, & .#{$ns}-file-overlay {
-		background: white;
-		color: black;
+		// !important so theme scripts (StyleChan sets every input's text colour) can't leave
+		// light text on this white background.
+		background: white !important;
+		color: black !important;
 		height: 1.5rem !important;
 		padding: 2px 4px 3px;
 		box-sizing: border-box;
@@ -116,4 +118,26 @@
 }
 .#{$ns}-menu {
 	z-index: 15;
+}
+
+// Fallback open button for when the native nav bars (and their [Sounds] links) are hidden.
+.#{$ns}-launcher {
+	position: fixed;
+	left: 10px;
+	bottom: 10px;
+	z-index: 15;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: var(--fcsp-background);
+	color: var(--fcsp-text);
+	border: 1px solid var(--fcsp-border);
+	opacity: .6;
+
+	&:hover {
+		opacity: 1;
+	}
 }

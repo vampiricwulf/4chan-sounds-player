@@ -84,9 +84,18 @@ module.exports = {
       }
     } else {
       // Add a [Sounds] link in the top and bottom nav for native 4chan.
-      document.querySelectorAll('#settingsWindowLink, #settingsWindowLinkBot').forEach(function (link) {
-        _.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', link, 'beforebegin');
+      const links = [ ...document.querySelectorAll('#settingsWindowLink, #settingsWindowLinkBot') ].map(function (link) {
+        const soundsLink = _.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', link, 'beforebegin');
         link.parentNode.insertBefore(document.createTextNode('] ['), link);
+        return soundsLink;
+      });
+      // Those links live in the desktop nav bars, which 4chan's mobile view and StyleChan's
+      // "Show Navigation Links" option hide, leaving no way to open the player. Fall back to
+      // a small fixed button then. Checked after layout so stylesheets have applied.
+      requestAnimationFrame(() => {
+        if (!links.some(link => link.getClientRects().length)) {
+          _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
+        }
       });
     }
   },
@@ -319,10 +328,11 @@ module.exports = {
     const menu = e.currentTarget.closest('.dialog');
     const currentFocus = menu.querySelectorAll('.focused');
     currentFocus.forEach(el => {
-      el.classList.remove('focused');
+      el.classList.remove('focused', 'submenu-open');
       el.dispatchEvent(new CustomEvent('entry-blur'));
     });
-    e.currentTarget.classList.add('focused');
+    // 4chan-neXT's mobile layout restyles #menu and only opens a submenu on .submenu-open.
+    e.currentTarget.classList.add('focused', 'submenu-open');
     // Move the menu to the other side if there isn't room.
     if (submenu && submenu.getBoundingClientRect().right > document.documentElement.clientWidth) {
       submenu.style.inset = '0px 100% auto auto';
