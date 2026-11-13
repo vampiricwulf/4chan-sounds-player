@@ -397,6 +397,19 @@ const createTool = module.exports = {
         bubbles: true,
         detail: typeof cloneInto === 'function' ? cloneInto(detail, document.defaultView) : detail
       }));
+      // 4chan X's Randomize Filename option renames the file, which loses the [sound=]
+      // links (XT and neXT leave such names alone). Put the name back in the QR's filename
+      // field; 4chan X saves that field on input.
+      const name = Player.tools._createdImage.name;
+      const restoreName = () => {
+        const input = document.getElementById('qr-filename');
+        if (input && input.value && input.value !== name) {
+          input.value = name;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      };
+      setTimeout(restoreName, 100);
+      setTimeout(restoreName, 600);
       return;
     }
 

@@ -122,7 +122,16 @@ module.exports = {
           otherAudio.removeAttribute('src');
           otherAudio.load();
           otherAudio.remove();
-          isVideo && (node.controls = otherAudio.controls);
+          if (isVideo) {
+            const controls = otherAudio.controls;
+            node.controls = controls;
+            // XT/neXT still think the post has its audio, and turn the video's controls off
+            // again once its metadata loads. Without the player's own controls (Expanded
+            // Controls off) that left no way to pause or seek, so put them back after them.
+            !Player.config.expandedControls && node.addEventListener('loadedmetadata', () => setTimeout(() => {
+              node._inlineAudio && (node.controls = controls);
+            }), { once: true });
+          }
         }
         // Create a new audio element.
         const audio = new Audio(sounds[0].src);
@@ -142,8 +151,14 @@ module.exports = {
           isVideo,
           audio,
           sounds,
-          index: 0
+          index: 0,
+          expanded: isExpandedImage
         };
+        // One expanded image's sound at a time: 4chan X's Expand All Images expanded every
+        // post at once, and every sound played over the others.
+        // (Only if it's still playing when the event arrives: two started together would
+        // otherwise each pause the other.)
+        isExpandedImage && audio.addEventListener('play', () => !audio.paused && Player.inline._pauseOtherExpanded(audio));
         // Link video & audio so they sync.
         if (isVideo) {
           node._linked = audio;
@@ -241,6 +256,23 @@ module.exports = {
     } catch (err) {
       Player.logError('Failed to play sound.', err);
     }
+  },
+
+  /**
+	 * Pause every other expanded image's sound (by pausing what leads it, so the sync doesn't
+	 * start it again), including one still waiting for its video to load.
+	 */
+  _pauseOtherExpanded(playing) {
+    Object.values(Player.inline.audio).forEach(audio => {
+      const data = audio._inlinePlayer;
+      if (audio === playing || !data || !data.expanded) {
+        return;
+      }
+      audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      data.video && data.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      const master = data.master || audio;
+      !master.paused && master.pause();
+    });
   },
 
   /**

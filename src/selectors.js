@@ -23,7 +23,7 @@ module.exports = {
       text: Icons.playFill,
       // In priority order. With 4chan X go after its whole .file-info: inside it the link
       // can sit in a hidden span or after other icons, and StyleChan can hide .file-info.
-      relative: [ '.fileText .file-info', '.fileText a' ],
+      relative: [ '.fileText .file-info', '.fileText a', 'a.fileThumb' ],
       position: 'afterend',
       prependText: ' ',
       unfilterText: Icons.filter,
@@ -32,7 +32,9 @@ module.exports = {
     },
     // Deliberately missing dots because this is used to set the class
     styleFetcher: 'post reply style-fetcher',
-    limitWidthOf: '.thread > .postContainer'
+    // Replies anywhere in the thread (4chan X's quote threading nests them), but not
+    // inline quotes.
+    limitWidthOf: '.thread .postContainer:not(.inline .postContainer)'
   },
   FoolFuuka: {
     postIdPrefix: '',

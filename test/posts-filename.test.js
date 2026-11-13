@@ -44,6 +44,10 @@ assert.deepStrictEqual(parse('Track (sound edit)[sound=files.catbox.moe%2Fx.mp3]
 assert.deepStrictEqual(parse('cat (sound on).webm', 'https://i.4cdn.org/gif/1.webm'), [ [ 'cat (sound on)', 'https://i.4cdn.org/gif/1.webm', true ] ]);
 assert.deepStrictEqual(parse('loud (SOUND WARNING).webm', 'https://i.4cdn.org/gif/1.webm'), [ [ 'loud (SOUND WARNING)', 'https://i.4cdn.org/gif/1.webm', true ] ]);
 
+// --- a link with spaces in it still counts ---
+assert.deepStrictEqual(parse('x[sound=https://example.com/My Song.mp3].png'), [ [ 'x', 'https://example.com/My Song.mp3', false ] ]);
+assert.deepStrictEqual(parse('x[sound=example.com%2FMy Song.mp3].png'), [ [ 'x', 'https://example.com/My Song.mp3', false ] ]);
+
 // --- no tags at all ---
 assert.deepStrictEqual(parse('plain.png'), []);
 

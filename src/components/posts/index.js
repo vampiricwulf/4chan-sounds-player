@@ -131,9 +131,8 @@ module.exports = {
       const postID = post.id.slice(selectors.postIdPrefix.length);
 
       // If there's a play or add button this post has already been parsed. Just wire up the link.
-      const linkScope = Player.posts._linkScope(post);
-      let playLink = linkScope.querySelector(`.${ns}-play-link`);
-      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
+      let playLink = Player.posts._ownLink(post, `${ns}-play-link`);
+      let addLink = Player.posts._ownLink(post, `${ns}-unfilter-link`);
       if (playLink || addLink) {
         playLink && Player.events.apply(playLink);
         addLink && Player.events.apply(addLink);
@@ -218,7 +217,8 @@ module.exports = {
     const matches = Array.from(filename.matchAll(filenameRE)).reduce((valid, match) => {
       const host = match[2] || match[4] || match[6] || match[8];
       const src = (match[3] || match[5] || match[7] || match[9] || '').trim();
-      if (!src.includes('.') || /\s/.test(src)) {
+      // Spaces are fine in what's clearly a link (host.tld/…); they rule out the rest.
+      if (!src.includes('.') || (/\s/.test(src) && !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/|%2F)/i.test(src))) {
         carried += match[0];
         return valid;
       }
@@ -302,14 +302,13 @@ module.exports = {
     if (postEl) {
       const linkInfo = selectors.playLink;
       // relative may be a list of selectors in priority order.
-      const relative = [].concat(linkInfo.relative || []).map(sel => postEl.querySelector(sel)).find(Boolean);
+      const relative = Player.posts._linkAnchor(postEl);
       if (!relative) {
         return;
       }
 
       // Create/update the add button for filtered or removed sounds, or remove it.
-      const linkScope = Player.posts._linkScope(postEl);
-      let addLink = linkScope.querySelector(`.${ns}-unfilter-link`);
+      let addLink = Player.posts._ownLink(postEl, `${ns}-unfilter-link`);
       const allFilters = Player.posts.getFilters(postId);
       const hasFilter = allFilters.host.length || allFilters.image || allFilters.sound.length;
       const removed = Player.playlist.removedCount(postId);
@@ -348,7 +347,7 @@ module.exports = {
       }
 
       // Remove the play button if all sounds in the post are filtered, otherwise create it if needed.
-      let playLink = linkScope.querySelector(`.${ns}-play-link`);
+      let playLink = Player.posts._ownLink(postEl, `${ns}-play-link`);
       const addedSound = Player.sounds.find(sound => sound.post === postId);
       if (playLink && !addedSound) {
         playLink.parentNode.parentNode.removeChild(playLink.parentNode);
@@ -372,17 +371,24 @@ module.exports = {
   },
 
   /**
-	 * The element a post's play/add links are inserted into. Looking in the whole post found
-	 * links of nested posts (inline quotes, a FoolFuuka OP's replies) instead.
+	 * The element a post's play/add links go next to: the first of the site's anchors that's
+	 * shown. 4chan-neXT's phone layout hides the file info, so they follow the thumbnail
+	 * there instead.
 	 */
-  _linkScope(post) {
-    const { relative: selector, position } = selectors.playLink;
-    const relative = [].concat(selector || []).map(sel => post.querySelector(sel)).find(Boolean);
-    if (!relative) {
-      return post;
-    }
-    // Links are inserted inside the anchor (FoolFuuka) or next to it (4chan, Fuuka).
-    return position === 'beforeend' || position === 'afterbegin' ? relative : relative.parentNode;
+  _linkAnchor(post) {
+    const { relative, position } = selectors.playLink;
+    const candidates = [].concat(relative || []).map(sel => post.querySelector(sel)).filter(Boolean);
+    // Links go inside the anchor (FoolFuuka) or beside it, in its parent.
+    const holder = el => position === 'beforeend' || position === 'afterbegin' ? el : el.parentNode;
+    return candidates.find(el => holder(el).getClientRects().length) || candidates[0];
+  },
+
+  /**
+	 * A post's own play or add link, wherever it was put, but not one of a post nested in it
+	 * (an inline quote, a FoolFuuka OP's replies).
+	 */
+  _ownLink(post, className) {
+    return Array.from(post.querySelectorAll(`.${className}`)).find(link => link.closest(selectors.posts) === post) || null;
   },
 
   getFilters(postId) {

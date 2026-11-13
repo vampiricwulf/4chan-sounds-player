@@ -22,6 +22,9 @@ module.exports = {
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
+      } else {
+        // The first time, keep the default position clear of the page's header.
+        Player.position.move(Player.container.offsetLeft, Player.container.offsetTop);
       }
 
       if (Player.config.limitPostWidths) {
@@ -124,11 +127,22 @@ module.exports = {
       });
     }
 
+    const limited = Player.position._limitedPosts || (Player.position._limitedPosts = new Set());
+    const current = new Set(posts);
+    // Posts limited before that no longer match (moved by quote threading, or removed) keep
+    // their width otherwise.
+    limited.forEach(post => {
+      if (!current.has(post)) {
+        post.style.maxWidth = post.style.minWidth = '';
+        limited.delete(post);
+      }
+    });
     posts.forEach((post, i) => {
       const maxWidth = limits[i] ? maxWidthCss : '';
       const minWidth = limits[i] ? minWidthCss : '';
       post.style.maxWidth !== maxWidth && (post.style.maxWidth = maxWidth);
       post.style.minWidth !== minWidth && (post.style.minWidth = minWidth);
+      limits[i] ? limited.add(post) : limited.delete(post);
     });
   },
 
@@ -289,11 +303,20 @@ module.exports = {
 	 */
   getHeaderOffset() {
     const docClasses = document.documentElement.classList;
-    const hasChanXHeader = docClasses.contains('fixed');
-    const headerHeight = hasChanXHeader ? document.querySelector('#header-bar').getBoundingClientRect().height : 0;
-    const top = hasChanXHeader && docClasses.contains('top-header') ? headerHeight : 0;
-    const bottom = hasChanXHeader && docClasses.contains('bottom-header') ? headerHeight : 0;
-
+    let top = 0;
+    let bottom = 0;
+    // Count a fixed bar on whichever edge it actually is: 4chan-neXT's phone layouts move
+    // the header to the other edge (without changing the html classes) and add a bar of
+    // their own.
+    const reserve = el => {
+      const rect = el && el.getClientRects().length && el.getBoundingClientRect();
+      if (rect && rect.height) {
+        rect.top + rect.height / 2 < window.innerHeight / 2 ? (top += rect.height) : (bottom += rect.height);
+      }
+    };
+    docClasses.contains('fixed') && reserve(document.querySelector('#header-bar'));
+    const mobileBar = document.getElementById('mobile-bar');
+    mobileBar && getComputedStyle(mobileBar).position === 'fixed' && reserve(mobileBar);
     return { top, bottom };
   },
 
