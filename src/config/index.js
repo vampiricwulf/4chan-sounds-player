@@ -20,13 +20,16 @@ module.exports = [
     default: 125
   },
 
-  // These are for availability in templates
+  // These are for availability in templates. Measured on each page, so never saved or
+  // loaded (runtime).
   {
     property: 'offsetTop',
-    default: '0'
+    default: '0',
+    runtime: true
   },
   {
     property: 'offsetBottom',
-    default: '0'
+    default: '0',
+    runtime: true
   }
 ];

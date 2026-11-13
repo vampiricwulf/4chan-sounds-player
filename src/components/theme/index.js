@@ -149,9 +149,14 @@ module.exports = {
     if (name !== 'Default' && !Player.config.savedThemes[name]) {
       return Player.logError(`Theme '${name}' does not exist.`, null, 'warning');
     }
+    const previous = Player.config.savedThemes[Player.config.selectedTheme] || {};
     Player.set('selectedTheme', name);
     if (name === 'Default') {
-      [ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ].forEach(prop => {
+      // Reset everything the previous theme set, not just the templates (switching back
+      // from Fixed Playlist kept its 4chan X header controls setting, for example).
+      const props = new Set([ 'headerTemplate', 'footerTemplate', 'rowTemplate', 'chanXTemplate', 'customCSS' ]);
+      settingsConfig.flatMap(s => s.settings || [ s ]).forEach(s => s.property && _.get(previous, s.property) !== undefined && props.add(s.property));
+      props.forEach(prop => {
         Player.settings.reset(prop, { bypassRender: true, bypassStylesheet: true });
       });
       Player.settings.render();
@@ -230,6 +235,10 @@ module.exports = {
     // Remove the row
     row.parentNode.removeChild(row);
     Player.settings.set('savedThemes', themes, { bypassValidation: true, bypassRender: true });
+    // A removed theme can't stay selected (next/previous would start from a missing entry).
+    Player.config.selectedTheme === name && Player.set('selectedTheme', 'Default');
+    // Its row in the theme keybinds list goes too.
+    Player.settings.renderSetting(Player.settings.findDefault('hotkey_bindings.switchTheme'));
     // Remove hotkey binding. The previous code used `.find()` (which returns the
     // matching object) but then passed it as the index to `.splice()` — splice
     // coerces an object to NaN→0 and splice itself returns the REMOVED items, so

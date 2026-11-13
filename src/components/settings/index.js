@@ -64,11 +64,14 @@ module.exports = {
     });
 
     // Listen for changes from other tabs
+    // Re-render only the settings that changed, leaving the one being edited alone: a full
+    // re-render on every save elsewhere (toggling shuffle, resizing) wiped edits in progress.
     Player.syncTab('settings', value => Player.settings.load(value, {
       bypassSave: true,
+      bypassRender: true,
       applyDefault: true,
       ignore: [ 'viewStyle' ]
-    }));
+    }).then(Player.settings._renderChanged));
 
     Player.on('rendered', Player.settings.setChangeListeners);
   },
@@ -81,6 +84,10 @@ module.exports = {
 
   renderSetting(settingConfig) {
     const settingEl = Player.$(`.${ns}-setting[data-property="${settingConfig.property}"]`);
+    // Settings without a row (hidden ones) have nothing to re-render.
+    if (!settingEl) {
+      return;
+    }
     const newEl = _.element(Player.settings.settingTemplate(settingConfig), settingEl, 'beforebegin');
     settingEl.parentNode.removeChild(settingEl);
     Player.settings.setChangeListeners(newEl);
@@ -162,13 +169,16 @@ module.exports = {
           ...subSetting
         }));
       }
-      if (opts.ignore && opts.ignore.includes(setting.property)) {
+      // Measured per page (the header offsets), so never taken from stored or imported settings.
+      if (setting.runtime || (opts.ignore && opts.ignore.includes(setting.property))) {
         return;
       }
       let value = _.get(settings, setting.property, opts.applyDefault ? setting.default : undefined);
       if (value !== undefined) {
         // Mix in default.
-        setting.mix && (value = { ...setting.default, ...(value || {}) });
+        // An import merges into the current value instead, so it doesn't drop the user's own
+        // themes or hosts that the file doesn't mention.
+        setting.mix && (value = { ...(opts.mergeCurrent ? _.get(Player.config, setting.property) : setting.default), ...(value || {}) });
         // Copy, so editing the loaded value in place can't change the default (or the
         // saved theme it came from).
         value = _.clone(value);
@@ -177,7 +187,14 @@ module.exports = {
       }
     });
     // Run any migrations to get up to date, and update the stored changes for event triggering.
+    // For an import, only keep migrations of settings the file contains: the upgrade steps
+    // (e.g. turning inline playback off) aren't meant for the current settings.
+    const beforeMigrations = opts.migrateImportedOnly && _.clone(Player.config);
     Object.entries(await Player.settings.migrate(settings.VERSION)).forEach(([ prop, [ previous, current ] ]) => {
+      if (beforeMigrations && _.get(settings, prop) === undefined) {
+        _.set(Player.config, prop, _.get(beforeMigrations, prop));
+        return;
+      }
       changes[prop] = [ changes[prop] ? changes[prop][1] : previous, current ];
     });
     // Finally, trigger events.
@@ -190,6 +207,23 @@ module.exports = {
       !opts.bypassSave && Player.settings.save();
       !opts.bypassRender && Player.settings.render();
     }
+    return changes;
+  },
+
+  /**
+	 * Re-render the settings in a set of changes, except one being edited.
+	 */
+  _renderChanged(changes) {
+    if (!Player.container) {
+      return;
+    }
+    const focused = document.activeElement;
+    Object.keys(changes || {}).forEach(prop => {
+      const row = Player.$(`.${ns}-setting[data-property="${prop}"]`);
+      if (row && !row.contains(focused)) {
+        Player.settings.renderSetting(Player.settings.findDefault(prop));
+      }
+    });
   },
 
   /**
@@ -205,7 +239,7 @@ module.exports = {
             default: setting.default,
             ...subSetting
           }));
-        } else {
+        } else if (!setting.runtime) {
           let userVal = _.get(Player.config, setting.property);
           if (userVal !== undefined && !_.isEqual(userVal, setting.default)) {
             // If the setting is a mixed in object only store items that differ from the default.
@@ -381,12 +415,24 @@ module.exports = {
     const _import = async () => {
       let config;
       try {
-        config = await (await fetch(URL.createObjectURL(fileInput.files[0]))).json();
+        config = JSON.parse(await fileInput.files[0].text());
       } catch (err) {
         Player.logError(`Expected a JSON config file and got ${fileInput.files[0].type}.`, err, 'warning');
       }
       fileInput.removeEventListener('change', _import);
-      Player.settings.load(config);
+      // Keep the current view (exports include viewStyle), merge themes and hosts into the
+      // current ones, and only migrate what the file contains. Then reconcile the theme
+      // order with the themes before saving and rendering.
+      await Player.settings.load(config, {
+        ignore: [ 'viewStyle' ],
+        mergeCurrent: true,
+        migrateImportedOnly: true,
+        bypassSave: true,
+        bypassRender: true
+      });
+      Player.theme.validateOrder();
+      Player.settings.save();
+      Player.settings.render();
     };
     fileInput.addEventListener('change', _import);
     fileInput.click();

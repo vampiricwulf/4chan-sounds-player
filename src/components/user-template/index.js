@@ -55,6 +55,13 @@ module.exports = {
     const name = data.sound && data.sound.title || data.defaultName;
     let _data = { ...data };
 
+    // Values from the sound (its title and properties, and the buttons whose handlers embed
+    // them) go in through placeholders filled last, so the later token passes can't rewrite
+    // text inside them (a title containing "sound-src" or "%v" was rendered as the URL /
+    // version, and a name containing "sound-title" broke the download button's handler).
+    const inserts = [];
+    const insert = value => `\u0000${inserts.push(String(value)) - 1}\u0000`;
+
     const _confFuncOrText = v => (typeof v === 'function' ? v(_data) : v);
 
     // Apply common template replacements, unless they are opted out.
@@ -86,17 +93,12 @@ module.exports = {
       buttonConf.action && attrs.push(`@click${buttonConf.actionMods || ''}='${_confFuncOrText(buttonConf.action)}'`);
 
       // Replace spaces with non breaking spaces in user text to prevent collapsing.
-      return `<a ${attrs.join(' ')}>${text && text.replace(/ /g, ' ') || _confFuncOrText(buttonConf.icon) || _confFuncOrText(buttonConf.text)}</a>`;
+      return insert(`<a ${attrs.join(' ')}>${text && text.replace(/ /g, ' ') || _confFuncOrText(buttonConf.icon) || _confFuncOrText(buttonConf.text)}</a>`);
     }));
     // Escape the sound name — it comes from the filename regex in posts.getSounds
     // (and the [futari no christmas] hardcoded match) and can contain arbitrary
     // characters from archived posts. Compute lazily: most playlist templates
     // don't include sound-title at all, so the per-row escAttr cost is wasted.
-    // Values from the sound (its title and properties) go in through placeholders filled
-    // last, so the later token passes can't rewrite text inside them (a title containing
-    // "sound-src" or "%v" was rendered as the URL / version).
-    const inserts = [];
-    const insert = value => `\u0000${inserts.push(String(value)) - 1}\u0000`;
     let escName, escLocation;
     const getEscName = () => escName !== undefined ? escName : (escName = name ? _.escAttr(name) : '');
     const getEscLocation = () => escLocation !== undefined ? escLocation : (escLocation = _.escAttr(data.location || ''));

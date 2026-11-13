@@ -76,3 +76,12 @@ console.log('user-template: all assertions passed');
   assert(withReplacement.includes('my play-button song') && withReplacement.endsWith('<b>PB</b>'), 'replacements skip the title: ' + withReplacement);
 }
 console.log('user-template (placeholders): all assertions passed');
+
+// --- button handlers embedding a sound value aren't rewritten by later token passes ---
+{
+  Player.userTemplate = userTemplate;
+  const out = userTemplate.build({ template: 'dl-sound-button', sound: { ...sound, name: 'my sound-title mix %v' } });
+  assert(out.includes('my sound-title mix %v'), 'button handler kept the raw name: ' + out);
+  assert(!out.includes('truncate-text') && !out.includes('9.9.9'), 'no title markup or version inside the handler: ' + out);
+}
+console.log('user-template (buttons): all assertions passed');

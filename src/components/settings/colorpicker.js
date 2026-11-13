@@ -35,7 +35,8 @@ module.exports = {
 
   hueMove(e) {
     const colorpicker = e.currentTarget.closest(`.${ns}-colorpicker`);
-    const y = Math.max(0, e.clientY - e.currentTarget.getBoundingClientRect().top);
+    // Clamp to the bar: past the bottom the hue wrapped round from red to orange.
+    const y = Math.min(HEIGHT, Math.max(0, e.clientY - e.currentTarget.getBoundingClientRect().top));
     colorpicker._colorpicker.hsv[0] = y / HEIGHT;
     const _hue = Player.colorpicker.hsv2rgb(colorpicker._colorpicker.hsv[0], 1, 1, 1);
 
@@ -48,8 +49,9 @@ module.exports = {
   satMove(e) {
     const colorpicker = e.currentTarget.closest(`.${ns}-colorpicker`);
     const saturationPosition = e.currentTarget.querySelector('.position');
-    const x = Math.max(0, e.clientX - e.currentTarget.getBoundingClientRect().left);
-    const y = Math.max(0, e.clientY - e.currentTarget.getBoundingClientRect().top);
+    // Clamp to the box: outside it the RGB values went below 0 or above 255.
+    const x = Math.min(WIDTH, Math.max(0, e.clientX - e.currentTarget.getBoundingClientRect().left));
+    const y = Math.min(HEIGHT, Math.max(0, e.clientY - e.currentTarget.getBoundingClientRect().top));
 
     colorpicker._colorpicker.hsv[1] = x / WIDTH;
     colorpicker._colorpicker.hsv[2] = 1 - y / HEIGHT;

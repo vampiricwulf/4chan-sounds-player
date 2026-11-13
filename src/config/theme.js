@@ -8,6 +8,8 @@ module.exports = [
     ],
     displayGroup: 'Theme',
     displayMethod: 'theme.savedThemesTemplate',
+    // The theme keybind list shows one row per saved theme.
+    dependentRender: [ 'hotkey_bindings.switchTheme' ],
     mix: true,
     default: require('../components/theme/themes.js')
   },

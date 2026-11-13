@@ -28,6 +28,21 @@ module.exports = {
   rerouteSrc,
 
   initialize() {
+    // "Include Video" applies to the open thread straight away (it needed a reload): drop
+    // the thread's standalone videos it no longer allows, then parse the posts again to add
+    // newly allowed ones (posts already parsed are skipped).
+    Player.on('config:addWebm', () => {
+      const setting = Player.config.addWebm;
+      const allowed = setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
+      if (!allowed) {
+        Player.sounds.filter(s => s.standaloneVideo && !s.local).forEach(s => Player.remove(s));
+        const filtered = Player.filteredSounds.filter(s => s.standaloneVideo && !s.local);
+        // In place: applyFilters keeps this array's identity too.
+        filtered.forEach(s => Player.filteredSounds.splice(Player.filteredSounds.indexOf(s), 1));
+        filtered.forEach(s => Player.posts.updateButtons(s.post));
+      }
+      Player.posts.addPosts(document.body, true);
+    });
     Player.on('config:fatboxRerouter', () => {
       // Re-derive src from each sound's stored original. Idempotent and safe to repeat.
       // fatbox is a byte-identical mirror so sound.tags (ID3) stays valid; no cache wipe.
