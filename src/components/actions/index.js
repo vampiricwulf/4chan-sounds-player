@@ -133,6 +133,11 @@ module.exports = {
 	 * Handler to only start playback once the video and audio are both loaded.
 	 */
   playOnceLoaded(e) {
+    // Unlinked meanwhile (its partner failed to load): nothing to wait for.
+    if (!e.currentTarget._linked) {
+      e.currentTarget.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+      return;
+    }
     if (e.currentTarget.readyState > 3 && e.currentTarget._linked.readyState > 3) {
       (e.currentTarget === Player.audio || e.currentTarget === Player.video) && (Player.actions._pendingPlay = false);
       e.currentTarget.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);

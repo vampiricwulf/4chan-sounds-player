@@ -213,7 +213,9 @@ module.exports = {
     Player.container.style.width = width + 'px';
     Player.container.style.height = height + 'px';
     Player.controls.preventWrapping();
-    Player.playlist.setImageHeight();
+    // Keep the image within the player, without saving: shrinking the player shouldn't
+    // overwrite the chosen image height (and saved on every pointermove).
+    Player.playlist.setImageHeight({ save: false });
   },
 
   /**
@@ -274,8 +276,10 @@ module.exports = {
     Player.container.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
     Player.container.style.top = Math.max(top, Math.min(y, maxY)) + 'px';
 
+    // Once a frame: this runs on every pointermove while dragging, and the update lays out
+    // every post in the thread.
     if (Player.config.limitPostWidths) {
-      Player.position.setPostWidths();
+      Player.position._scheduleWidths();
     }
   },
 

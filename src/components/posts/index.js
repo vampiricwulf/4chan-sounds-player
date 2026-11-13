@@ -35,7 +35,7 @@ module.exports = {
       const setting = Player.config.addWebm;
       const allowed = setting === 'always' || (setting === 'soundBoards' && (Board === 'gif' || Board === 'wsg'));
       if (!allowed) {
-        Player.sounds.filter(s => s.standaloneVideo && !s.local).forEach(s => Player.remove(s));
+        Player.sounds.filter(s => s.standaloneVideo && !s.local).forEach(s => Player.playlist.remove(s, { temporary: true }));
         const filtered = Player.filteredSounds.filter(s => s.standaloneVideo && !s.local);
         // In place: applyFilters keeps this array's identity too.
         filtered.forEach(s => Player.filteredSounds.splice(Player.filteredSounds.indexOf(s), 1));
@@ -170,7 +170,10 @@ module.exports = {
         filename = 'futari no christmas[sound=files.catbox.moe/ahvi2c.opus]';
       }
 
-      const { sounds, filtered } = Player.posts.getSounds(filename, imageSrc, postID, thumbSrc, imageMD5);
+      const parsed = Player.posts.getSounds(filename, imageSrc, postID, thumbSrc, imageMD5);
+      // Leave out sounds the user removed.
+      const sounds = parsed.sounds.filter(sound => !Player.playlist._removedIds.has(sound.id));
+      const filtered = parsed.filtered;
 
       if (sounds.length || filtered.length) {
         sounds.forEach(sound => Player.add(sound, skipRender));
@@ -290,7 +293,7 @@ module.exports = {
         } else {
           _.element('<span>'
 						+ (linkInfo.prependText || '')
-						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${postId}")'>${linkInfo.unfilterText || ''}</a>`
+						+ `<a href="javascript:" class="${linkInfo.class} ${ns}-unfilter-link ${ns}-popover" data-content="${_.escAttr(hint)}" @click='posts.allowPost("${_.escAttr(postId, true)}")'>${linkInfo.unfilterText || ''}</a>`
 						+ (linkInfo.appendText || '')
 						+ '</span>', relative, linkInfo.position);
         }
@@ -352,8 +355,14 @@ module.exports = {
 
   allowPost(postId) {
     const allowed = Player.posts.getFilters(postId);
-    if (allowed.host.length) {
-      Player.set('allow', Player.config.allow.concat(allowed.host));
+    // The host comes from the post. Allow entries also match subdomains, so refuse a
+    // single label ("com" would allow every .com site) and local or IP-address hosts (the
+    // player fetches allowed sounds with the userscript's cross-site requests).
+    const unsafe = allowed.host.filter(host => !host.includes('.') || /^[\d.]+$|^\[|(^|\.)localhost$|\.local$/.test(host));
+    unsafe.length && Player.logError(`Not allowing ${_.escHTML(unsafe.join(', '))} from a post. Add it in Settings &gt; Filter if you trust it.`, null, 'warning');
+    const hosts = allowed.host.filter(host => !unsafe.includes(host));
+    if (hosts.length) {
+      Player.set('allow', Player.config.allow.concat(hosts));
     }
     if (allowed.image || allowed.sound.length) {
       Player.set('filters', Player.config.filters.filter(filter => {

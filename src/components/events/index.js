@@ -51,18 +51,10 @@ module.exports = {
       XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
       null,
     );
+    // './/' is descendant-or-self, so this already covers the descendants. (A second query
+    // for them wired every handler twice.)
     for (let i = 0; i < elAttrs.snapshotLength; i++) {
       eventAttrs.push(elAttrs.snapshotItem(i));
-    }
-    const childAttrs = document.evaluate(
-      './/*/attribute::*[starts-with(name(), "@")]',
-      element,
-      null,
-      XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-      null,
-    );
-    for (let i = 0; i < childAttrs.snapshotLength; i++) {
-      eventAttrs.push(childAttrs.snapshotItem(i));
     }
 
     for (let attr of eventAttrs) {
@@ -78,9 +70,12 @@ module.exports = {
       return m;
     }, {});
 
-    // Remove listener already set.
+    // Remove listener already set. A pointdrag listener is stored under pointerdown, which
+    // is what it listens to, so look it up there (re-rendering the header added another
+    // each time).
     const listeners = el._eventListeners || (el._eventListeners = {});
-    listeners[evt] && el.removeEventListener(evt, listeners[evt]);
+    const listenedEvt = evt === 'pointdrag' ? 'pointerdown' : evt;
+    listeners[listenedEvt] && el.removeEventListener(listenedEvt, listeners[listenedEvt]);
 
     // Resolve the handler, cheapest first:
     //   1. getHandler — a bare method/property path (no eval).

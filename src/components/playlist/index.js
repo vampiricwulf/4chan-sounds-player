@@ -8,6 +8,7 @@ module.exports = {
   public: ['search'],
 
   tagLoadTO: {},
+  _removedIds: new Set(),
 
   template: require('./templates/player.tpl'),
   listTemplate: require('./templates/list.tpl'),
@@ -216,9 +217,14 @@ module.exports = {
       // targeting the last slot). Sorted: the first sound that should sort AFTER the new
       // one — `> 0`, not `> 1` (compareIds returns the raw signed diff, so same-post
       // sounds whose SIDs differ by exactly 1 were inserted one position out of order).
+      // Posts are parsed in thread order, so a new sound usually goes last: check that
+      // first instead of scanning the whole list for every sound (quadratic on big threads).
+      const last = Player.sounds[Player.sounds.length - 1];
       let index = Player.config.shuffle
         ? Math.floor(Math.random() * (Player.sounds.length + 1))
-        : Player.sounds.findIndex((s) => Player.compareIds(s.id, id) > 0);
+        : !last || Player.compareIds(last.id, id) <= 0
+          ? Player.sounds.length
+          : Player.sounds.findIndex((s) => Player.compareIds(s.id, id) > 0);
       index < 0 && (index = Player.sounds.length);
       Player.sounds.splice(index, 0, sound);
 
@@ -261,7 +267,7 @@ module.exports = {
           !Player._applyingFilters &&
           Player.config.autoshow &&
           /\/thread\//.test(location.href) &&
-          Player.sounds.filter((s) => !s.standaloneVideo).length === 1
+          !sound.standaloneVideo && !Player.sounds.some((s) => s !== sound && !s.standaloneVideo)
         ) {
           Player.show();
         }
@@ -327,13 +333,19 @@ module.exports = {
       const context = canvas.getContext('2d');
       video.addEventListener('seeked', function () {
         if (video.videoWidth && video.videoHeight) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          context.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-          thumbSrc = canvas.toDataURL();
+          // Scaled down and as a JPEG: a full-size PNG of a 1080p frame is several MB,
+          // kept for as long as the sound is in the playlist.
+          const scale = Math.min(1, 640 / Math.max(video.videoWidth, video.videoHeight));
+          canvas.width = Math.round(video.videoWidth * scale);
+          canvas.height = Math.round(video.videoHeight * scale);
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          thumbSrc = canvas.toDataURL('image/jpeg', 0.85);
         } else {
           thumbSrc = null;
         }
+        // Unload the probe video (the file stays available through its object URL).
+        video.removeAttribute('src');
+        video.load();
         _continue();
       }, { once: true });
       // A video the browser can't decode never seeks, which silently dropped the file.
@@ -374,12 +386,16 @@ module.exports = {
   /**
    * Remove a sound
    */
-  remove(sound) {
+  remove(sound, { temporary } = {}) {
     // Accept the sound object or id
     if (typeof sound !== 'object') {
       sound = Player.sounds.find((s) => s.id === '' + sound);
     }
     const index = Player.sounds.indexOf(sound);
+    // Remember what the user removed so parsing the posts again (a setting change, a
+    // reload, a re-inserted post) doesn't bring it back. Filters and settings that remove
+    // sounds temporarily don't count.
+    sound && !temporary && !Player._applyingFilters && Player.playlist._removedIds.add(sound.id);
 
     // If the playing sound is being removed then play the next sound.
     if (Player.playing === sound) {
@@ -392,6 +408,12 @@ module.exports = {
     // Remove the sound from the the list and play order.
     index > -1 && Player.sounds.splice(index, 1);
 
+    // A removed local file's object URL can go once no other sound uses it (a file can hold
+    // several sounds). Not for temporary removals, which can bring the sound back.
+    if (sound && sound.local && !temporary && !Player._applyingFilters
+      && !Player.sounds.some(s => s.image === sound.image) && /^blob:/.test(sound.image)) {
+      URL.revokeObjectURL(sound.image);
+    }
     // Remove the item from the list.
     const item = sound && Player.$(`.${ns}-list-item[data-id="${sound.id}"]`);
     item && Player.$(`.${ns}-list-container`).removeChild(item);
@@ -823,7 +845,7 @@ module.exports = {
   /**
    * Keep the image within the player.
    */
-  setImageHeight() {
+  setImageHeight(opts) {
     if (!Player.isHidden && Player.config.viewStyle === 'playlist') {
       Player.$(`.${ns}-image-link`).style.cursor = null;
       const imageLink = Player.$(`.${ns}-image-link`);
@@ -833,7 +855,9 @@ module.exports = {
         Player.$(`.${ns}-controls`).getBoundingClientRect().height;
       const finalHeight = Math.max(125, Math.min(height, maxHeight));
       imageLink.style.height = finalHeight + 'px';
-      Player.set('imageHeight', finalHeight);
+      // Saved when the image itself was resized (the pointdragend event), not when the
+      // player was.
+      !(opts && opts.save === false) && Player.set('imageHeight', finalHeight);
     }
   },
 
@@ -851,19 +875,15 @@ module.exports = {
    * Preload a sound.
    */
   async preload(sound) {
-    if (sound.preloading) {
+    // One element, reused: a new Audio per call (every track change and every drag step
+    // fires this) left each one downloading. Setting a new src abandons the old load.
+    if (sound.standaloneVideo || sound.error) {
       return;
     }
-    sound.preloading = true;
-    await Promise.all([
-      !sound.standaloneVideo &&
-        new Promise((resolve) => {
-          const audio = new Audio();
-          audio.addEventListener('canplaythrough', resolve);
-          audio.addEventListener('error', resolve);
-          audio.src = sound.src;
-        }),
-    ]);
-    sound.preloading = false;
+    const audio = Player.playlist._preloader || (Player.playlist._preloader = new Audio());
+    audio.preload = 'auto';
+    if (audio.src !== sound.src) {
+      audio.src = sound.src;
+    }
   },
 };

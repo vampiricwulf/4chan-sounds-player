@@ -156,8 +156,8 @@ module.exports = {
           }
         }
 
-        // Start from the beginning taking the volume from the main player.
-        audio.src = sounds[0].src;
+        // Start from the beginning taking the volume from the main player. (The src was set
+        // when it was created; setting it again restarted the download.)
         audio.volume = Player.audio.volume;
         audio.currentTime = 0;
 
@@ -275,10 +275,16 @@ module.exports = {
     // Cancel any pending rerouter reload so its loadedmetadata/error listeners don't
     // outlive the audio element they were attached to.
     node._inlineAudio._pendingReroute && node._inlineAudio._pendingReroute();
-    // Stop the audio and cleanup the data.
-    node._inlineAudio.pause();
-    delete Player.inline.audio[node._inlineAudio.dataset.id];
+    // Stop and unload the audio, and clean up the data. Only pausing left it downloading
+    // the whole file: skimming hovered thumbnails started a full download for each.
+    const audio = node._inlineAudio;
+    audio.pause();
+    audio.removeAttribute('src');
+    audio.load();
+    audio._linked = null;
+    delete Player.inline.audio[audio.dataset.id];
     delete node._inlineAudio;
+    delete node._linked;
     Player.inline.expandedNodes = Player.inline.expandedNodes.filter(n => n !== node);
   },
 
@@ -365,6 +371,11 @@ module.exports = {
       // fire against the navigated src and revert to the previous sound.
       audio._pendingReroute && audio._pendingReroute();
       audio.src = data.sounds[data.index].src;
+      // Link the video again: a dead sound before this one unlinked it to let it play alone.
+      if (data.isVideo) {
+        data.video._linked = audio;
+        audio._linked = data.video;
+      }
       if (data.controls) {
         const prev = data.controls.querySelector(`.${ns}-previous-button`);
         const next = data.controls.querySelector(`.${ns}-next-button`);

@@ -1,3 +1,7 @@
+// Volume changes fire many times a second while dragging the bar or holding the key, and
+// every storage write is also sent to the other open tabs.
+const saveVolume = _.debounce(vol => GM.setValue('volume', vol), 300);
+
 module.exports = {
   template: require('./templates/controls.tpl'),
 
@@ -202,13 +206,22 @@ module.exports = {
     }
     const media = e.currentTarget;
     const audio = media._inlineAudio || media;
-    const controls = media._inlinePlayer ? media._inlinePlayer.controls : document;
+    // Where this media's time displays can be: its inline controls, or the player and the
+    // 4chan X header controls. (Querying the whole document ran on every timeupdate.)
+    const roots = media._inlinePlayer
+      ? [ media._inlinePlayer.controls ]
+      : [ Player.container, document.querySelector(`.${ns}-chan-x-controls`) ];
     const currentTime = _.toDuration(media.currentTime);
     const duration = _.toDuration(media.duration);
     const audioId = audio.dataset.id;
     // Gross use of childNodes to avoid textContent triggering mutation observers of other scripts.
-    controls && controls.querySelectorAll(`.${ns}-current-time[data-audio="${audioId}"]`).forEach(el => el.childNodes[0].textContent = currentTime);
-    controls && controls.querySelectorAll(`.${ns}-duration[data-audio="${audioId}"]`).forEach(el => el.childNodes[0].textContent = duration);
+    roots.forEach(root => {
+      if (!root) {
+        return;
+      }
+      root.querySelectorAll(`.${ns}-current-time[data-audio="${audioId}"]`).forEach(el => el.childNodes[0].textContent = currentTime);
+      root.querySelectorAll(`.${ns}-duration[data-audio="${audioId}"]`).forEach(el => el.childNodes[0].textContent = duration);
+    });
     Player.controls.updateProgressBarPosition(audio.currentTimeBar, media.currentTime, media.duration);
   },
 
@@ -222,7 +235,7 @@ module.exports = {
     // Store volume of the main player.
     if (audio === Player.audio) {
       vol > 0 && (Player._lastVolume = vol);
-      GM.setValue('volume', vol);
+      saveVolume(vol);
     }
     controls && controls.querySelectorAll(`.${ns}-volume-button[data-audio="${audio.dataset.id}"]`).forEach(el => {
       el.classList[vol === 0 ? 'add' : 'remove']('mute');
