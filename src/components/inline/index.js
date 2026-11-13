@@ -278,6 +278,22 @@ module.exports = {
               volume: `controls.handleVolume($event, "${aId}")`
             }
           }), node.parentNode);
+          // On native 4chan the expanded media sits in the post's whole file block: keep the
+          // controls over the media itself (they spanned the block, wider than a small video).
+          if (!isChanX && typeof ResizeObserver === 'function') {
+            const fit = () => {
+              if (!node.isConnected || node.offsetParent !== node.parentNode) {
+                return;
+              }
+              controls.style.left = node.offsetLeft + 'px';
+              controls.style.right = 'auto';
+              controls.style.width = node.offsetWidth + 'px';
+              controls.style.bottom = Math.max(0, node.parentNode.clientHeight - node.offsetTop - node.offsetHeight) + 'px';
+            };
+            node._inlinePlayer.controlsFit = new ResizeObserver(fit);
+            node._inlinePlayer.controlsFit.observe(node);
+            fit();
+          }
           // Don't want to close the expanded image or open the image when the controls are clicked.
           controls.addEventListener('click', e => {
             e.preventDefault();
@@ -342,6 +358,7 @@ module.exports = {
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
     // Remove controls.
+    node._inlinePlayer.controlsFit && node._inlinePlayer.controlsFit.disconnect();
     const controls = node._inlineAudio._inlinePlayer.controls;
     if (controls) {
       controls.parentNode.classList.remove(`${ns}-has-controls`);

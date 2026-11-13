@@ -141,7 +141,7 @@ module.exports = [
     requireSound: true,
     action: data => {
       const src = data.sound[data.tplNameMatch[1] === 'image' ? 'image' : 'src'];
-      const name = data.sound[data.tplNameMatch[1] === 'image' ? 'filename' : 'name'] || '';
+      const name = data.tplNameMatch[1] === 'image' ? data.sound.filename || '' : data.sound.name || data.sound.title || '';
       return `tools.download("${_.escAttr(src, true)}", "${_.escAttr(name, true)}")`;
     },
     actionMods: '.prevent',

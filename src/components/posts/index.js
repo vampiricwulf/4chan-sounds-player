@@ -240,7 +240,8 @@ module.exports = {
     }, []);
     // Add webms without a sound filename as a standalone video if enabled. The synthetic
     // match must align with the regex's capture groups: [full, name, host, src].
-    if (!matches.length && Player.posts.videosAllowed() && filename.match(/\.(webm|mp4)$/i)) {
+    // (Always for a local file, which the user added on purpose: there's no post.)
+    if (!matches.length && (Player.posts.videosAllowed() || !post) && filename.match(/\.(webm|mp4)$/i)) {
       // `.webm` is 5 chars, `.mp4` is 4 — strip the actual extension instead of a
       // fixed-width slice that truncates an extra char for .mp4 titles.
       matches.push([null, filename.replace(/\.(webm|mp4)$/i, ''), 'sound', image]);

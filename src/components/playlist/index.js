@@ -305,11 +305,14 @@ module.exports = {
   },
 
   addFromDrop(e) {
-    for (let item of e.dataTransfer.items) {
-      const entry = item.getAsEntry
-        ? item.getAsEntry()
-        : item.webkitGetAsEntry();
-      entry && Player.playlist._scanEntry(entry);
+    const entries = [ ...(e.dataTransfer.items || []) ].map(item => item.getAsEntry
+      ? item.getAsEntry()
+      : item.webkitGetAsEntry && item.webkitGetAsEntry()).filter(Boolean);
+    if (entries.length) {
+      entries.forEach(entry => Player.playlist._scanEntry(entry));
+    } else if (e.dataTransfer.files && e.dataTransfer.files.length) {
+      // No file-system entries (some browsers, or files that aren't on disk): use the files.
+      Player.playlist.addFromFiles([ ...e.dataTransfer.files ]);
     }
   },
 

@@ -135,6 +135,10 @@ module.exports = {
       // A drag whose button was released where we didn't see it (a context menu took the
       // mouseup) ends at the next move rather than following the cursor around.
       const moveListener = function (e) {
+        // Another finger moving isn't this drag.
+        if (e.pointerId !== undefined && e.pointerId !== Player._mousedownPointerId) {
+          return;
+        }
         if (e.pointerType === 'mouse' && e.buttons === 0) {
           return Player.events.clearMousedown(e);
         }
@@ -146,6 +150,11 @@ module.exports = {
         if (e.button > 0) {
           return;
         }
+        // One drag at a time: a second finger on another handle replaced the drag being
+        // tracked, and the first one's move listener was then never removed.
+        if (Player._mousedown && Player._mousedownPointerId !== e.pointerId) {
+          return;
+        }
         // No idea why but this seems to fire twice. So avoid that.
         if (!e._dragInit) {
           e._dragInit = true;
@@ -153,6 +162,7 @@ module.exports = {
           if (!e.preventDrag) {
             el.setPointerCapture(e.pointerId);
             Player._mousedown = el;
+            Player._mousedownPointerId = e.pointerId;
             Player._mousedownListener = moveListener;
             Player._mousedownMoveEl = mods.unbound
               ? document.documentElement
@@ -248,8 +258,11 @@ module.exports = {
   },
 
   clearMousedown(e) {
-    if (Player._mousedown) {
-      Player._mousedown.releasePointerCapture(e.pointerId);
+    // Only the pointer that started the drag ends it (lifting another finger doesn't).
+    if (Player._mousedown && (e.pointerId === undefined || e.pointerId === Player._mousedownPointerId)) {
+      try {
+        Player._mousedown.releasePointerCapture(Player._mousedownPointerId);
+      } catch (err) { /* not captured any more */ }
       Player._mousedownMoveEl.removeEventListener(
         'pointermove',
         Player._mousedownListener,

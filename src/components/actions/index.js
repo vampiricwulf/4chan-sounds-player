@@ -223,6 +223,8 @@ module.exports = {
     Player.playing = null;
     Player.isVideo = false;
     Player.isStandalone = false;
+    // Unloading drops the queued pause event, which is what updates the buttons.
+    Player.controls.setPlayButtons(Player.audio, true);
     Player.trigger('stop');
   },
 

@@ -3,6 +3,17 @@
 	padding: .25rem;
 	white-space: nowrap;
 	z-index: 999;
+	// Never wider than the window: on 4chan's mobile layout it overflowed the screen.
+	max-width: calc(100vw - .5rem);
+	box-sizing: border-box;
+	overflow-x: auto;
+
+	// 4chan's mobile styles widen every input; keep the RGBA fields small.
+	input.#{$ns}-rgb-input {
+		width: 2.5rem !important;
+		min-width: 0 !important;
+		box-sizing: border-box;
+	}
 
 	.#{$ns}-cp-saturation {
 		display: inline-block;

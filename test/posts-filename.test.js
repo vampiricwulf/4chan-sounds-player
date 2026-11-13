@@ -53,6 +53,12 @@ assert.deepStrictEqual(parse('loud (SOUND WARNING).webm', 'https://i.4cdn.org/gi
 assert.deepStrictEqual(parse('x[sound=https://example.com/My Song.mp3].png'), [ [ 'x', 'https://example.com/My Song.mp3', false ] ]);
 assert.deepStrictEqual(parse('x[sound=example.com%2FMy Song.mp3].png'), [ [ 'x', 'https://example.com/My Song.mp3', false ] ]);
 
+// --- a local video (no post) is taken whatever Include Video says ---
+Player.config.addWebm = 'never';
+assert.deepStrictEqual(posts.getSounds('clip.webm', 'blob:x', null, null, null, true).sounds.map(s => [ s.title, s.standaloneVideo ]), [ [ 'clip', true ] ]);
+assert.deepStrictEqual(posts.getSounds('clip.webm', 'https://i.4cdn.org/gif/1.webm', '9', null, null, true).sounds, [], 'a post\'s video still follows the setting');
+Player.config.addWebm = 'soundBoards';
+
 // --- no tags at all ---
 assert.deepStrictEqual(parse('plain.png'), []);
 

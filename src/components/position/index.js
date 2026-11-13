@@ -18,7 +18,11 @@ module.exports = {
       // Use isFinite + non-empty check so a saved corner like '0:0' (player
       // pinned to top-left) restores correctly instead of being skipped via the
       // falsy-zero short-circuit. size has no '0' case (a 0px window is junk).
-      +width && +height && Player.position.resize(width, height, true);
+      // Without a saved size, still fit the default one in the window (on a narrow phone
+      // its header buttons were off-screen).
+      +width && +height
+        ? Player.position.resize(width, height, true)
+        : Player.position.resize(Player.container.offsetWidth, Player.container.offsetHeight);
       if (left !== undefined && left !== '' && top !== undefined && top !== ''
           && isFinite(+left) && isFinite(+top)) {
         Player.position.move(+left, +top);
@@ -335,8 +339,12 @@ module.exports = {
       }
     };
     docClasses.contains('fixed') && reserve(document.querySelector('#header-bar'));
-    const mobileBar = document.getElementById('mobile-bar');
-    mobileBar && getComputedStyle(mobileBar).position === 'fixed' && reserve(mobileBar);
+    // 4chan-neXT's mobile bar, and native 4chan's mobile nav (which covered the player's
+    // header, leaving no way to drag it out).
+    [ 'mobile-bar', 'boardNavMobile' ].forEach(id => {
+      const bar = document.getElementById(id);
+      bar && getComputedStyle(bar).position === 'fixed' && reserve(bar);
+    });
     return { top, bottom };
   },
 
@@ -356,8 +364,14 @@ module.exports = {
     if (relRect.left + width > document.documentElement.clientWidth) {
       item.style.left = (relRect.left + relRect.width - width) + 'px';
     }
-    if (relRect.top + relRect.height + height > document.documentElement.clientHeight - Player.position.getHeaderOffset().bottom) {
+    const { top: headerTop, bottom: headerBottom } = Player.position.getHeaderOffset();
+    if (relRect.top + relRect.height + height > document.documentElement.clientHeight - headerBottom) {
       item.style.top = (relRect.top - height) + 'px';
     }
+    // Never past the window's edges (on a narrow screen the colour picker opened half
+    // off the left side).
+    const clamp = (value, min, max) => Math.max(min, Math.min(value, Math.max(min, max)));
+    item.style.left = clamp(parseFloat(item.style.left), 0, document.documentElement.clientWidth - width) + 'px';
+    item.style.top = clamp(parseFloat(item.style.top), headerTop, document.documentElement.clientHeight - headerBottom - height) + 'px';
   }
 };

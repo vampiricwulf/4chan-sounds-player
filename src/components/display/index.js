@@ -107,10 +107,22 @@ module.exports = {
       // Those links live in the desktop nav bars, which 4chan's mobile view and StyleChan's
       // "Show Navigation Links" option hide, leaving no way to open the player. Fall back to
       // a small fixed button then. Checked after layout so stylesheets have applied.
-      requestAnimationFrame(() => {
-        if (!links.some(link => link.getClientRects().length)) {
-          _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
+      // Also when the window is narrowed later (4chan's mobile view hides them below 480px).
+      let launcher = null;
+      const checkLinks = () => {
+        const hidden = !links.some(link => link.getClientRects().length);
+        if (hidden && !launcher) {
+          launcher = _.element(`<a href="#" class="${ns}-launcher" title="4chan Sounds" @click.prevent="display.toggle">${Icons.playFill}</a>`, document.body);
         }
+        launcher && (launcher.style.display = hidden ? '' : 'none');
+      };
+      requestAnimationFrame(checkLinks);
+      let resizeFrame = null;
+      window.addEventListener('resize', () => {
+        resizeFrame = resizeFrame || requestAnimationFrame(() => {
+          resizeFrame = null;
+          checkLinks();
+        });
       });
     }
   },

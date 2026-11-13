@@ -4,6 +4,12 @@ const videoUtil = require('./video-util');
 // File types that run or render as code when opened.
 const RISKY_EXTENSIONS = /\.(exe|com|bat|cmd|scr|pif|cpl|msi|msp|hta|html?|xhtml|mht|svg|js|jse|vbs|vbe|wsf|wsh|ps1|psm1|lnk|url|reg|jar|sh|app|dmg|pkg|deb|rpm|apk)$/i;
 
+const MEDIA_EXTENSIONS = {
+  'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'audio/ogg': 'ogg', 'audio/opus': 'opus', 'audio/wav': 'wav',
+  'audio/x-wav': 'wav', 'audio/flac': 'flac', 'audio/mp4': 'm4a', 'audio/aac': 'aac', 'audio/webm': 'weba',
+  'video/webm': 'webm', 'video/mp4': 'mp4', 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif'
+};
+
 // A file name that can't be saved as something that runs: posts choose both the name and
 // the link, so either can carry the extension. Windows drops trailing dots and spaces
 // ("invoice.exe." saves as invoice.exe), so those go first; a risky extension gets .bin.
@@ -14,6 +20,21 @@ function safeFileName(name) {
 
 const get = (src, opts) => {
   let xhr;
+  // The page's own files (local sounds, as blob: links): fetch them directly. A userscript
+  // manager's request may not reach them, and this keeps their type for the file name.
+  if (/^(blob|data):/i.test(String(src))) {
+    const controller = new AbortController();
+    xhr = { abort: () => controller.abort() };
+    let p = fetch(src, { signal: controller.signal }).then(response => response.blob(), err => {
+      err && err.name === 'AbortError' && (err.aborted = true);
+      throw err;
+    });
+    if (opts && opts.catch) {
+      p = p.catch(opts.catch);
+    }
+    p.abort = () => xhr.abort();
+    return p;
+  }
   // Wrap so aborting rejects.
   let p = new Promise((resolve, reject) => {
     xhr = GM.xmlHttpRequest({
@@ -116,6 +137,9 @@ const downloadTool = module.exports = {
       const base = name.replace(/\.[a-z0-9]{1,5}$/i, '') || 'download';
       name = safeFileName(urlExt ? `${base}.${urlExt}` : name);
       const blob = await get(src);
+      // Nothing to go on from the link (a local file's blob: URL): name it by its type.
+      const typeExt = !urlExt && !/\.[a-z0-9]{1,5}$/i.test(name) && MEDIA_EXTENSIONS[(blob.type || '').split(';')[0]];
+      typeExt && (name = `${name}.${typeExt}`);
       const a = _.element(`<a href="${URL.createObjectURL(blob)}" download="${_.escAttr(name)}" rel="noopener" target="_blank"></a>`);
       a.click();
       URL.revokeObjectURL(a.href);
