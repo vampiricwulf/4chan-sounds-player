@@ -53,6 +53,9 @@ module.exports = {
         // Remove play on load listeners for the previous sound.
         Player.video.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
         Player.audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+        // Dropping a pending play: put the buttons back to paused (play events set them
+        // again if the new sound plays).
+        Player.actions._pendingPlay && Player.controls.setPlayButtons(Player.audio, true);
         Player.actions._pendingPlay = false;
         // Remove audio events from the video, and add them back for standalone video.
         const audioEvents = Player.controls.audioEvents;
@@ -176,7 +179,8 @@ module.exports = {
     Player.audio._linked = Player.video._linked = false;
     Player.isVideo = false;
     Player.container.classList.remove('playing-video');
-    Player.$(`.${ns}-image-link`).classList.remove(`${ns}-show-video`);
+    // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
+    document.querySelector(`.${ns}-image-link`).classList.remove(`${ns}-show-video`);
     if (Player.actions._pendingPlay) {
       Player.actions._pendingPlay = false;
       Player.audio.play().catch(() => {});
@@ -201,6 +205,8 @@ module.exports = {
     // the error event is queued as a microtask).
     Player.audio.removeAttribute('src');
     Player.audio.load();
+    // Clear the row's playing flag too; the next play() can't, with nothing playing.
+    Player.playing && (Player.playing.playing = false);
     Player.playing = null;
     Player.isVideo = false;
     Player.isStandalone = false;

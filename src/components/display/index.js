@@ -11,8 +11,10 @@ const dismissedContentCache = {};
 const dismissedRestoreCache = {};
 
 const noSleep = typeof NoSleep === 'function' && new NoSleep();
-const enableNoSleep = () => noSleep.enable();
-const disableNoSleep = () => noSleep.disable();
+// Only for the element currently playing (the audio element, or the video element for a
+// standalone video).
+const enableNoSleep = e => e.currentTarget === Player.audio && noSleep.enable();
+const disableNoSleep = e => e.currentTarget === Player.audio && noSleep.disable();
 
 module.exports = {
   atRoot: [ 'show', 'hide' ],
@@ -36,6 +38,8 @@ module.exports = {
     // Set up no sleep
     Player.on('config:preventSleep', Player.display._initNoSleep);
     Player.display._initNoSleep(Player.config.preventSleep);
+    // Bind the video element too once it exists.
+    Player.on('rendered', () => Player.display._initNoSleep(Player.config.preventSleep));
     // Close dialogs when the user clicks anywhere or presses escape.
     document.body.addEventListener('click', Player.display.closeDialogs);
     // Escape closes every dialog, including one with focus inside (passing the event made
@@ -62,6 +66,10 @@ module.exports = {
       li.children[0].addEventListener('click', Player.display.toggle);
     } else if (Site === 'Fuuka') {
       const br = document.querySelector('div:has(#simple-search-form) + hr');
+      // Not every warosu page has the search form; don't abort initialising over a button.
+      if (!br) {
+        return;
+      }
       br.parentNode.insertBefore(document.createTextNode('['), br);
       _.element('<a href="#" @click.prevent="display.toggle">Sounds</a>', br, 'beforebegin');
       br.parentNode.insertBefore(document.createTextNode(']'), br);
@@ -402,8 +410,11 @@ module.exports = {
   _popoverMouseEnter: e => {
     const icon = e.currentTarget;
     const wide = icon.classList.contains('wide');
-    if (!icon.infoEl || !Player.container.contains(icon.infoEl)) {
-      icon.infoEl = _.element(`<div class="${ns}-popover-body ${wide ? 'wide' : ''} ${ns}-dialog dialog">${icon.dataset.content}</div>`, Player.container);
+    if (!icon.infoEl || !document.contains(icon.infoEl)) {
+      // A post's filter hint while the player is hidden would be invisible in the
+      // container, so put popovers for elements outside it in the page.
+      const parent = Player.container.contains(icon) ? Player.container : document.body;
+      icon.infoEl = _.element(`<div class="${ns}-popover-body ${wide ? 'wide' : ''} ${ns}-dialog dialog">${icon.dataset.content}</div>`, parent);
       icon.infoEl._keepOpenFor = [ icon ];
       Player.position.showRelativeTo(icon.infoEl, icon);
     }
@@ -419,7 +430,7 @@ module.exports = {
 
   _popoverClick: e => {
     const icon = e.currentTarget;
-    const openPopover = icon.infoEl && Player.container.contains(icon.infoEl);
+    const openPopover = icon.infoEl && document.contains(icon.infoEl);
     if (!openPopover) {
       Player.display._popoverMouseEnter(e);
     } else if (!(icon.infoEl._clicked = !icon.infoEl._clicked)) {
@@ -428,26 +439,32 @@ module.exports = {
   },
 
   _initNoSleep: newValue => {
-    const action = newValue ? 'addEventListener' : 'removeEventListener';
-    if (!noSleep || !!newValue === Player.display._noSleepEnabled) {
+    if (!noSleep) {
       return;
     }
-    Player.audio[action]('play', enableNoSleep);
-    Player.audio[action]('pause', disableNoSleep);
-    Player.audio[action]('ended', disableNoSleep);
-    Player.display._noSleepEnabled = !!newValue;
-    if (!Player.audio.paused) {
-      noSleep[newValue ? 'enable' : 'disable']();
+    const enabled = !!newValue;
+    const action = enabled ? 'addEventListener' : 'removeEventListener';
+    // Standalone videos play through the video element, so watch it as well as the audio
+    // element (only the element current at startup was bound before).
+    [ Player.controls._audio || Player.audio, Player.video ].filter(Boolean).forEach(media => {
+      media[action]('play', enableNoSleep);
+      media[action]('pause', disableNoSleep);
+      media[action]('ended', disableNoSleep);
+    });
+    if (enabled !== Player.display._noSleepEnabled && Player.audio && !Player.audio.paused) {
+      noSleep[enabled ? 'enable' : 'disable']();
     }
+    Player.display._noSleepEnabled = enabled;
   },
 
   untz() {
-    const container =  Player.$(`.${ns}-image-link`);
+    // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
+    const container = document.querySelector(`.${ns}-image-link`);
     Player.untzing = !Player.untzing;
     Player.audio.playbackRate = Player.audio.defaultPlaybackRate = Player.untzing ? 1.3 : 1;
     Player.container.classList[Player.untzing ? 'add' : 'remove']('untz');
     if (Player.untzing) {
-      const overlay = Player.$('.image-color-overlay');
+      const overlay = container.querySelector('.image-color-overlay');
       let rotate = 0;
       // Space-separate filter functions (`;` is a declaration terminator, not a
       // filter separator — it would break the whole value).

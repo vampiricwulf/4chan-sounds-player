@@ -164,6 +164,23 @@ module.exports = {
         // Add the sync handlers to which source is master.
         Player.inline.updateSyncListeners(master, 'add');
 
+        // A dead [sound=] link: the video would wait for the audio forever, frozen and with
+        // its controls taken away. Let it play on its own with its own controls instead.
+        if (isVideo) {
+          node._inlinePlayer.audioError = () => {
+            if (node._inlineAudio !== audio) {
+              return;
+            }
+            node.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+            audio.removeEventListener('canplaythrough', Player.actions.playOnceLoaded);
+            node.controlsObserver && node.controlsObserver.disconnect();
+            node._linked = audio._linked = null;
+            node.controls = true;
+            node.play().catch(() => {});
+          };
+          audio.addEventListener('error', node._inlinePlayer.audioError);
+        }
+
         // Show the player controls for expanded images/videos.
         const showPlayerControls = isExpandedImage && Player.config.expandedControls;
 
@@ -246,6 +263,7 @@ module.exports = {
     // Stop listening for media events.
     Player.inline.updateSyncListeners(node._inlinePlayer.master, 'remove');
     node._inlinePlayer.resync && node.removeEventListener('play', node._inlinePlayer.resync);
+    node._inlinePlayer.audioError && node._inlineAudio.removeEventListener('error', node._inlinePlayer.audioError);
     // 4chan X reuses the expanded element on the next expand, so don't leave this behind.
     node._inlinePlayer.clickToggle && node.removeEventListener('click', node._inlinePlayer.clickToggle);
     // Remove controls.
@@ -281,6 +299,11 @@ module.exports = {
       Object.entries(Player.inline.mediaEvents).forEach(([ event, handler ]) => {
         node[`${action}EventListener`](event, Player.getHandler(handler));
       });
+      // Volume belongs to the audio even when the video is the master, so listen there
+      // too or the inline volume bar and mute icon never update.
+      if (audio !== node) {
+        audio[`${action}EventListener`]('volumechange', Player.getHandler(Player.inline.mediaEvents.volumechange));
+      }
     }
   },
 

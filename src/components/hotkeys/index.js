@@ -20,14 +20,28 @@ module.exports = {
       return c;
     }, {});
 
-    // Setup up hardware media keys.
-    if ('mediaSession' in navigator && Player.config.hardwareMediaKeys) {
+    // Setup up hardware media keys, and follow the setting (it only applied after a reload).
+    if ('mediaSession' in navigator) {
+      Player.hotkeys._setMediaKeys(Player.config.hardwareMediaKeys);
+      Player.on('config:hardwareMediaKeys', Player.hotkeys._setMediaKeys);
+    }
+  },
+
+  /**
+	 * Register the media session handlers (media keys, lock screen controls), or clear them.
+	 */
+  _setMediaKeys(enabled) {
+    if (!('mediaSession' in navigator)) {
+      return;
+    }
+    {
       const actions = [
         [ 'play', () => Player.play() ],
         [ 'pause', () => Player.pause() ],
         [ 'stop', () => Player.pause() ],
-        [ 'previoustrack', () => Player.previous() ],
-        [ 'nexttrack', () => Player.next() ],
+        // force, like the player's buttons: with repeat 'one' these did nothing.
+        [ 'previoustrack', () => Player.previous({ force: true }) ],
+        [ 'nexttrack', () => Player.next({ force: true }) ],
         [ 'seekbackward', evt => Player.audio.currentTime -= evt.seekOffset || 10 ],
         [ 'seekforward', evt => Player.audio.currentTime += evt.seekOffset || 10 ],
         // `seekto` carries an ABSOLUTE time per spec — assignment, not +=.
@@ -35,11 +49,15 @@ module.exports = {
       ];
       for (let [ type, handler ] of actions) {
         try {
-          navigator.mediaSession.setActionHandler(type, handler);
+          navigator.mediaSession.setActionHandler(type, enabled ? handler : null);
         } catch (err) {
           // not enabled...
         }
       }
+      if (!enabled || Player.hotkeys._mediaListening) {
+        return;
+      }
+      Player.hotkeys._mediaListening = true;
 
       // Keep the media metadata updated. Standalone videos play through the video
       // element, so listen on both and only act for whichever is currently playing.
@@ -50,10 +68,11 @@ module.exports = {
         [ 'play', Player.hotkeys.setMediaMetadata ],
         [ 'ratechange', Player.hotkeys.setMediaPosition ],
         [ 'seeked', Player.hotkeys.setMediaPosition ]
-      ].forEach(([ evt, fn ]) => media.addEventListener(evt, e => e.currentTarget === Player.audio && fn()));
-      listen(Player.audio);
-      Player.on('rendered', () => Player.video && listen(Player.video));
-      Player.on('tags-loaded', sound => sound === Player.playing && Player.hotkeys.setMediaMetadata());
+      ].forEach(([ evt, fn ]) => media.addEventListener(evt, e => Player.config.hardwareMediaKeys && e.currentTarget === Player.audio && fn()));
+      listen(Player.controls._audio || Player.audio);
+      // The video element exists once the player has rendered.
+      Player.video ? listen(Player.video) : Player.on('rendered', () => Player.video && listen(Player.video));
+      Player.on('tags-loaded', sound => Player.config.hardwareMediaKeys && sound === Player.playing && Player.hotkeys.setMediaMetadata());
     }
   },
 
@@ -183,7 +202,9 @@ module.exports = {
 				&& (!(keyConfigs[name] && keyConfigs[name].ignoreRepeat) || !e.repeat)
 				&& keyConfigs[name];
 
-      if (bindingConfig && (!inputFocused || bindingConfig.allowFocusedInput)) {
+      // allowFocusedInput is for the player's own inputs (its search box), not the page's:
+      // a printable binding would otherwise be swallowed while typing a reply.
+      if (bindingConfig && (!inputFocused || (bindingConfig.allowFocusedInput && Player.container && Player.container.contains(target)))) {
         e.preventDefault();
         e._binding = keyDef;
         Player.getHandler(bindingConfig.keyHandler)(e);

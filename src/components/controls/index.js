@@ -96,7 +96,10 @@ module.exports = {
       // Preserve play state across the skip: if playback was running when the source
       // failed, keep playing the next sound; only stay paused if we were already paused.
       // Captured now (not at timer-fire) so it reflects the state at the moment of error.
-      const wasPlaying = !!Player.audio && !Player.audio.paused;
+      // A sound webm waiting for both to load still has a paused audio element, but
+      // playback was requested: count it as playing, and cancel the wait.
+      const wasPlaying = !!Player.actions._pendingPlay || (!!Player.audio && !Player.audio.paused);
+      Player.actions._pendingPlay && Player.pause();
       Player._errorAdvanceTO = setTimeout(() => Player.playing && Player.next({ paused: !wasPlaying }), 3000);
     }
   },

@@ -65,10 +65,11 @@ module.exports = {
       Player.$all(`.${ns}-list-item.playing`).forEach((el) =>
         el.classList.remove('playing'),
       );
-      const container = Player.$(`.${ns}-image-link`);
+      // document, not Player.$: the picture-in-picture thumbnail moves the image to <body>.
+      const container = document.querySelector(`.${ns}-image-link`);
       container.href = '#';
-      Player.$(`.${ns}-background-image`).src = Player.video.src = '';
-      Player.$(`.${ns}-image`).src =
+      document.querySelector(`.${ns}-background-image`).src = Player.video.src = '';
+      document.querySelector(`.${ns}-image`).src =
         `data:image/svg+xml;base64,${btoa(Icons.fcSounds)}`;
       container.classList.remove(`${ns}-show-video`);
     });
@@ -98,7 +99,7 @@ module.exports = {
     // Resize the image when the config is changed (from other tabs)
     Player.on(
       'config:imageHeight',
-      (height) => (Player.$(`.${ns}-image-link`).style.height = height + 'px'),
+      (height) => (document.querySelector(`.${ns}-image-link`).style.height = height + 'px'),
     );
 
     // Preload the next audio.
@@ -312,6 +313,8 @@ module.exports = {
       const imageSrc = URL.createObjectURL(file);
       const type = file.type;
       let thumbSrc = imageSrc;
+      // Declared before the early return below: _continue reads it for images too.
+      let added = false;
 
       // If it's not a webm just use the full image as the thumbnail
       if (file.type !== 'video/webm' && file.type !== 'video/mp4') {
@@ -322,7 +325,6 @@ module.exports = {
       const canvas = document.createElement('canvas');
       const video = document.createElement('video');
       const context = canvas.getContext('2d');
-      let added = false;
       video.addEventListener('seeked', function () {
         if (video.videoWidth && video.videoHeight) {
           canvas.width = video.videoWidth;
@@ -381,7 +383,8 @@ module.exports = {
 
     // If the playing sound is being removed then play the next sound.
     if (Player.playing === sound) {
-      Player.next({ force: true, paused: Player.audio.paused });
+      // A play still waiting for a sound webm to load counts as playing.
+      Player.next({ force: true, paused: Player.audio.paused && !Player.actions._pendingPlay });
       // Nothing else to move to (it was the only sound, the last one with repeat off, or
       // every other sound is dead). Stop instead of playing a sound that's left the list.
       Player.playing === sound && Player.stop();
@@ -553,6 +556,10 @@ module.exports = {
     const position = moving.compareDocumentPosition(before);
     if (position & 0x04) {
       before = before.nextElementSibling;
+      // Skip anything that isn't a row (an open row menu lives in the list too).
+      while (before && !before.classList.contains(`${ns}-list-item`)) {
+        before = before.nextElementSibling;
+      }
     }
 
     // Move the element and sound.
