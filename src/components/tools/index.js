@@ -33,6 +33,10 @@ module.exports = {
 	 * Decode the encoded input.
 	 */
   handleEncoded(e) {
-    Player.$(`.${ns}-decoded-input`).value = decodeURIComponent(e.currentTarget.value);
+    try {
+      Player.$(`.${ns}-decoded-input`).value = decodeURIComponent(e.currentTarget.value);
+    } catch (err) {
+      // An incomplete escape ("%2") while typing. Leave the decoded value as it was.
+    }
   }
 };
