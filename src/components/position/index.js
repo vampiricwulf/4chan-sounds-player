@@ -152,7 +152,12 @@ module.exports = {
       [ 'top', 'right', 'bottom' ].forEach(prop => nav.style.removeProperty(prop));
     }
     const p = Player.container && !Player.isHidden && Player.container.getBoundingClientRect();
-    const n = nav.getBoundingClientRect();
+    // Where they are when shown: on phones 4chan neXT docks them, slid nearly off the edge,
+    // until tapped.
+    const r = nav.getBoundingClientRect();
+    const transform = getComputedStyle(nav).transform;
+    const { e: dx, f: dy } = transform && transform !== 'none' ? new DOMMatrixReadOnly(transform) : { e: 0, f: 0 };
+    const n = { left: r.left - dx, right: r.right - dx, top: r.top - dy, bottom: r.bottom - dy, width: r.width, height: r.height };
     if (!p || !p.width || !n.width || n.left >= p.right || n.right <= p.left || n.top >= p.bottom || n.bottom <= p.top) {
       return;
     }
